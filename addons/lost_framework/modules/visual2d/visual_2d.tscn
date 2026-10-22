@@ -1,0 +1,25 @@
+[gd_scene format=3 uid="uid://ct83bxnmprbai"]
+
+[ext_resource type="Script" uid="uid://erl42dlfxo0y" path="res://addons/lost_framework/modules/visual2d/visual_2d.gd" id="1_ac2m0"]
+[ext_resource type="Shader" uid="uid://ctjirle8qgplx" path="res://addons/lost_framework/resources/assets/shaders/outline.gdshader" id="3_2gf65"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_n307v"]
+resource_local_to_scene = true
+shader = ExtResource("3_2gf65")
+shader_parameter/clr = Color(1, 1, 1, 1)
+shader_parameter/type = 2
+shader_parameter/thickness = 1.0
+
+[node name="Visual2D" type="Node2D" unique_id=664217792 node_paths=PackedStringArray("main_sprite", "outline_sprite", "animation_player")]
+script = ExtResource("1_ac2m0")
+main_sprite = NodePath("MainSprite2D")
+outline_sprite = NodePath("MainSprite2D/OutlineSprite2D")
+animation_player = NodePath("AnimationPlayer")
+
+[node name="MainSprite2D" type="Sprite2D" parent="." unique_id=476217553]
+
+[node name="OutlineSprite2D" type="Sprite2D" parent="MainSprite2D" unique_id=1759689195]
+show_behind_parent = true
+material = SubResource("ShaderMaterial_n307v")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1720667782]

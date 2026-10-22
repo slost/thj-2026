@@ -1,0 +1,51 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="THJ 2026"
+config/description="THJ 2026 game jam. Godot 4.8-beta1 with the Lost framework hot-swap asset pipeline."
+run/main_scene="res://game/main.tscn"
+config/features=PackedStringArray("4.8", "GL Compatibility")
+config/icon="res://icon.svg"
+
+[autoload]
+
+Refs="*res://addons/lost_framework/core/autoloads/refs.gd"
+Rng="*res://addons/lost_framework/core/autoloads/rng.gd"
+SignalBus="*res://addons/lost_framework/core/autoloads/signal_bus.gd"
+Lost="*res://addons/lost_framework/core/lost_core.gd"
+Audio="*res://addons/lost_framework/modules/audio_manager/audio_manager.module.gd"
+SaveManager="*res://addons/lost_framework/modules/save_manager/save_manager.module.gd"
+Settings="*res://addons/lost_framework/modules/settings/settings.module.gd"
+
+[display]
+
+window/size/viewport_width=960
+window/size/viewport_height=540
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/lost_framework/plugin.cfg")
+
+[lost_framework/asset_manager]
+
+remote_enabled=true
+base_url="assets/"
+max_concurrent=4
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.106, 0.141, 0.188, 1)

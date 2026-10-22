@@ -1,0 +1,7 @@
+{
+	"id": "audio_manager",
+	"type": "active",
+	"category": "system",
+	"autoload": true,
+	"dependencies": ["composition"]
+}

@@ -1,0 +1,73 @@
+[gd_scene load_steps=4 format=3 uid="uid://ukwa7ksfp5v8"]
+
+[ext_resource type="Theme" uid="uid://dkl3xn6flw0ft" path="res://game/assets/themes/main_theme.tres" id="1_5wsvm"]
+[ext_resource type="Script" uid="uid://exicrmvv342h" path="res://addons/lost_framework/resources/templates/game/menu/main_menu.gd" id="1_i2xx2"]
+[ext_resource type="Script" uid="uid://cwvot22lewiab" path="res://addons/lost_framework/modules/optional/ui_button.gd" id="3_o14dv"]
+
+[node name="MainMenu" type="Node2D"]
+script = ExtResource("1_i2xx2")
+game_scene_path = "res://Scenes/UI/level_selector.tscn"
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1280.0
+offset_bottom = 720.0
+
+[node name="ButtonContainer" type="VBoxContainer" parent="Control"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -128.0
+offset_top = -113.0
+offset_right = 128.0
+offset_bottom = 113.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 2
+theme_override_constants/separation = 32
+
+[node name="PlayButton" type="Button" parent="Control/ButtonContainer"]
+layout_mode = 2
+focus_next = NodePath("../TutorButton")
+theme = ExtResource("1_5wsvm")
+text = "Play"
+script = ExtResource("3_o14dv")
+metadata/_custom_type_script = "uid://cwvot22lewiab"
+
+[node name="TutorButton" type="Button" parent="Control/ButtonContainer"]
+layout_mode = 2
+focus_next = NodePath("../OptionsButton")
+theme = ExtResource("1_5wsvm")
+text = "How To Play"
+script = ExtResource("3_o14dv")
+metadata/_custom_type_script = "uid://cwvot22lewiab"
+
+[node name="OptionsButton" type="Button" parent="Control/ButtonContainer"]
+layout_mode = 2
+focus_next = NodePath("../CreditsButton")
+theme = ExtResource("1_5wsvm")
+text = "Options"
+script = ExtResource("3_o14dv")
+metadata/_custom_type_script = "uid://cwvot22lewiab"
+
+[node name="CreditsButton" type="Button" parent="Control/ButtonContainer"]
+layout_mode = 2
+focus_next = NodePath("../QuitButton")
+theme = ExtResource("1_5wsvm")
+text = "Credits"
+script = ExtResource("3_o14dv")
+metadata/_custom_type_script = "uid://cwvot22lewiab"
+
+[node name="QuitButton" type="Button" parent="Control/ButtonContainer"]
+layout_mode = 2
+theme = ExtResource("1_5wsvm")
+text = "Quit"
+script = ExtResource("3_o14dv")
+metadata/_custom_type_script = "uid://cwvot22lewiab"
+
+[connection signal="pressed" from="Control/ButtonContainer/PlayButton" to="." method="_on_play_button_pressed"]
+[connection signal="pressed" from="Control/ButtonContainer/QuitButton" to="." method="_on_quit_button_pressed"]

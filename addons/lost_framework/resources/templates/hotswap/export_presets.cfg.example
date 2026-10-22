@@ -1,0 +1,39 @@
+; Sample Web preset for GitHub Pages (Godot 4.3+).
+; Easiest path: Project > Export > Add... > Web, name it exactly "Web",
+; turn Thread Support OFF, then commit the generated export_presets.cfg.
+; Godot fills in the rest of the preset the first time it is saved.
+; The CI workflow passes its own output path and ignores export_path below.
+;
+; Godot 4.2 has no nothreads Web template. Pages cannot send the COOP/COEP
+; headers SharedArrayBuffer needs, so a threaded build does not boot there.
+;
+; exclude_filter keeps the drop folder and the manifest tool out of the .pck.
+; Those files are downloaded at runtime from next to index.html.
+; If the game already imports real resources from res://assets, do not reuse
+; that folder as the drop folder. See HOTSWAP.md.
+
+[preset.0]
+
+name="Web"
+platform="Web"
+runnable=true
+export_filter="all_resources"
+include_filter=""
+exclude_filter="assets/*, tools/*"
+export_path="build/web/index.html"
+
+[preset.0.options]
+
+custom_template/debug=""
+custom_template/release=""
+variant/extensions_support=false
+variant/thread_support=false
+vram_texture_compression/for_desktop=true
+vram_texture_compression/for_mobile=false
+html/export_icon=true
+html/custom_html_shell=""
+html/head_include=""
+html/canvas_resize_policy=2
+html/focus_canvas_on_start=true
+html/experimental_virtual_keyboard=false
+progressive_web_app/enabled=false

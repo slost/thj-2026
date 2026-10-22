@@ -1,0 +1,54 @@
+[gd_scene format=3 uid="uid://b11fy2oy2rmjj"]
+
+[ext_resource type="Script" uid="uid://bv1aehofwah5f" path="res://game/experiments/node.gd" id="1_o6bhp"]
+[ext_resource type="Theme" uid="uid://buu382veln44y" path="res://addons/lost_framework/resources/assets/themes/lost_theme.tres" id="1_ri8xp"]
+[ext_resource type="Script" uid="uid://cl37o3bxn0p57" path="res://addons/lost_framework/core/ui/effect_label.gd" id="2_ws5ao"]
+[ext_resource type="Texture2D" uid="uid://dd6jrj3jxsqxx" path="res://icon.svg" id="3_o6bhp"]
+[ext_resource type="Script" uid="uid://dvtngq7oy3jnx" path="res://addons/lost_framework/resources/templates/game/menu/check_press_start.gd" id="3_ws5ao"]
+
+[node name="Title" type="Node2D" unique_id=813605273]
+script = ExtResource("1_o6bhp")
+
+[node name="Control" type="Control" parent="." unique_id=717017852]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 167.11108
+offset_top = 94.0
+offset_right = 1112.8889
+offset_bottom = 626.0
+
+[node name="EffectLabel" type="RichTextLabel" parent="Control" unique_id=1057769955]
+custom_minimum_size = Vector2(324, 45)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -161.0
+offset_top = -45.0
+offset_right = 163.0
+grow_horizontal = 2
+grow_vertical = 0
+theme = ExtResource("1_ri8xp")
+theme_override_font_sizes/normal_font_size = 32
+bbcode_enabled = true
+text = "[wave]Press anykey to start"
+fit_content = true
+scroll_active = false
+autowrap_mode = 0
+horizontal_alignment = 1
+vertical_alignment = 1
+script = ExtResource("2_ws5ao")
+base_text = "[wave]Press anykey to start"
+font_size = 32
+metadata/_custom_type_script = "uid://cl37o3bxn0p57"
+
+[node name="PressKeyToStartComp" type="Node" parent="Control/EffectLabel" unique_id=595449855]
+script = ExtResource("3_ws5ao")
+key_to_start = 1
+metadata/_custom_type_script = "uid://cvpjjhoyh65h4"
+
+[node name="TEST_NODE" type="Sprite2D" parent="." unique_id=911953039]
+position = Vector2(648, 272)
+texture = ExtResource("3_o6bhp")

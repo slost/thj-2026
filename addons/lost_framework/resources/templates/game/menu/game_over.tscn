@@ -1,0 +1,91 @@
+[gd_scene load_steps=9 format=3 uid="uid://bqv63cgcjsg4w"]
+
+[ext_resource type="Script" path="res://scripts/game_over.gd" id="1_sk0mg"]
+[ext_resource type="Shader" uid="uid://bkh88pi6jqveb" path="res://addons/lost_framework/resources/assets/shaders/wave.gdshader" id="1_yrw1x"]
+[ext_resource type="FontFile" uid="uid://b81apjappdwgp" path="res://addons/lost_framework/resources/assets/fonts/Lost01.ttf" id="2_2h3ly"]
+[ext_resource type="Theme" uid="uid://buu382veln44y" path="res://addons/lost_framework/resources/assets/themes/lost_theme.tres" id="3_sk0mg"]
+[ext_resource type="Script" uid="uid://cwvot22lewiab" path="res://addons/lost_framework/modules/optional/ui_button.gd" id="4_0tn3l"]
+[ext_resource type="AudioStream" path="res://assets/sounds/game_over.wav" id="5_2h3ly"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_rjuk4"]
+shader = ExtResource("1_yrw1x")
+shader_parameter/amplitude = 2.0
+shader_parameter/frequency = 5.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_w430f"]
+line_spacing = 32.0
+font = ExtResource("2_2h3ly")
+font_size = 80
+font_color = Color(0.80859375, 0.80859375, 0.80859375, 1)
+outline_size = 48
+outline_color = Color(0, 0.0627451, 0.1254902, 1)
+
+[node name="GameOver" type="CanvasLayer" node_paths=PackedStringArray("label", "ngp_button")]
+script = ExtResource("1_sk0mg")
+label = NodePath("Frame/VBoxContainer/Label")
+ngp_button = NodePath("Frame/VBoxContainer/HBoxContainer/NewGamePlus")
+
+[node name="Frame" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Frame"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -459.0
+offset_top = -166.0
+offset_right = 459.0
+offset_bottom = 166.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 64
+
+[node name="Label" type="Label" parent="Frame/VBoxContainer"]
+material = SubResource("ShaderMaterial_rjuk4")
+layout_mode = 2
+text = "You're Exhuasted.
+You opend 9999 Boxes!
+\\
+\\"
+label_settings = SubResource("LabelSettings_w430f")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Frame/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 64
+alignment = 1
+
+[node name="NewGamePlus" type="Button" parent="Frame/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+tooltip_text = "Restart the game
+with max stamina
+you gained in the last run."
+theme = ExtResource("3_sk0mg")
+text = "New Game
+Plus"
+script = ExtResource("4_0tn3l")
+metadata/_custom_type_script = "uid://cwvot22lewiab"
+
+[node name="UIButton" type="Button" parent="Frame/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+tooltip_text = "Restart the game."
+theme = ExtResource("3_sk0mg")
+text = "New Game"
+script = ExtResource("4_0tn3l")
+metadata/_custom_type_script = "uid://cwvot22lewiab"
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("5_2h3ly")
+autoplay = true
+
+[connection signal="button_down" from="Frame/VBoxContainer/HBoxContainer/NewGamePlus" to="." method="_on_new_game_plus_button_down"]
+[connection signal="button_down" from="Frame/VBoxContainer/HBoxContainer/UIButton" to="." method="_on_ui_button_button_down"]

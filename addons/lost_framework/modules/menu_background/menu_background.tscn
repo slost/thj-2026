@@ -1,0 +1,42 @@
+[gd_scene load_steps=5 format=3 uid="uid://dhkfta24t80e0"]
+
+[ext_resource type="Shader" uid="uid://ch6uin547so03" path="res://addons/lost_framework/resources/assets/shaders/scroll.gdshader" id="1_evmcl"]
+[ext_resource type="Script" uid="uid://b387e6iucskfn" path="res://addons/lost_framework/modules/optional/menu_background/menu_background.module.gd" id="3_io3ee"]
+[ext_resource type="Texture2D" uid="uid://obpdrp503quw" path="res://addons/lost_framework/resources/assets/backgrounds/blue-pattern-square-background.png" id="3_jhse3"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_v3sj3"]
+shader = ExtResource("1_evmcl")
+shader_parameter/speed = 0.005
+
+[node name="Control" type="CanvasLayer" node_paths=PackedStringArray("black_screen")]
+layer = -1
+script = ExtResource("3_io3ee")
+black_screen = NodePath("BlackScreen")
+
+[node name="Background" type="TextureRect" parent="."]
+z_index = -2
+material = SubResource("ShaderMaterial_v3sj3")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 206.6399
+offset_bottom = 163.99994
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(5, 5)
+pivot_offset = Vector2(640, 360)
+texture = ExtResource("3_jhse3")
+expand_mode = 1
+stretch_mode = 1
+
+[node name="BlackScreen" type="ColorRect" parent="."]
+visible = false
+top_level = true
+visibility_layer = 2
+z_index = 555
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ModuleMetadata" format=3 uid="uid://dm5xxsqg3x2qc"]
+
+[ext_resource type="Script" uid="uid://bsc64h183wp8h" path="res://addons/lost_framework/core/module_system/module_metadata.gd" id="1_0fh21"]
+
+[resource]
+script = ExtResource("1_0fh21")
+id = "localization"
+name = "Localization"
+version = "0.1"
+role = 0
+description = "Provides tools for localization and internationalization."

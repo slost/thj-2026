@@ -1,0 +1,148 @@
+# Build the Godot Web export + hot-swap assets and publish to GitHub Pages.
+# This file is a template. Copy it to the GAME repo as .github/workflows/deploy.yml.
+# Repo settings: Settings > Pages > Source = "GitHub Actions".
+#
+# Fast path: the Godot export is cached by a hash of every file OUTSIDE assets/.
+# When a teammate only uploads assets, the cache hits, Godot is not downloaded,
+# and the deploy stays short.
+#
+# Godot 4.2 cannot export a nothreads Web build. Keep the editor at 4.3 or newer
+# and keep the Web preset's Thread Support off (GitHub Pages cannot send COOP/COEP).
+#
+# Stable: GODOT_VERSION "4.6" and GODOT_STATUS "stable" download
+#   Godot_v4.6-stable_linux.x86_64.zip from godotengine/godot.
+#   The template folder is 4.6.stable (taken from `godot --version`).
+# Pre-release: put the full tag in GODOT_VERSION and leave GODOT_STATUS unused.
+#   "4.8-beta1" downloads Godot_v4.8-beta1_linux.x86_64.zip and
+#   Godot_v4.8-beta1_export_templates.tpz from godotengine/godot-builds
+#   (pre-releases are not on godotengine/godot). The template folder is
+#   4.8.beta1 — a dot, matching the editor version, not the hyphen in the tag.
+#   Release candidates use the same shape ("4.7.2-rc1" -> folder 4.7.2.rc1).
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: "4.6"        # Stable: 4.6 or 4.6.1. Pre-release: full tag, e.g. 4.8-beta1 or 4.7.2-rc1.
+  GODOT_STATUS: "stable"      # Used only when GODOT_VERSION has no -beta/-rc/-dev/-alpha suffix.
+  PROJECT_DIR: "."            # folder containing project.godot (change this if the game is not at the repo root)
+  EXPORT_PRESET: "Web"        # preset name in export_presets.cfg (Thread Support OFF)
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore cached Web export
+        id: export-cache
+        uses: actions/cache@v4
+        with:
+          path: .export-cache/web
+          key: web-${{ env.GODOT_VERSION }}-${{ hashFiles('**', '!assets/**', '!.git/**') }}
+
+      - name: Cache Godot + export templates
+        if: steps.export-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/godot-bin
+            ~/.local/share/godot/export_templates
+          key: godot-${{ env.GODOT_VERSION }}-${{ env.GODOT_STATUS }}
+
+      - name: Install Godot ${{ env.GODOT_VERSION }}
+        if: steps.export-cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          # 4.8-beta1 / 4.7.2-rc1 / 4.8-dev7 live on godot-builds.
+          # 4.6 and 4.6.1 with GODOT_STATUS=stable stay on godotengine/godot.
+          if [[ "${GODOT_VERSION}" =~ -(alpha|beta|rc|dev)[0-9]+$ ]]; then
+            TAG="${GODOT_VERSION}"
+            REPO="godotengine/godot-builds"
+          else
+            TAG="${GODOT_VERSION}-${GODOT_STATUS}"
+            REPO="godotengine/godot"
+          fi
+          URL="https://github.com/${REPO}/releases/download/${TAG}"
+          mkdir -p ~/godot-bin
+          if [ ! -x ~/godot-bin/godot ]; then
+            curl -fL --retry 5 --retry-delay 2 -o /tmp/godot.zip "${URL}/Godot_v${TAG}_linux.x86_64.zip"
+            rm -rf /tmp/godot-unpacked
+            mkdir -p /tmp/godot-unpacked
+            unzip -q /tmp/godot.zip -d /tmp/godot-unpacked
+            bin="$(find /tmp/godot-unpacked -type f -name "Godot_v${TAG}_linux*" | head -n 1)"
+            test -n "${bin}"
+            mv "${bin}" ~/godot-bin/godot
+            chmod +x ~/godot-bin/godot
+          fi
+          ver_line="$(~/godot-bin/godot --version)"
+          echo "Godot version: ${ver_line}"
+          # 4.6.stable.official.<hash> -> 4.6.stable
+          # 4.8.beta1.official.<hash> -> 4.8.beta1
+          template_ver="${ver_line%%.official*}"
+          TPL_DIR="${HOME}/.local/share/godot/export_templates/${template_ver}"
+          if [ ! -f "${TPL_DIR}/web_nothreads_release.zip" ]; then
+            curl -fL --retry 5 --retry-delay 2 -o /tmp/templates.tpz "${URL}/Godot_v${TAG}_export_templates.tpz"
+            rm -rf /tmp/tpl
+            unzip -q /tmp/templates.tpz -d /tmp/tpl
+            mkdir -p "${TPL_DIR}"
+            # keep only the Web templates (the full set is large)
+            mv /tmp/tpl/templates/web_* /tmp/tpl/templates/version.txt "${TPL_DIR}/"
+          fi
+          test -f "${TPL_DIR}/web_nothreads_release.zip"
+          echo "Export templates: ${TPL_DIR}"
+          echo "$HOME/godot-bin" >> "$GITHUB_PATH"
+
+      - name: Export Web build
+        if: steps.export-cache.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          OUT="$GITHUB_WORKSPACE/.export-cache/web"
+          rm -rf "$OUT" && mkdir -p "$OUT"
+          godot --headless --path "$PROJECT_DIR" --import
+          godot --headless --path "$PROJECT_DIR" --export-release "$EXPORT_PRESET" "$OUT/index.html"
+          # Godot can exit 0 even when the export failed, so check the output
+          test -f "$OUT/index.html" && test -f "$OUT/index.wasm" && test -f "$OUT/index.pck"
+
+      - name: Assemble site (game + assets + manifest + status page)
+        run: |
+          set -euo pipefail
+          rm -rf _site && mkdir -p _site/assets
+          cp -r .export-cache/web/. _site/
+          cp -r assets/. _site/assets/
+          find _site/assets -name '.*' -exec rm -rf {} +
+          python3 tools/make_manifest.py assets \
+            -o _site/assets/manifest.json \
+            --status _site/assets/status.html \
+            2> >(tee warnings.txt >&2)
+          {
+            echo "### Assets"
+            echo "Status page: \`assets/status.html\`"
+            if [ -s warnings.txt ]; then echo; echo '```'; cat warnings.txt; echo '```'; fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

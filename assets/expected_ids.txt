@@ -1,0 +1,8 @@
+# Optional list of asset ids the status page should expect.
+# One id per line. A line starting with # is a comment.
+# An id with no file stays on the built-in placeholder.
+# Example:
+# tex_hero
+# ui_logo
+# bgm_menu
+# sfx_jump

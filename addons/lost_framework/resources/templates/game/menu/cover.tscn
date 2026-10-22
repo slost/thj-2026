@@ -1,0 +1,59 @@
+[gd_scene load_steps=6 format=3 uid="uid://bqq6mldumk7fj"]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/box2.png" id="1_6mual"]
+[ext_resource type="FontFile" uid="uid://b81apjappdwgp" path="res://addons/lost_framework/resources/assets/fonts/Lost01.ttf" id="3_oarb8"]
+[ext_resource type="Texture2D" uid="uid://c5k2o7suxhs2n" path="res://addons/lost_framework/resources/assets/sprites/hand_cursor_stretch_80px.png" id="4_6mual"]
+[ext_resource type="AudioStream" path="res://assets/sounds/game_over.wav" id="6_6f6f0"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_hkvg5"]
+font = ExtResource("3_oarb8")
+font_size = 96
+font_color = Color(0.7421875, 0, 0, 1)
+outline_size = 32
+
+[node name="GameOver" type="CanvasLayer"]
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("6_6f6f0")
+autoplay = true
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(315, 250)
+scale = Vector2(24.625, 24.625)
+texture = ExtResource("1_6mual")
+
+[node name="Frame" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Frame"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -546.0
+offset_top = -166.0
+offset_right = 546.0
+offset_bottom = 166.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 64
+alignment = 1
+
+[node name="Label" type="Label" parent="Frame/VBoxContainer"]
+layout_mode = 2
+text = "I Have a GIFT"
+label_settings = SubResource("LabelSettings_hkvg5")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Sprite2D2" type="Sprite2D" parent="."]
+position = Vector2(510, 389)
+scale = Vector2(2.91875, 2.91875)
+texture = ExtResource("4_6mual")

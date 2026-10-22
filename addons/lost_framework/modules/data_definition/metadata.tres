@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="ModuleMetadata" format=3 uid="uid://c85rc071uuqjf"]
+
+[ext_resource type="Script" uid="uid://bsc64h183wp8h" path="res://addons/lost_framework/core/module_system/module_metadata.gd" id="1_fjqjy"]
+
+[resource]
+script = ExtResource("1_fjqjy")
+id = "data_def"
+name = "Data Defenition"
+metadata/_custom_type_script = "uid://bsc64h183wp8h"

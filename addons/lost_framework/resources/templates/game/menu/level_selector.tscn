@@ -1,0 +1,133 @@
+[gd_scene load_steps=5 format=3 uid="uid://bs6kwoc4g4a30"]
+
+[ext_resource type="Script" uid="uid://daomw4i6236w6" path="res://addons/lost_framework/resources/templates/game/menu/level_selector.gd" id="1_3xg25"]
+[ext_resource type="Theme" uid="uid://buu382veln44y" path="res://addons/lost_framework/resources/assets/themes/lost_theme.tres" id="2_13cwy"]
+[ext_resource type="PackedScene" uid="uid://n0n035ltm03g" path="res://addons/lost_framework/resources/templates/game/menu/level_button.tscn" id="4_042vi"]
+[ext_resource type="Script" uid="uid://cwvot22lewiab" path="res://addons/lost_framework/modules/optional/ui_button.gd" id="5_55sgc"]
+
+[node name="LevelSelector" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_3xg25")
+
+[node name="Frame" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -576.0
+offset_top = -324.0
+offset_right = 576.0
+offset_bottom = 324.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="Frame"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 129.6
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_13cwy")
+
+[node name="LevelContainer" type="GridContainer" parent="Frame/Panel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -464.0
+offset_top = -176.0
+offset_right = 464.0
+offset_bottom = 176.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_13cwy")
+theme_override_constants/h_separation = 32
+theme_override_constants/v_separation = 32
+columns = 5
+
+[node name="Button" parent="Frame/Panel/LevelContainer" instance=ExtResource("4_042vi")]
+layout_mode = 2
+theme = ExtResource("2_13cwy")
+
+[node name="Button2" parent="Frame/Panel/LevelContainer" instance=ExtResource("4_042vi")]
+layout_mode = 2
+theme = ExtResource("2_13cwy")
+
+[node name="Button3" parent="Frame/Panel/LevelContainer" instance=ExtResource("4_042vi")]
+layout_mode = 2
+theme = ExtResource("2_13cwy")
+
+[node name="Button4" parent="Frame/Panel/LevelContainer" instance=ExtResource("4_042vi")]
+layout_mode = 2
+theme = ExtResource("2_13cwy")
+
+[node name="Button5" parent="Frame/Panel/LevelContainer" instance=ExtResource("4_042vi")]
+layout_mode = 2
+theme = ExtResource("2_13cwy")
+
+[node name="Button6" parent="Frame/Panel/LevelContainer" instance=ExtResource("4_042vi")]
+layout_mode = 2
+theme = ExtResource("2_13cwy")
+
+[node name="Button7" parent="Frame/Panel/LevelContainer" instance=ExtResource("4_042vi")]
+layout_mode = 2
+theme = ExtResource("2_13cwy")
+
+[node name="Button8" parent="Frame/Panel/LevelContainer" instance=ExtResource("4_042vi")]
+layout_mode = 2
+theme = ExtResource("2_13cwy")
+
+[node name="Button9" parent="Frame/Panel/LevelContainer" instance=ExtResource("4_042vi")]
+layout_mode = 2
+theme = ExtResource("2_13cwy")
+
+[node name="Button10" parent="Frame/Panel/LevelContainer" instance=ExtResource("4_042vi")]
+layout_mode = 2
+theme = ExtResource("2_13cwy")
+
+[node name="SelectLevelLabel" type="Label" parent="Frame"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -125.21701
+offset_top = 32.0
+offset_right = 125.21777
+offset_bottom = 120.0
+grow_horizontal = 2
+theme = ExtResource("2_13cwy")
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 32
+theme_override_constants/shadow_outline_size = 64
+theme_override_font_sizes/font_size = 64
+text = "Select Level"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BackButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 32.0
+offset_top = -688.0
+offset_right = 117.20001
+offset_bottom = -628.0
+grow_vertical = 0
+theme = ExtResource("2_13cwy")
+text = "Back"
+script = ExtResource("5_55sgc")
+metadata/_custom_type_script = "uid://cwvot22lewiab"
+
+[connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]

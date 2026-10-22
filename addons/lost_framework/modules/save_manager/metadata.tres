@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ModuleMetadata" format=3 uid="uid://crsfc1uqrq8a3"]
+
+[ext_resource type="Script" uid="uid://bsc64h183wp8h" path="res://addons/lost_framework/core/module_system/module_metadata.gd" id="1_cn44i"]
+
+[resource]
+script = ExtResource("1_cn44i")
+id = "save_manager"
+name = "Save Manager"
+version = "0.1"
+type = 0
+description = "Provides a system for saving and loading game data."
+is_autoload = true

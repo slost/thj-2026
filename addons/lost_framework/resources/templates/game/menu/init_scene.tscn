@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://bfppj7u260kp1"]
+
+[ext_resource type="Script" uid="uid://ccswggs2rhumg" path="res://addons/lost_framework/resources/templates/game/menu/init_scene.gd" id="1_ckraj"]
+
+[node name="InitScene" type="Node2D" unique_id=1419503905]
+script = ExtResource("1_ckraj")
+scene_to_load = "C:/Game Dev/Projects/lost-framework/UI/title.tscn"

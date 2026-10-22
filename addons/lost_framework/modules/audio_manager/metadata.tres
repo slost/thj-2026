@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ModuleMetadata" format=3 uid="uid://6jx1odilyfbe"]
+
+[ext_resource type="Script" uid="uid://bsc64h183wp8h" path="res://addons/lost_framework/core/module_system/module_metadata.gd" id="1_7hg4l"]
+
+[resource]
+script = ExtResource("1_7hg4l")
+id = "audio_manager"
+name = "Audio Manager"
+version = "0.2"
+type = 0
+role = 0
+description = "Plays music, sound effects, and UI audio with bus volume, mute, fade, and voice pooling."
+is_autoload = true
+metadata/_custom_type_script = "uid://bsc64h183wp8h"

@@ -1,0 +1,69 @@
+[gd_scene load_steps=5 format=3 uid="uid://dhf1r62gv54vd"]
+
+[ext_resource type="Shader" uid="uid://b7yfrrw0xp62a" path="res://addons/lost_framework/resources/assets/shaders/spiral.gdshader" id="1_ovynf"]
+[ext_resource type="Texture2D" uid="uid://obpdrp503quw" path="res://addons/lost_framework/resources/assets/backgrounds/blue-pattern-square-background.png" id="2_b8jmo"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_v3sj3"]
+shader = ExtResource("1_ovynf")
+shader_parameter/speed = 0.5
+shader_parameter/spiral_tightness = 0.01
+
+[sub_resource type="LabelSettings" id="LabelSettings_7bm62"]
+outline_size = 8
+outline_color = Color(0, 0.0627451, 0.1254902, 1)
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1280.0
+offset_bottom = 720.0
+
+[node name="Backgroud" type="TextureRect" parent="."]
+modulate = Color(0.9, 0.9, 0.9, 1)
+z_index = -1
+material = SubResource("ShaderMaterial_v3sj3")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -280.0
+offset_bottom = 280.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_b8jmo")
+expand_mode = 1
+stretch_mode = 1
+
+[node name="Frame" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -625.77783
+offset_top = -294.0
+offset_right = 522.66675
+offset_bottom = 352.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BuildLabel" type="Label" parent="Frame"]
+visible = false
+z_index = 99
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -22.5
+offset_top = -33.0
+offset_right = 22.5
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "Build:"
+label_settings = SubResource("LabelSettings_7bm62")
+horizontal_alignment = 1
+vertical_alignment = 1

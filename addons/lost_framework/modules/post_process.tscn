@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://bd23u4iaq3hrt"]
+
+[ext_resource type="Shader" uid="uid://dhwo1ro635jsf" path="res://addons/lost_framework/resources/assets/shaders/animated_film_grain.gdshader" id="1_rnwq8"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_m8ift"]
+shader = ExtResource("1_rnwq8")
+shader_parameter/grain_amount = 0.05
+shader_parameter/grain_size = 1.0
+shader_parameter/speed = 1.0
+
+[node name="PostProcess" type="CanvasLayer" unique_id=214219924]
+layer = 0
+visible = false
+
+[node name="Control" type="Control" parent="." unique_id=1346102118]
+custom_minimum_size = Vector2(1280, 720)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="ColorRect" type="ColorRect" parent="Control" unique_id=616839839]
+material = SubResource("ShaderMaterial_m8ift")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2

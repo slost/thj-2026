@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ModuleMetadata" format=3 uid="uid://c653yqha2iat8"]
+
+[ext_resource type="Script" uid="uid://bsc64h183wp8h" path="res://addons/lost_framework/core/module_system/module_metadata.gd" id="1_a7aur"]
+
+[resource]
+script = ExtResource("1_a7aur")
+id = "composition"
+name = "Composition"
+version = "0.0.2"
+role = 0
+description = "Provides tools to work with entity-component systems."
+metadata/_custom_type_script = "uid://bsc64h183wp8h"

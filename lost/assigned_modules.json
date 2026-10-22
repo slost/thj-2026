@@ -1,0 +1,15 @@
+{
+	"version": 1,
+	"manifest": [
+		{
+			"activated": true,
+			"folder_path": "res://addons/lost_framework/modules/asset_manager",
+			"id": "asset_manager"
+		},
+		{
+			"activated": true,
+			"folder_path": "res://addons/lost_framework/modules/audio_manager",
+			"id": "audio_manager"
+		}
+	]
+}

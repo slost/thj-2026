@@ -1,0 +1,39 @@
+[gd_scene format=3 uid="uid://cik3qtavhc2fc"]
+
+[ext_resource type="Theme" uid="uid://buu382veln44y" path="res://addons/lost_framework/resources/assets/themes/lost_theme.tres" id="3_vqrlo"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vxbsd"]
+bg_color = Color(0.11858138, 0.11858139, 0.11858132, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+expand_margin_left = 8.0
+expand_margin_top = 32.0
+expand_margin_right = 8.0
+expand_margin_bottom = 8.0
+
+[node name="DebugInfoContainer" type="VBoxContainer" unique_id=1410521513]
+visibility_layer = 524288
+offset_right = 169.0
+offset_bottom = 79.0
+theme = ExtResource("3_vqrlo")
+theme_override_constants/separation = 32
+
+[node name="DragButton" type="Button" parent="." unique_id=1323392176]
+layout_mode = 2
+focus_mode = 0
+theme = ExtResource("3_vqrlo")
+text = "=== DEBUG INFO ==="
+
+[node name="DebugLabel" type="Label" parent="." unique_id=1446184692]
+z_index = -1
+layout_mode = 2
+theme = ExtResource("3_vqrlo")
+theme_override_styles/normal = SubResource("StyleBoxFlat_vxbsd")
+text = "Test"
+
+[connection signal="button_down" from="DragButton" to="." method="_on_drag_button_button_down"]
+[connection signal="button_up" from="DragButton" to="." method="_on_drag_button_button_up"]
+[connection signal="mouse_entered" from="DragButton" to="." method="_on_drag_button_mouse_entered"]
+[connection signal="mouse_exited" from="DragButton" to="." method="_on_drag_button_mouse_exited"]

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ModuleMetadata" format=3 uid="uid://crdyr4ldyqovy"]
+
+[ext_resource type="Script" uid="uid://bsc64h183wp8h" path="res://addons/lost_framework/core/module_system/module_metadata.gd" id="1_c6ah7"]
+
+[resource]
+script = ExtResource("1_c6ah7")
+id = "weighted_pool"
+name = "Weighted Pool"
+version = "1.0"
+description = "A module for defining pools of items with weighted probabilities."

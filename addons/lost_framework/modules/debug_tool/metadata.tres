@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="ModuleMetadata" format=3 uid="uid://b8nt25eeb2i2"]
+
+[ext_resource type="Script" uid="uid://bsc64h183wp8h" path="res://addons/lost_framework/core/module_system/module_metadata.gd" id="1_oj2bo"]
+
+[resource]
+script = ExtResource("1_oj2bo")
+id = "debug_tool"
+name = "Debug Tool"
+description = "A module for debugging the game."

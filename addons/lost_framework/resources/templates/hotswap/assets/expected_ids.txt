@@ -1,0 +1,19 @@
+# Asset IDs the game asks for. One ID per line. '#' starts a comment.
+# tools/make_manifest.py uses this file for assets/status.html.
+# An ID with no file stays on the built-in placeholder.
+#
+# Two naming styles both work:
+#   sfx_jump          <- sfx_jump.ogg
+#   sfx.scissors.use  <- sfx.scissors.use.ogg  (same string as an AssetEntry key)
+
+# Textures
+tex_player
+tex.hand.point
+
+# SFX
+sfx_jump
+sfx.scissors.use
+
+# Music (bgm_ and bgm. loop)
+bgm_menu
+bgm.level1

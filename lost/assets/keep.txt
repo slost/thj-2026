@@ -1,0 +1,1 @@
+AssetEntry .tres files live in this folder. The hot-swap drop folder is res://assets, which is not packed into the web export.
