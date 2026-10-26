@@ -45,8 +45,13 @@ func _on_runtime_activate() -> void:
 	add_child(_save_timer)
 
 
+## The browser page and the editor's embedded Game tab own the window, so leave them alone.
 func can_change_window() -> bool:
-	return not OS.has_feature("mobile") and DisplayServer.get_name() != "headless"
+	if OS.has_feature("mobile") or OS.has_feature("web"):
+		return false
+	if DisplayServer.get_name() == "headless":
+		return false
+	return not Engine.is_embedded_in_editor()
 
 
 func resolution_size(index: int = -1) -> Vector2i:
