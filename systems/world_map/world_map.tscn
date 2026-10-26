@@ -3,9 +3,56 @@
 [ext_resource type="Texture2D" uid="uid://b3i4l48wkcvmk" path="res://contents/assets/text_world_mockup.png" id="1_3vtoj"]
 [ext_resource type="Script" uid="uid://2d1be4m128iw" path="res://systems/world_map/world_map.gd" id="1_k73hb"]
 [ext_resource type="Script" uid="uid://bgit4iapmj1bm" path="res://addons/lost_framework/modules/asset_manager/hot_swap_sprite.gd" id="2_fe0ic"]
+[ext_resource type="Texture2D" uid="uid://cospigsfyasoa" path="res://placeholders/tex_portrait_focus.png" id="2_lq8d4"]
 [ext_resource type="PackedScene" uid="uid://bmtlacr4kkmnv" path="res://systems/world_map/town_location.tscn" id="3_6dblr"]
 [ext_resource type="Script" uid="uid://dneuq16wtfe1r" path="res://addons/lost_framework/modules/data_definition/description_variant.gd" id="4_blbmt"]
 [ext_resource type="Script" uid="uid://jc6n263ren8b" path="res://systems/world_map/town_def.gd" id="5_mtdre"]
+[ext_resource type="Texture2D" uid="uid://dqmg8d3tr3fsm" path="res://placeholders/text_pages.png" id="6_5rc7b"]
+[ext_resource type="Script" uid="uid://dw84jg68x20tf" path="res://addons/lost_framework/modules/camera_controler/mouse_pan_component.gd" id="6_pan"]
+[ext_resource type="PackedScene" uid="uid://bcylly0bi2ki5" path="res://systems/ui/resource_container.tscn" id="6_vjbm6"]
+[ext_resource type="Script" uid="uid://dr6gpm73wngym" path="res://addons/lost_framework/modules/camera_controler/parallax_offset_component.gd" id="7_parallax"]
+[ext_resource type="Script" uid="uid://bo1xnktwb64sr" path="res://systems/world_map/map_state_button.gd" id="10_5rc7b"]
+[ext_resource type="Texture2D" uid="uid://daxebvd3b1w3v" path="res://placeholders/text_icon_map.png" id="10_5xdch"]
+[ext_resource type="Texture2D" uid="uid://538mh8ghhlh5" path="res://placeholders/text_icon_flag.png" id="11_5rc7b"]
+[ext_resource type="Texture2D" uid="uid://bl2bp2my04bfu" path="res://placeholders/text_icon_code.png" id="12_lq8d4"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_6ji8r"]
+font_size = 32
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vjbm6"]
+bg_color = Color(0.25560415, 0.24762374, 0.32941177, 1)
+border_width_top = 8
+border_width_bottom = 8
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+expand_margin_left = 32.0
+expand_margin_top = 32.0
+expand_margin_right = 32.0
+expand_margin_bottom = 32.0
+shadow_size = 16
+shadow_offset = Vector2(0, 16)
+
+[sub_resource type="LabelSettings" id="LabelSettings_vjbm6"]
+font_size = 32
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nmuip"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wy6xx"]
+bg_color = Color(0.546875, 0, 0.17314655, 1)
+border_width_left = 8
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 8
+border_color = Color(0.2578125, 0, 0, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+expand_margin_left = 16.0
+expand_margin_right = 16.0
 
 [sub_resource type="TileSet" id="TileSet_o83da"]
 tile_size = Vector2i(128, 128)
@@ -28,68 +75,288 @@ id = &"small_village_c"
 name = "Small Village C"
 metadata/_custom_type_script = "uid://jc6n263ren8b"
 
-[sub_resource type="LabelSettings" id="LabelSettings_6ji8r"]
-font_size = 32
+[sub_resource type="Texture2DRD" id="Texture2DRD_lq8d4"]
 
-[node name="WorldMap" type="Node2D" unique_id=1345538956 node_paths=PackedStringArray("indicator", "debug_label")]
+[sub_resource type="LabelSettings" id="LabelSettings_lq8d4"]
+font_size = 64
+font_color = Color(0, 0, 0, 1)
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_vjbm6"]
+
+[node name="WorldMap" type="Node2D" unique_id=1345538956 node_paths=PackedStringArray("indicator", "debug_label", "portrait", "map", "camp", "book", "town_info", "map_marker", "map_button", "camp_button", "code_button")]
 script = ExtResource("1_k73hb")
-indicator = NodePath("IndicatorSprite")
-debug_label = NodePath("CanvasLayer/DebugLabel")
+indicator = NodePath("Map/IndicatorSprite")
+debug_label = NodePath("UI/DebugLabel")
+portrait = NodePath("NearBackground/HotSwapSprite")
+map = NodePath("Map")
+camp = NodePath("Camp")
+book = NodePath("BookBackground")
+town_info = NodePath("UI/TownInfo")
+map_marker = NodePath("UI/Marker2D")
+map_button = NodePath("UI/StateContainer/MapButton")
+camp_button = NodePath("UI/StateContainer/CampButton")
+code_button = NodePath("UI/StateContainer/CodeButton")
 
-[node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=809263297]
-tile_set = SubResource("TileSet_o83da")
+[node name="UI" type="CanvasLayer" parent="." unique_id=1288702519]
+layer = 10
 
-[node name="Mockup" type="Sprite2D" parent="." unique_id=129406785]
-modulate = Color(0.32265994, 0.32265994, 0.32265994, 1)
-scale = Vector2(1.1451613, 1.1478723)
-texture = ExtResource("1_3vtoj")
-
-[node name="TownLocation" parent="." unique_id=165821674 instance=ExtResource("3_6dblr")]
-def = SubResource("Resource_sqqbm")
-
-[node name="TownLocation2" parent="." unique_id=1593138790 instance=ExtResource("3_6dblr")]
-position = Vector2(303, 43)
-def = SubResource("Resource_sjh82")
-
-[node name="TownLocation3" parent="." unique_id=1914575462 node_paths=PackedStringArray("required_locations") instance=ExtResource("3_6dblr")]
-position = Vector2(0, 128)
-def = SubResource("Resource_ivm68")
-required_locations = [NodePath("../TownLocation2")]
-
-[node name="Camera2D" type="Camera2D" parent="." unique_id=1736554280]
-
-[node name="IndicatorSprite" type="Sprite2D" parent="." unique_id=477057813]
-position = Vector2(128, 128)
-script = ExtResource("2_fe0ic")
-asset_id = "tex_indicator"
-metadata/_custom_type_script = "uid://bgit4iapmj1bm"
-
-[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1288702519]
-
-[node name="DebugLabel" type="Label" parent="CanvasLayer" unique_id=2113755158]
-offset_left = 1152.0
-offset_top = 128.0
-offset_right = 1792.0
-offset_bottom = 384.0
+[node name="DebugLabel" type="Label" parent="UI" unique_id=2113755158]
+offset_left = 82.0
+offset_top = 169.0
+offset_right = 722.0
+offset_bottom = 425.0
 text = "aaaa
 bbbb
 cccc
 dddd"
 label_settings = SubResource("LabelSettings_6ji8r")
 
-[node name="RestartButton" type="Button" parent="CanvasLayer"]
-offset_left = 1152.0
-offset_top = 400.0
-offset_right = 1456.0
-offset_bottom = 448.0
+[node name="DebugContainer" type="VBoxContainer" parent="UI" unique_id=885843626]
+offset_right = 256.0
+offset_bottom = 88.0
+
+[node name="RestartButton" type="Button" parent="UI/DebugContainer" unique_id=929059393]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
 text = "Restart"
 
-[node name="DeleteSaveButton" type="Button" parent="CanvasLayer"]
-offset_left = 1472.0
-offset_top = 400.0
-offset_right = 1792.0
-offset_bottom = 448.0
+[node name="DeleteSaveButton" type="Button" parent="UI/DebugContainer" unique_id=947512725]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
 text = "Delete Save"
 
-[connection signal="pressed" from="CanvasLayer/RestartButton" to="." method="_on_restart_button_pressed"]
-[connection signal="pressed" from="CanvasLayer/DeleteSaveButton" to="." method="_on_delete_save_button_pressed"]
+[node name="StateContainer" type="HBoxContainer" parent="UI" unique_id=33387423]
+custom_minimum_size = Vector2(128, 128)
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -456.0
+offset_top = -212.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_constants/separation = 16
+
+[node name="MapButton" type="Button" parent="UI/StateContainer" unique_id=1026624835]
+layout_mode = 2
+offset_transform_enabled = true
+icon = ExtResource("10_5xdch")
+flat = true
+script = ExtResource("10_5rc7b")
+
+[node name="CampButton" type="Button" parent="UI/StateContainer" unique_id=1873331812]
+layout_mode = 2
+offset_transform_enabled = true
+icon = ExtResource("11_5rc7b")
+flat = true
+script = ExtResource("10_5rc7b")
+state = 2
+
+[node name="CodeButton" type="Button" parent="UI/StateContainer" unique_id=1420579940]
+layout_mode = 2
+offset_transform_enabled = true
+icon = ExtResource("12_lq8d4")
+flat = true
+script = ExtResource("10_5rc7b")
+state = 3
+
+[node name="PanelContainer" type="PanelContainer" parent="UI" unique_id=1992228062]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -314.0
+offset_right = 314.0
+offset_bottom = 67.0
+grow_horizontal = 2
+
+[node name="VBoxContainer2" type="HBoxContainer" parent="UI/PanelContainer" unique_id=129489134]
+layout_mode = 2
+theme_override_constants/separation = 32
+
+[node name="HBoxContainer" parent="UI/PanelContainer/VBoxContainer2" unique_id=638644848 instance=ExtResource("6_vjbm6")]
+layout_mode = 2
+
+[node name="HBoxContainer2" parent="UI/PanelContainer/VBoxContainer2" unique_id=524003532 instance=ExtResource("6_vjbm6")]
+layout_mode = 2
+resource_type = 1
+
+[node name="HBoxContainer3" parent="UI/PanelContainer/VBoxContainer2" unique_id=868916832 instance=ExtResource("6_vjbm6")]
+layout_mode = 2
+resource_type = 2
+
+[node name="HBoxContainer4" parent="UI/PanelContainer/VBoxContainer2" unique_id=1912400172 instance=ExtResource("6_vjbm6")]
+layout_mode = 2
+resource_type = 3
+
+[node name="TownInfo" type="PanelContainer" parent="UI" unique_id=1656006737]
+offset_left = 1282.0
+offset_top = 176.0
+offset_right = 1794.0
+offset_bottom = 616.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_vjbm6")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/TownInfo" unique_id=1639501412]
+layout_mode = 2
+theme_override_constants/separation = 32
+
+[node name="Label" type="Label" parent="UI/TownInfo/VBoxContainer" unique_id=2069535344]
+layout_mode = 2
+text = "CITY A
+Units:
+[ ]
+Poissble Rewards: 
+[ ] "
+label_settings = SubResource("LabelSettings_vjbm6")
+
+[node name="ProgressBar" type="ProgressBar" parent="UI/TownInfo/VBoxContainer" unique_id=456747565]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_nmuip")
+value = 5.0
+show_percentage = false
+
+[node name="RaidButton" type="Button" parent="UI/TownInfo/VBoxContainer" unique_id=195530604]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 48
+theme_override_styles/normal = SubResource("StyleBoxFlat_wy6xx")
+text = "Raid"
+
+[node name="Marker2D" type="Marker2D" parent="UI" unique_id=1880518025]
+position = Vector2(921.00006, 573.00006)
+rotation = -0.7853982
+scale = Vector2(0.99999994, 0.99999994)
+
+[node name="CodeLayer" type="CanvasLayer" parent="." unique_id=1508585818]
+
+[node name="Map" type="Node2D" parent="." unique_id=2131770903]
+
+[node name="TileMapLayer" type="TileMapLayer" parent="Map" unique_id=809263297]
+tile_set = SubResource("TileSet_o83da")
+
+[node name="FarBackground" type="Node2D" parent="Map" unique_id=1554592198]
+
+[node name="ParallaxOffset" type="Node" parent="Map/FarBackground" unique_id=1961176340 node_paths=PackedStringArray("visual")]
+script = ExtResource("7_parallax")
+visual = NodePath("..")
+
+[node name="Mockup" type="Sprite2D" parent="Map" unique_id=129406785]
+modulate = Color(0.32265994, 0.32265994, 0.32265994, 1)
+scale = Vector2(1.1451613, 1.1478723)
+texture = ExtResource("1_3vtoj")
+
+[node name="TownLocation" parent="Map" unique_id=165821674 instance=ExtResource("3_6dblr")]
+def = SubResource("Resource_sqqbm")
+
+[node name="TownLocation2" parent="Map" unique_id=1593138790 instance=ExtResource("3_6dblr")]
+position = Vector2(303, 43)
+def = SubResource("Resource_sjh82")
+
+[node name="TownLocation3" parent="Map" unique_id=1914575462 node_paths=PackedStringArray("required_locations") instance=ExtResource("3_6dblr")]
+position = Vector2(0, 128)
+def = SubResource("Resource_ivm68")
+required_locations = [NodePath("../TownLocation2")]
+
+[node name="IndicatorSprite" type="Sprite2D" parent="Map" unique_id=477057813]
+position = Vector2(128, 128)
+script = ExtResource("2_fe0ic")
+asset_id = "tex_indicator"
+metadata/_custom_type_script = "uid://bgit4iapmj1bm"
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1736554280]
+
+[node name="MousePan" type="Node" parent="Camera2D" unique_id=1592599313]
+script = ExtResource("6_pan")
+
+[node name="Camp" type="Node2D" parent="." unique_id=2094654453]
+
+[node name="TextureRect" type="TextureRect" parent="Camp" unique_id=250820297]
+offset_left = -1044.0
+offset_top = -601.0
+offset_right = 1084.0
+offset_bottom = 641.0
+texture = SubResource("Texture2DRD_lq8d4")
+
+[node name="Label" type="Label" parent="Camp" unique_id=1437702104]
+offset_right = 40.0
+offset_bottom = 23.0
+theme_override_font_sizes/font_size = 128
+text = "CAMP"
+
+[node name="BookBackground" type="Node2D" parent="." unique_id=164887823]
+z_index = 9
+position = Vector2(-512, 256)
+
+[node name="ParallaxOffset" type="Node" parent="BookBackground" unique_id=1140344268 node_paths=PackedStringArray("visual")]
+script = ExtResource("7_parallax")
+visual = NodePath("..")
+
+[node name="Mockup" type="Sprite2D" parent="BookBackground" unique_id=1483137710]
+position = Vector2(512, -256)
+scale = Vector2(1.2, 1.2)
+texture = ExtResource("6_5rc7b")
+script = ExtResource("2_fe0ic")
+metadata/_custom_type_script = "uid://bgit4iapmj1bm"
+
+[node name="Label" type="Label" parent="BookBackground" unique_id=903882784]
+offset_left = -244.0
+offset_top = -550.0
+offset_right = 394.0
+offset_bottom = -371.0
+text = "Code blocks
+that the player have"
+label_settings = SubResource("LabelSettings_lq8d4")
+
+[node name="Label2" type="Label" parent="BookBackground" unique_id=791570193]
+offset_left = 739.0
+offset_top = -526.0
+offset_right = 1110.0
+offset_bottom = -430.0
+text = "Script"
+label_settings = SubResource("LabelSettings_lq8d4")
+
+[node name="Label3" type="Label" parent="BookBackground" unique_id=228503504]
+offset_left = 1310.0
+offset_top = -283.0
+offset_right = 1681.0
+offset_bottom = -187.0
+rotation = -1.5707964
+text = "Book Mark"
+label_settings = SubResource("LabelSettings_lq8d4")
+
+[node name="TextureRect" type="TextureRect" parent="BookBackground" unique_id=1379880202]
+offset_left = 1427.0
+offset_top = -532.0
+offset_right = 1595.0
+offset_bottom = -478.0
+texture = SubResource("PlaceholderTexture2D_vjbm6")
+
+[node name="TextureRect2" type="TextureRect" parent="BookBackground" unique_id=2088899733]
+offset_left = 1420.0
+offset_top = -435.0
+offset_right = 1588.0
+offset_bottom = -381.0
+texture = SubResource("PlaceholderTexture2D_vjbm6")
+
+[node name="NearBackground" type="Node2D" parent="." unique_id=1150777171]
+z_index = 9
+position = Vector2(-512, 256)
+
+[node name="ParallaxOffset" type="Node" parent="NearBackground" unique_id=892838010 node_paths=PackedStringArray("visual")]
+script = ExtResource("7_parallax")
+visual = NodePath("..")
+factor = Vector2(-0.55, -0.55)
+
+[node name="HotSwapSprite" type="Sprite2D" parent="NearBackground" unique_id=450813439]
+position = Vector2(-18, 108)
+texture = ExtResource("2_lq8d4")
+script = ExtResource("2_fe0ic")
+asset_id = "tex_portrait_focus"
+metadata/_custom_type_script = "uid://bgit4iapmj1bm"
+
+[connection signal="pressed" from="UI/DebugContainer/RestartButton" to="." method="_on_restart_button_pressed"]
+[connection signal="pressed" from="UI/DebugContainer/DeleteSaveButton" to="." method="_on_delete_save_button_pressed"]
+[connection signal="pressed" from="UI/TownInfo/VBoxContainer/RaidButton" to="." method="_on_raid_button_pressed"]

@@ -1,14 +1,30 @@
 extends Node
 
 
+signal resource_changed()
+
+enum ResourceType {
+	CORPSE,
+	BONE,
+	WEAPON,
+	COLLAR,
+}
+
 const BATTLE_SCENE: String = "res://systems/battle/battle.tscn"
 const MAP_SCENE: String = "res://systems/world_map/world_map.tscn"
 const DESTROYED_RATIO: float = 0.5 # The ratio of the town's restore points to be destroyed.
 const MAP_SAVE_SLOT := 0
+const DISABLED_COLOR: Color = Color.DIM_GRAY
 
 # States
 var raid_target_id := "" ## Save key of the town that was raided.
 var pending_raid_damage := 0.0 ## Applied after the map reloads its saved restore points.
+
+# Hard-coded resources
+var corpse := 0
+var bone := 0
+var weapon := 0
+var collar := 0
 
 # Refs
 var world_map: WorldMap
@@ -73,3 +89,45 @@ func delete_save() -> void:
 func _clear_raid_request() -> void:
 	raid_target_id = ""
 	pending_raid_damage = 0.0
+
+
+func resource_icon_id(resource_type: ResourceType) -> String:
+	match resource_type:
+		ResourceType.CORPSE:
+			return "tex_resource_corpse"
+		ResourceType.BONE:
+			return "tex_resource_bone"
+		ResourceType.WEAPON:
+			return "tex_resource_weapon"
+		ResourceType.COLLAR:
+			return "tex_resource_collar"
+		_:
+			return ""
+
+
+func get_resource(resource_type: ResourceType) -> int:
+	match resource_type:
+		ResourceType.CORPSE:
+			return corpse
+		ResourceType.BONE:
+			return bone
+		ResourceType.WEAPON:
+			return weapon
+		ResourceType.COLLAR:
+			return collar
+		_:
+			return 0
+
+
+func change_resource(resource_type: ResourceType, amount: int) -> void:
+	match resource_type:
+		ResourceType.CORPSE:
+			corpse = max(0, corpse + amount)
+		ResourceType.BONE:
+			bone = max(0, bone + amount)
+		ResourceType.WEAPON:
+			weapon = max(0, weapon + amount)
+		ResourceType.COLLAR:
+			collar = max(0, collar + amount)
+			
+	resource_changed.emit()
