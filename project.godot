@@ -12,7 +12,7 @@ config_version=5
 
 config/name="THJ 2026"
 config/description="THJ 2026 game jam. Godot 4.8-beta1 with the Lost framework hot-swap asset pipeline."
-run/main_scene="res://game/main.tscn"
+run/main_scene="uid://dw2o45af0ufqs"
 config/features=PackedStringArray("4.8", "GL Compatibility")
 config/icon="res://icon.svg"
 
@@ -25,23 +25,27 @@ Lost="*res://addons/lost_framework/core/lost_core.gd"
 Audio="*res://addons/lost_framework/modules/audio_manager/audio_manager.module.gd"
 SaveManager="*res://addons/lost_framework/modules/save_manager/save_manager.module.gd"
 Settings="*res://addons/lost_framework/modules/settings/settings.module.gd"
+Game="*uid://ceh6cu1vv67q"
 
 [display]
 
-window/size/viewport_width=960
-window/size/viewport_height=540
+window/size/viewport_width=1920
+window/size/viewport_height=1080
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+
+[editor]
+
+run/main_run_args="-- --assets=https://slost.github.io/thj-2026/assets/"
+run/size/viewport_height=1080
 
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/lost_framework/plugin.cfg")
 
-[lost_framework/asset_manager]
+[lost_framework]
 
-remote_enabled=true
-base_url="assets/"
-max_concurrent=4
+asset_manager/remote_enabled=true
 
 [rendering]
 

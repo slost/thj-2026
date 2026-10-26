@@ -9,3 +9,4 @@
 /assets/manifest.json
 *.tmp
 export_presets.cfg.bak
+.vscode/
