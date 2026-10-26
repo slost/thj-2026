@@ -75,7 +75,7 @@ id = &"small_village_c"
 name = "Small Village C"
 metadata/_custom_type_script = "uid://jc6n263ren8b"
 
-[sub_resource type="Texture2DRD" id="Texture2DRD_lq8d4"]
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_26kkc"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_lq8d4"]
 font_size = 64
@@ -278,7 +278,7 @@ offset_left = -1044.0
 offset_top = -601.0
 offset_right = 1084.0
 offset_bottom = 641.0
-texture = SubResource("Texture2DRD_lq8d4")
+texture = SubResource("PlaceholderTexture2D_26kkc")
 
 [node name="Label" type="Label" parent="Camp" unique_id=1437702104]
 offset_right = 40.0
