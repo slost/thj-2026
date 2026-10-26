@@ -11,7 +11,6 @@ var _dtag := DebugTag.new("WorldMap") ## The debug tag for the world map.
 
 func _ready() -> void:
 	Game.world_map = self
-	Game.load_map_state()
 	unfocus_location()
 
 
