@@ -256,39 +256,27 @@ theme_override_constants/h_separation = 32
 theme_override_constants/v_separation = 32
 columns = 2
 
-[node name="MasterRow" parent="Center/Panel/Scroll/VBox/AudioList" unique_id=1172579256 node_paths=PackedStringArray("title_label", "slider", "value_label") instance=ExtResource("2_row")]
+[node name="MasterRow" parent="Center/Panel/Scroll/VBox/AudioList" unique_id=1172579256 instance=ExtResource("2_row")]
 layout_mode = 2
 size_flags_horizontal = 3
-title_label = NodePath("Header/TitleLabel")
-slider = NodePath("Slider")
-value_label = NodePath("Header/ValueLabel")
 
-[node name="MusicRow" parent="Center/Panel/Scroll/VBox/AudioList" unique_id=711557100 node_paths=PackedStringArray("title_label", "slider", "value_label") instance=ExtResource("2_row")]
+[node name="MusicRow" parent="Center/Panel/Scroll/VBox/AudioList" unique_id=711557100 instance=ExtResource("2_row")]
 layout_mode = 2
 size_flags_horizontal = 3
 bus_name = "BGM"
 label_key = "settings.music"
-title_label = NodePath("Header/TitleLabel")
-slider = NodePath("Slider")
-value_label = NodePath("Header/ValueLabel")
 
-[node name="SfxRow" parent="Center/Panel/Scroll/VBox/AudioList" unique_id=1815931422 node_paths=PackedStringArray("title_label", "slider", "value_label") instance=ExtResource("2_row")]
+[node name="SfxRow" parent="Center/Panel/Scroll/VBox/AudioList" unique_id=1815931422 instance=ExtResource("2_row")]
 layout_mode = 2
 size_flags_horizontal = 3
 bus_name = "SFX"
 label_key = "settings.sfx"
-title_label = NodePath("Header/TitleLabel")
-slider = NodePath("Slider")
-value_label = NodePath("Header/ValueLabel")
 
-[node name="UiRow" parent="Center/Panel/Scroll/VBox/AudioList" unique_id=995281965 node_paths=PackedStringArray("title_label", "slider", "value_label") instance=ExtResource("2_row")]
+[node name="UiRow" parent="Center/Panel/Scroll/VBox/AudioList" unique_id=995281965 instance=ExtResource("2_row")]
 layout_mode = 2
 size_flags_horizontal = 3
 bus_name = "UI"
 label_key = "settings.ui"
-title_label = NodePath("Header/TitleLabel")
-slider = NodePath("Slider")
-value_label = NodePath("Header/ValueLabel")
 
 [node name="Separator3" type="HSeparator" parent="Center/Panel/Scroll/VBox" unique_id=1686180341]
 layout_mode = 2

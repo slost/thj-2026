@@ -1,0 +1,68 @@
+[gd_resource type="Resource" script_class="DialogueCommandDef" format=3]
+
+[ext_resource type="Script" path="res://addons/lost_framework/modules/text_based/commands/scripts/dialogue_command_def.gd" id="1_command"]
+[ext_resource type="Script" uid="uid://bi7kikbh7mnl2" path="res://addons/lost_framework/modules/text_based/command_message.gd" id="2_message"]
+[ext_resource type="Script" uid="uid://dbkqe3edfftg0" path="res://addons/lost_framework/modules/text_based/command_localization.gd" id="9_localization"]
+
+[sub_resource type="Resource" id="Message_no_dialogue"]
+script = ExtResource("2_message")
+key = &"no_dialogue"
+text = "You can't talk to the {object}."
+
+[sub_resource type="Resource" id="Message_no_topic"]
+script = ExtResource("2_message")
+key = &"no_topic"
+text = "The {object} has nothing to say about that."
+
+[sub_resource type="Resource" id="Message_need_topic"]
+script = ExtResource("2_message")
+key = &"need_topic"
+text = "What do you want to talk to the {object} about?"
+
+[sub_resource type="Resource" id="Message_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "You can't do that."
+
+[sub_resource type="Resource" id="Message_th_no_dialogue"]
+script = ExtResource("2_message")
+key = &"no_dialogue"
+text = "คุยกับ{object}ไม่ได้"
+
+[sub_resource type="Resource" id="Message_th_no_topic"]
+script = ExtResource("2_message")
+key = &"no_topic"
+text = "{object}ไม่มีอะไรจะพูดเรื่องนั้น"
+
+[sub_resource type="Resource" id="Message_th_need_topic"]
+script = ExtResource("2_message")
+key = &"need_topic"
+text = "จะคุยกับ{object}เรื่องอะไร?"
+
+[sub_resource type="Resource" id="Message_th_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "ทำแบบนั้นไม่ได้"
+
+[sub_resource type="Resource" id="Localization_th"]
+script = ExtResource("9_localization")
+locale = "th"
+messages = Array[ExtResource("2_message")]([SubResource("Message_th_no_dialogue"), SubResource("Message_th_no_topic"), SubResource("Message_th_need_topic"), SubResource("Message_th_cant_do")])
+name = "คุย"
+aliases = PackedStringArray("คุย")
+help_text = "คุยกับใครสักคน"
+help_examples = Array[String](["คุยกับยาม"])
+
+[resource]
+script = ExtResource("1_command")
+id = &"talk"
+name = "talk"
+aliases = PackedStringArray("talk")
+object_requirement = 2
+prepositions = PackedStringArray("to", "with")
+help_text = "Talk to someone."
+help_examples = Array[String](["talk to the guard"])
+help_category = "Conversation"
+accepts_topic = true
+localizations = Array[ExtResource("9_localization")]([SubResource("Localization_th")])
+messages = Array[ExtResource("2_message")]([SubResource("Message_no_dialogue"), SubResource("Message_no_topic"), SubResource("Message_need_topic"), SubResource("Message_cant_do")])

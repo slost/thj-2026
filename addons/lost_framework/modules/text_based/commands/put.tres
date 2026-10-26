@@ -1,0 +1,139 @@
+[gd_resource type="Resource" script_class="PutCommandDef" format=3]
+
+[ext_resource type="Script" uid="uid://cjmquhag2go6h" path="res://addons/lost_framework/modules/text_based/commands/scripts/put_command_def.gd" id="1_command"]
+[ext_resource type="Script" uid="uid://bi7kikbh7mnl2" path="res://addons/lost_framework/modules/text_based/command_message.gd" id="2_message"]
+[ext_resource type="Script" uid="uid://dbkqe3edfftg0" path="res://addons/lost_framework/modules/text_based/command_localization.gd" id="9_localization"]
+
+[sub_resource type="Resource" id="Message_put"]
+script = ExtResource("2_message")
+key = &"put"
+text = "You put the {object} in the {target}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_not_carried"]
+script = ExtResource("2_message")
+key = &"not_carried"
+text = "You don't have the {object}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_not_container"]
+script = ExtResource("2_message")
+key = &"not_container"
+text = "You can't put things in the {target}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_container_closed"]
+script = ExtResource("2_message")
+key = &"container_closed"
+text = "The {target} is closed."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_put_in_itself"]
+script = ExtResource("2_message")
+key = &"put_in_itself"
+text = "You can't put the {object} inside itself."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "You can't do that."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_put"]
+script = ExtResource("2_message")
+key = &"put"
+text = "ใส่{object}ลงใน{target}แล้ว"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_not_carried"]
+script = ExtResource("2_message")
+key = &"not_carried"
+text = "คุณไม่ได้ถือ{object}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_not_container"]
+script = ExtResource("2_message")
+key = &"not_container"
+text = "ใส่ของลงใน{target}ไม่ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_container_closed"]
+script = ExtResource("2_message")
+key = &"container_closed"
+text = "{target}ปิดอยู่"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_put_in_itself"]
+script = ExtResource("2_message")
+key = &"put_in_itself"
+text = "ใส่{object}ลงในตัวมันเองไม่ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "ทำแบบนั้นไม่ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_put_on"]
+script = ExtResource("2_message")
+key = &"put_on"
+text = "You put the {object} on the {target}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_not_supporter"]
+script = ExtResource("2_message")
+key = &"not_supporter"
+text = "You can't put things on the {target}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_put_on"]
+script = ExtResource("2_message")
+key = &"put_on"
+text = "วาง{object}บน{target}แล้ว"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_not_supporter"]
+script = ExtResource("2_message")
+key = &"not_supporter"
+text = "วางของบน{target}ไม่ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_put_seen"]
+script = ExtResource("2_message")
+key = &"put_seen"
+text = "{actor}ใส่{object}ลงใน{target}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_put_on_seen"]
+script = ExtResource("2_message")
+key = &"put_on_seen"
+text = "{actor}วาง{object}บน{target}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Localization_th"]
+script = ExtResource("9_localization")
+locale = "th"
+messages = Array[ExtResource("2_message")]([SubResource("Message_th_put"), SubResource("Message_th_not_carried"), SubResource("Message_th_not_container"), SubResource("Message_th_container_closed"), SubResource("Message_th_put_in_itself"), SubResource("Message_th_cant_do"), SubResource("Message_th_put_on"), SubResource("Message_th_not_supporter"), SubResource("Message_th_put_seen"), SubResource("Message_th_put_on_seen")])
+name = "ใส่"
+aliases = PackedStringArray("ใส่")
+help_text = "ใส่ของที่ถืออยู่ลงในภาชนะ"
+help_examples = Array[String](["ใส่ดาบลงในกล่อง"])
+metadata/_custom_type_script = "uid://dbkqe3edfftg0"
+
+[resource]
+script = ExtResource("1_command")
+id = &"put"
+name = "put"
+aliases = PackedStringArray("put")
+object_requirement = 2
+object_scope = 2
+target_requirement = 2
+prepositions = PackedStringArray("in", "on")
+help_text = "Put something you carry into a container."
+help_examples = Array[String](["put sword in box"])
+help_category = "Objects"
+localizations = Array[ExtResource("9_localization")]([SubResource("Localization_th")])
+messages = Array[ExtResource("2_message")]([SubResource("Message_put"), SubResource("Message_not_carried"), SubResource("Message_not_container"), SubResource("Message_container_closed"), SubResource("Message_put_in_itself"), SubResource("Message_cant_do"), SubResource("Message_put_on"), SubResource("Message_not_supporter")])
+metadata/_custom_type_script = "uid://dspyiq1a2i7vd"

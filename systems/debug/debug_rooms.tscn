@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://dw2o45af0ufqs"]
+
+[ext_resource type="Script" uid="uid://cmj8di0b5topp" path="res://systems/debug/debug_rooms.gd" id="1_1tnwh"]
+
+[node name="DebugRooms" type="Control" unique_id=1374424786]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 282.66663
+offset_top = 159.0
+offset_right = -282.66663
+offset_bottom = -159.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_1tnwh")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1831224543]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="WorldMapButton" type="Button" parent="VBoxContainer" unique_id=1457424934]
+layout_mode = 2
+theme_override_font_sizes/font_size = 64
+text = "World Map"
+
+[connection signal="button_down" from="VBoxContainer/WorldMapButton" to="." method="_on_world_map_button_button_down"]

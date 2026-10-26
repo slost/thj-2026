@@ -1,6 +1,6 @@
 # Hot-swap assets
 
-Lost's asset manager can keep using local `AssetEntry` resources and, when a game opts in, replace textures and audio at runtime from a manifest hosted next to the web build. A teammate uploads `sfx_jump.ogg` or `tex.hand.point.png` through the GitHub web UI. GitHub Actions republishes the site. The running game picks up the new files on refresh. No Godot export is required for an asset-only change.
+Lost's asset manager can keep using local `AssetEntry` resources and, when a game opts in, replace textures, audio, and AnimationPlayer clips at runtime from a manifest hosted next to the web build. A teammate uploads `sfx_jump.ogg`, `tex.hand.point.png`, or `anim_player_run.tres` through the GitHub web UI. GitHub Actions republishes the site. The running game picks up the new files on refresh. No Godot export is required for an asset-only change.
 
 The download queue, hash cache-busting, decoders, and Pages workflow follow a standalone starter kit that was already run on Godot 4.2/4.3 desktop and Web. This document is the Lost integration. On a web export the bytes are read with `fetch()`, because Godot's web `HTTPRequest` does not finish a GitHub Pages response.
 
@@ -10,12 +10,12 @@ Remote loading is an overlay inside `AssetManager`, not a second autoload.
 
 - `AssetEntry` files under `res://lost/assets` stay the editor database and the built-in placeholders.
 - A child node (`RemoteAssetLoader`) fetches `manifest.json` only after remote mode is turned on.
-- `Assets.fetch(key)` is unchanged while remote mode is off. When a compatible download exists, that call returns the remote texture or audio instead, and the cache is updated.
+- `Assets.fetch(key)` is unchanged while remote mode is off. When a compatible download exists, that call returns the remote texture, audio, or animation instead, and the cache is updated.
 - Scenes, item definitions, and other non-media entries are not replaced when the remote file is a different kind. The local resource stays, and a warning is printed once.
 - `reload()` downloads only files whose manifest hash changed.
 - Web exports download with the browser's `fetch()` (`JavaScriptBridge`, `arrayBuffer`, base64, `Marshalls.base64_to_raw`). Desktop and other platforms keep `HTTPRequest`. The web call sends no custom headers. Cache-busting stays on the query string (`?t=` for the manifest, `?v=<hash>` for each file). The concurrency cap, hash skip, timeouts, and placeholder fallback apply on both paths.
 - `bgm_` and `bgm.` ids loop. Other audio does not, unless the manifest entry sets `"loop"` explicitly.
-- Nodes that already copied a texture in `_ready` do not change by themselves. Use `HotSwapSprite`, `HotSwapTextureRect`, or `HotSwapAudio`, or connect to `asset_updated`. `AudioManager` restarts the current music when the key it is playing updates.
+- Nodes that already copied a texture in `_ready` do not change by themselves. Use `HotSwapSprite`, `HotSwapTextureRect`, `HotSwapAudio`, or `HotSwapAnimationPlayer`, or connect to `asset_updated`. `AudioManager` restarts the current music when the key it is playing updates. A `HotSwapAnimationPlayer` replaces a clip when `asset_updated` fires for its id, including after `reload()`.
 
 ## Turn it on
 
@@ -50,27 +50,67 @@ The id is the file name without its extension, lowercased.
 | `sfx.scissors.use.ogg` | `sfx.scissors.use` | Same string as an existing AssetEntry key. |
 | `bgm_menu.ogg` / `bgm.level1.ogg` | `bgm_menu` / `bgm.level1` | Loops. |
 | `sfx/sfx_hit.wav` | `sfx_hit` | Subfolders are kept in the URL; the id is still the file name. |
+| `anim_player_run.tres` | `anim_player_run` | Animation resource. Replaces the `player/run` clip. |
+| `anim_run.res` | `anim_run` | Same for the `run` clip. `.tres` wins if both extensions exist. |
 
 Allowed characters: a letter, then `a-z`, `0-9`, `_`, and extra `.segments` that also start with a letter. No spaces, no Thai characters, no uppercase in the file name (uppercase is accepted but rewritten to a lowercase id, and the manifest tool warns).
 
-Extensions: `.png`, `.webp`, `.jpg`, `.jpeg`, `.ogg`, `.mp3`, `.wav`. If two files share an id, `.ogg` wins over `.mp3` and `.wav`, then textures. WAV is PCM 8/16/24/32-bit or 32-bit float, mono or stereo. ADPCM is not decoded. `.ogg` is the format to ask for.
+Extensions: `.png`, `.webp`, `.jpg`, `.jpeg`, `.ogg`, `.mp3`, `.wav`, `.tres`, `.res`. If two files share an id, `.ogg` wins over `.mp3` and `.wav`, then textures, then `.tres` over `.res`. WAV is PCM 8/16/24/32-bit or 32-bit float, mono or stereo. ADPCM is not decoded. `.ogg` is the format to ask for. `.tres` and `.res` are included only when the file is an Animation with no script. Anything else is skipped with a warning.
 
-Known prefixes (`tex_`, `spr_`, `ui_`, `bg_`, `sfx_`, `bgm_`, `vo_`, `amb_`, and the same words with a dot) are hints for the status page. Other ids still ship; the tool only warns.
+Known prefixes (`tex_`, `spr_`, `ui_`, `bg_`, `sfx_`, `bgm_`, `vo_`, `amb_`, `anim_`, and the same words with a dot) are hints for the status page. Other ids still ship; the tool only warns.
 
 ## What the game calls
 
 ```gdscript
 var tex := Assets.fetch("tex_player") as Texture2D
 var sfx := Assets.fetch("sfx.scissors.use") as AudioStream
+var clip := Assets.fetch_animation("anim_player_run") # null until a remote Animation is accepted
 Assets.manager.asset_updated.connect(func(id: String) -> void:
     if id == "tex_player":
         sprite.texture = Assets.fetch("tex_player"))
 Assets.manager.reload()
 ```
 
-`Assets.fetch_texture` and `Assets.fetch_audio` never return null. They try the remote file, then the local entry, then `res://placeholders/<id>.<ext>`, then a magenta checkerboard or a short beep. `Assets.fetch` still returns null for an unknown key, which is the old contract.
+`Assets.fetch_texture` and `Assets.fetch_audio` never return null. They try the remote file, then the local entry, then `res://placeholders/<id>.<ext>`, then a magenta checkerboard or a short beep. `Assets.fetch_animation` returns null when no Animation is available, so a scene can keep its built-in clip. `Assets.fetch` still returns null for an unknown key, which is the old contract.
 
 `HotSwapSprite`, `HotSwapTextureRect`, and `HotSwapAudio` read `asset_id` and update when `asset_updated` fires. An editor-assigned texture or stream is kept until the remote file arrives (`prefer_editor_texture` / `prefer_editor_stream`). For `AudioStreamPlayer2D` or `AudioStreamPlayer3D`, duplicate `hot_swap_audio.gd` and change `extends`.
+
+## Animations
+
+Save one Animation from the editor (Animation panel → the clip → Save As, or drag the clip resource out of the AnimationPlayer) as `anim_player_run.tres`. Put that file in the game repo's `assets/` folder. Do not save the whole scene, and do not save the AnimationLibrary. The running game replaces the clip of the same name. The clip baked into the scene stays until that file exists, and it stays when remote mode is off, including `?assets=off`.
+
+`HotSwapAnimationPlayer` is an AnimationPlayer. Leave the scene clips on it.
+
+| Clip on the player | File | Id |
+|---|---|---|
+| `player/run` | `anim_player_run.tres` | `anim_player_run` |
+| `run` | `anim_run.tres` | `anim_run` |
+
+`bind_by_name` (default true) uses that table: a `/` in the clip name becomes `_`, then the id is `anim_` plus that name. `animation_ids` overrides one clip, for example `{ "run": "anim_player_dash" }`. An explicit entry wins over the name rule. The example file in the template is `assets/anim_player_run.tres` (a 0.4s loop that moves `Sprite2D:position` to `(200, 0)`).
+
+```gdscript
+# player/run is replaced by anim_player_run.tres when that file is in the manifest.
+$HotSwapAnimationPlayer.bind_by_name = true
+$HotSwapAnimationPlayer.animation_ids = {"dash": "anim_player_dash"}
+```
+
+If that clip is playing, the player seeks to the same time on the new animation and keeps playing. Time past the new length clamps when the clip does not loop, and wraps when it does. A paused clip stays paused at that time. `reload()` downloads a changed hash and emits `asset_updated`, which applies the new clip the same way.
+
+These files come from teammates. A `.tres` can embed a script, so a download is accepted only when all of this is true:
+
+- The root resource is an Animation.
+- External and sub resources are built-in data: textures, audio, fonts, materials, curves, gradients, and simple style boxes.
+- Nothing assigns a `script` property, embeds `script/source`, or points at a `.gd` / `.cs` path.
+
+Anything else is refused. The warning names the file and the reason, and the scene clip stays. Method tracks are allowed. They call methods that already exist on the scene. They do not add code.
+
+Limits:
+
+- Track NodePaths must match the scene (`Sprite2D:position` is relative to the AnimationPlayer's root, usually its parent). A path the scene does not have does nothing.
+- A track value that points at `res://...` loads only when that file is already in the export. A missing file leaves that key empty. The rest of the clip still plays.
+- When that file name is a hot-swap texture id that has already downloaded (`tex_player.png` → `tex_player`), the key is replaced with the hot-swap texture at the moment the animation is applied. A texture that arrives later is picked up the next time that animation is applied. Audio and other `res://` references are not rewritten.
+- Prefer `.tres`. An uncompressed `.res` is accepted when its type is Animation and its string table has no script class. Compressed `.res` (`RSCC`) is refused. A `.res` whose string table contains the exact class name `Script` is refused, which can also happen if a node is named `Script`. Rename that node or save `.tres`.
+- Clips are not retargeted. Bone and property paths are used as saved.
 
 Signals on `AssetManager`:
 
@@ -126,27 +166,30 @@ Jam builds on itch.io should not depend on GitHub Pages.
 
 ## What was checked, and what was not
 
-Checked here with Godot 4.6.3 headless, plus the manifest unit tests, and again after the web `fetch()` change:
+Checked here with Godot 4.6.3 headless, plus the manifest unit tests, and again after the web `fetch()` change. Animation hot-swap was checked on that same 4.6.3 suite and on a Godot 4.8-beta1 web export.
 
 - URL priority, relative URL joining, and desktop rejection of a relative base URL.
 - PNG, JPG, WebP, OGG, MP3, 8/16/24-bit WAV, `bgm_` / `bgm.` looping, and rejection of bad buffers.
 - Opt-in default, `Assets.fetch` cache behavior, type-mismatch fallback, dotted ids, subfolder files, hash skip on `reload()`, failed manifest keeping the previous file, the concurrency cap, and `HotSwapSprite` / `HotSwapTextureRect` / `HotSwapAudio` updates.
 - `AudioManager` resolving a remote stream for an `AssetEntry` key.
+- Animation manifest entries for `.tres` and `.res`, with script files, scenes, and non-Animation resources skipped. `AnimationSwap` decodes the template `anim_player_run.tres` and a binary `.res`, refuses an embedded or referenced Script before that script runs, and refuses a `.res` whose string table names `GDScript`. `HotSwapAnimationPlayer` replaces `run` from `anim_run` and `dash` from `animation_ids`, keeps a playing clip playing, keeps a paused clip paused, and leaves an unknown clip name alone. A texture key whose file name is an already downloaded hot-swap id is replaced with that texture.
 - Godot 4.8-beta1 web export with threads off (`GODOT_THREADS_ENABLED = false`), booted in headless Chrome. A same-origin gzip response makes `HTTPRequest` print the `err != 0 && err != 1` failure from `stream_peer_gzip.cpp` and return result 8 with HTTP 200 and an empty body. The same URL over plain HTTP/1.0 succeeds. `fetch()` and `RemoteAssetLoader` both decode that gzip manifest and a 1×1 PNG. `fetch()` also read the live Pages manifest at `https://slost.github.io/lost-hotswap-test/manifest.json` (HTTP 200, 951 bytes).
+- A separate 4.8-beta1 threads-off web export (`Build configuration: Emscripten 6.0.12, single-threaded, no GDExtension support.`) in headless Chrome. The asset folder was served with `Content-Encoding: gzip`. The engine log showed `remote base_url = http://127.0.0.1:8771/assets/`. The built-in `run` clip played first (`Sprite2D` x moved through about 1.8 on the 1 second clip). After `anim_run.tres` downloaded, the clip length became 0.4, playback continued, and x reached about 104. Seeking to 0.2 seconds and advancing 0.2 seconds both put the sprite at x=100, which is the remote clip (0 to 200 over 0.4 seconds). `?assets=off` left the scene clip at length 1.0, `fetch_animation` stayed null, and advancing 0.2 seconds put the sprite at x=2.
 - Workflow tag rules, locally: `4.6` + `stable`, `4.6.1` + `stable`, `4.8-beta1`, `4.7.2-rc1`, and `4.8-dev7`. `godot --version` on the 4.8-beta1 editor is `4.8.beta1.official.4d10419ca`, and the template archive's `version.txt` is `4.8.beta1`.
 
 Not checked:
 
 - The GitHub Actions workflow has not been run on GitHub.
-- `?assets=` through `JavaScriptBridge` was not run in a browser. On the web that is the same `URL` / `URLSearchParams` call as the starter kit; `join_url()` covers the non-JS fallback and was unit tested.
+- `?assets=<url>` as a custom base URL was not opened in a browser. `?assets=off` was: the animation web probe kept the scene clip. `join_url()` covers the non-JS fallback and was unit tested.
 - This branch was not deployed to GitHub Pages, and the `slost/lost-hotswap-test` game was not rebuilt from it. `HTTPRequest` from the localhost probe to that Pages URL succeeded, because a cross-origin response hides `Content-Encoding`. A game hosted on Pages is same-origin with its assets, which is the gzip case above.
 - Godot 4.2 and 4.3 editors were not installed in this run.
+- Animation audio tracks and other non-texture `res://` references are not rewritten to hot-swap ids. Bone paths are not retargeted. Compressed `.res` (`RSCC`) is refused. A `.res` whose string table contains the class name `Script` is refused, including the case where a node is named `Script`.
 
 ---
 
 # แอสเซ็ตแบบ hot-swap
 
-ตัวจัดการแอสเซ็ตของ Lost ยังใช้ `AssetEntry` ในเครื่องได้ตามเดิม และถ้าเกมเปิดตัวเลือกนี้ จะสลับ texture กับเสียงตอนรันจาก manifest ที่อยู่ข้างไฟล์เว็บ เพื่อนในทีมอัป `sfx_jump.ogg` หรือ `tex.hand.point.png` ผ่านหน้าเว็บ GitHub แล้ว GitHub Actions เผยแพร่ไซต์ใหม่ เกมที่เปิดอยู่จะเห็นไฟล์ใหม่เมื่อรีเฟรช ไม่ต้อง export Godot ใหม่ถ้าแก้แค่ไฟล์แอสเซ็ต
+ตัวจัดการแอสเซ็ตของ Lost ยังใช้ `AssetEntry` ในเครื่องได้ตามเดิม และถ้าเกมเปิดตัวเลือกนี้ จะสลับ texture เสียง และคลิปของ AnimationPlayer ตอนรันจาก manifest ที่อยู่ข้างไฟล์เว็บ เพื่อนในทีมอัป `sfx_jump.ogg`, `tex.hand.point.png` หรือ `anim_player_run.tres` ผ่านหน้าเว็บ GitHub แล้ว GitHub Actions เผยแพร่ไซต์ใหม่ เกมที่เปิดอยู่จะเห็นไฟล์ใหม่เมื่อรีเฟรช ไม่ต้อง export Godot ใหม่ถ้าแก้แค่ไฟล์แอสเซ็ต
 
 คิวดาวน์โหลด การกันแคชด้วยแฮช ตัวถอดรหัส และ workflow ของ Pages มาจากชุดเริ่มต้นที่เคยรันบน Godot 4.2/4.3 ทั้งเดสก์ท็อปและเว็บ เอกสารนี้คือการต่อชุดนั้นเข้ากับ Lost บนเว็บที่ export แล้ว ตัวโหลดอ่านไฟล์ด้วย `fetch()` เพราะ `HTTPRequest` ของ Godot บนเว็บจบงานจาก GitHub Pages ไม่ได้
 
@@ -156,12 +199,12 @@ Not checked:
 
 - ไฟล์ `AssetEntry` ใน `res://lost/assets` ยังเป็นฐานข้อมูลในเอดิเตอร์และเป็น placeholder
 - โหนดลูก (`RemoteAssetLoader`) จะดึง `manifest.json` ก็ต่อเมื่อเปิดโหมดรีโมต
-- `Assets.fetch(key)` ไม่เปลี่ยนพฤติกรรมเมื่อปิดโหมดรีโมต เมื่อมีไฟล์ที่ชนิดตรงกัน ดาวน์โหลดเสร็จแล้ว คำสั่งนี้จะคืน texture หรือเสียงจากรีโมต และอัปเดตแคช
-- ซีน นิยามไอเทม และทรัพยากรที่ไม่ใช่ภาพหรือเสียง จะไม่ถูกแทนที่ถ้าไฟล์รีโมตคนละชนิด ของในเครื่องยังอยู่ และจะเตือนครั้งเดียว
+- `Assets.fetch(key)` ไม่เปลี่ยนพฤติกรรมเมื่อปิดโหมดรีโมต เมื่อมีไฟล์ที่ชนิดตรงกัน ดาวน์โหลดเสร็จแล้ว คำสั่งนี้จะคืน texture เสียง หรือแอนิเมชันจากรีโมต และอัปเดตแคช
+- ซีน นิยามไอเทม และทรัพยากรที่ไม่ใช่สื่อ จะไม่ถูกแทนที่ถ้าไฟล์รีโมตคนละชนิด ของในเครื่องยังอยู่ และจะเตือนครั้งเดียว
 - `reload()` ดาวน์โหลดเฉพาะไฟล์ที่แฮชใน manifest เปลี่ยน
 - บิลด์เว็บดาวน์โหลดด้วย `fetch()` ของเบราว์เซอร์ (`JavaScriptBridge`, `arrayBuffer`, base64, แล้ว `Marshalls.base64_to_raw`) เดสก์ท็อปและแพลตฟอร์มอื่นยังใช้ `HTTPRequest` คำขอฝั่งเว็บไม่ใส่เฮดเดอร์เอง การกันแคชยังอยู่ที่ query string (`?t=` สำหรับ manifest และ `?v=<hash>` สำหรับแต่ละไฟล์) เพดานจำนวนพร้อมกัน การข้ามไฟล์ที่แฮชเดิม เวลาหมด และ placeholder ใช้กับทั้งสองเส้นทาง
 - ไอดีที่ขึ้นต้นด้วย `bgm_` หรือ `bgm.` จะเล่นวน เสียงอื่นไม่วน เว้นแต่รายการใน manifest ใส่ `"loop"` ไว้
-- โหนดที่ก็อป texture ไปแล้วใน `_ready` จะไม่เปลี่ยนเอง ให้ใช้ `HotSwapSprite`, `HotSwapTextureRect` หรือ `HotSwapAudio` หรือเชื่อม `asset_updated` `AudioManager` จะเริ่มเพลงปัจจุบันใหม่เมื่อไอดีที่กำลังเล่นอัปเดต
+- โหนดที่ก็อป texture ไปแล้วใน `_ready` จะไม่เปลี่ยนเอง ให้ใช้ `HotSwapSprite`, `HotSwapTextureRect`, `HotSwapAudio` หรือ `HotSwapAnimationPlayer` หรือเชื่อม `asset_updated` `AudioManager` จะเริ่มเพลงปัจจุบันใหม่เมื่อไอดีที่กำลังเล่นอัปเดต `HotSwapAnimationPlayer` จะแทนคลิปเมื่อ `asset_updated` ดังสำหรับไอดีของคลิปนั้น รวมถึงหลัง `reload()`
 
 ## วิธีเปิด
 
@@ -196,27 +239,67 @@ GitHub Pages ตอบเป็น HTTP/2 และ `Content-Encoding: gzip` เ
 | `sfx.scissors.use.ogg` | `sfx.scissors.use` | สตริงเดียวกับคีย์ของ AssetEntry เดิม |
 | `bgm_menu.ogg` / `bgm.level1.ogg` | `bgm_menu` / `bgm.level1` | เล่นวน |
 | `sfx/sfx_hit.wav` | `sfx_hit` | โฟลเดอร์ย่อยยังอยู่ใน URL ไอดียังเป็นชื่อไฟล์ |
+| `anim_player_run.tres` | `anim_player_run` | ทรัพยากร Animation แทนคลิป `player/run` |
+| `anim_run.res` | `anim_run` | แบบเดียวกันสำหรับคลิป `run` ถ้ามีทั้งสองนามสกุล จะเลือก `.tres` |
 
 อักขระที่ใช้ได้: ขึ้นต้นด้วยตัวอักษร ตามด้วย `a-z`, `0-9`, `_` และ `.segment` ที่ขึ้นต้นด้วยตัวอักษรเช่นกัน ห้ามเว้นวรรค ห้ามภาษาไทย ห้ามตัวพิมพ์ใหญ่ในชื่อไฟล์ (ตัวพิมพ์ใหญ่ยังถูกยอมรับแต่จะกลายเป็นไอดีตัวเล็ก และเครื่องมือ manifest จะเตือน)
 
-นามสกุล: `.png`, `.webp`, `.jpg`, `.jpeg`, `.ogg`, `.mp3`, `.wav` ถ้าสองไฟล์ใช้ไอดีเดียวกัน จะเลือก `.ogg` ก่อน `.mp3` และ `.wav` แล้วค่อยเป็นรูป WAV ใช้ได้เฉพาะ PCM 8/16/24/32 บิต หรือ float 32 บิต โมโนหรือสเตอริโอ ไม่รองรับ ADPCM ให้ขอไฟล์ `.ogg`
+นามสกุล: `.png`, `.webp`, `.jpg`, `.jpeg`, `.ogg`, `.mp3`, `.wav`, `.tres`, `.res` ถ้าสองไฟล์ใช้ไอดีเดียวกัน จะเลือก `.ogg` ก่อน `.mp3` และ `.wav` แล้วค่อยเป็นรูป แล้ว `.tres` ก่อน `.res` WAV ใช้ได้เฉพาะ PCM 8/16/24/32 บิต หรือ float 32 บิต โมโนหรือสเตอริโอ ไม่รองรับ ADPCM ให้ขอไฟล์ `.ogg` `.tres` และ `.res` จะถูกรวมก็ต่อเมื่อไฟล์นั้นเป็น Animation และไม่มีสคริปต์ อย่างอื่นจะถูกข้ามพร้อมคำเตือน
 
-คำนำหน้าที่รู้จัก (`tex_`, `spr_`, `ui_`, `bg_`, `sfx_`, `bgm_`, `vo_`, `amb_` และคำเดียวกันที่ตามด้วยจุด) เป็นคำใบ้สำหรับหน้าสถานะ ไอดีอื่นยังถูกส่งขึ้นได้ เครื่องมือแค่เตือน
+คำนำหน้าที่รู้จัก (`tex_`, `spr_`, `ui_`, `bg_`, `sfx_`, `bgm_`, `vo_`, `amb_`, `anim_` และคำเดียวกันที่ตามด้วยจุด) เป็นคำใบ้สำหรับหน้าสถานะ ไอดีอื่นยังถูกส่งขึ้นได้ เครื่องมือแค่เตือน
 
 ## สิ่งที่เกมเรียกใช้
 
 ```gdscript
 var tex := Assets.fetch("tex_player") as Texture2D
 var sfx := Assets.fetch("sfx.scissors.use") as AudioStream
+var clip := Assets.fetch_animation("anim_player_run") # เป็น null จนกว่าจะรับ Animation จากรีโมต
 Assets.manager.asset_updated.connect(func(id: String) -> void:
     if id == "tex_player":
         sprite.texture = Assets.fetch("tex_player"))
 Assets.manager.reload()
 ```
 
-`Assets.fetch_texture` กับ `Assets.fetch_audio` ไม่คืน null จะลองไฟล์รีโมต แล้วรายการในเครื่อง แล้ว `res://placeholders/<id>.<ext>` แล้วภาพตารางสีชมพูหรือเสียงปิ๊บสั้น ๆ `Assets.fetch` ยังคืน null เมื่อไม่รู้จักคีย์ ตามสัญญาเดิม
+`Assets.fetch_texture` กับ `Assets.fetch_audio` ไม่คืน null จะลองไฟล์รีโมต แล้วรายการในเครื่อง แล้ว `res://placeholders/<id>.<ext>` แล้วภาพตารางสีชมพูหรือเสียงปิ๊บสั้น ๆ `Assets.fetch_animation` คืน null เมื่อไม่มี Animation เพื่อให้ซีนเก็บคลิปที่ฝังไว้ `Assets.fetch` ยังคืน null เมื่อไม่รู้จักคีย์ ตามสัญญาเดิม
 
 `HotSwapSprite`, `HotSwapTextureRect` และ `HotSwapAudio` อ่าน `asset_id` แล้วอัปเดตเมื่อ `asset_updated` ดัง texture หรือสตรีมที่วางในเอดิเตอร์จะค้างไว้จนกว่าไฟล์รีโมตจะมา (`prefer_editor_texture` / `prefer_editor_stream`) ถ้าต้องการ `AudioStreamPlayer2D` หรือ `AudioStreamPlayer3D` ให้ก็อป `hot_swap_audio.gd` แล้วเปลี่ยน `extends`
+
+## แอนิเมชัน
+
+บันทึก Animation หนึ่งคลิปจากเอดิเตอร์ (แผง Animation → คลิป → Save As หรือลากทรัพยากรของคลิปออกจาก AnimationPlayer) เป็น `anim_player_run.tres` แล้ววางไฟล์นั้นในโฟลเดอร์ `assets/` ของรีโปเกม อย่าบันทึกทั้งซีน และอย่าบันทึก AnimationLibrary เกมที่เปิดอยู่จะแทนคลิปชื่อเดียวกัน คลิปที่ฝังในซีนจะอยู่จนกว่าไฟล์นั้นจะมี และจะอยู่ต่อเมื่อปิดโหมดรีโมต รวมถึง `?assets=off`
+
+`HotSwapAnimationPlayer` คือ AnimationPlayer ให้คลิปของซีนอยู่บนโหนดนี้
+
+| คลิปบนเพลเยอร์ | ไฟล์ | ไอดี |
+|---|---|---|
+| `player/run` | `anim_player_run.tres` | `anim_player_run` |
+| `run` | `anim_run.tres` | `anim_run` |
+
+`bind_by_name` (ค่าเริ่มต้น true) ใช้ตารางนี้: `/` ในชื่อคลิปกลายเป็น `_` แล้วไอดีคือ `anim_` ตามด้วยชื่อนั้น `animation_ids` เขียนทับคลิปเดียว เช่น `{ "run": "anim_player_dash" }` รายการที่ระบุชัดชนะกฎชื่อ ไฟล์ตัวอย่างในเทมเพลตคือ `assets/anim_player_run.tres` (วน 0.4 วินาที เลื่อน `Sprite2D:position` ไป `(200, 0)`)
+
+```gdscript
+# player/run ถูกแทนด้วย anim_player_run.tres เมื่อไฟล์นั้นอยู่ใน manifest
+$HotSwapAnimationPlayer.bind_by_name = true
+$HotSwapAnimationPlayer.animation_ids = {"dash": "anim_player_dash"}
+```
+
+ถ้าคลิปนั้นกำลังเล่น เพลเยอร์จะ seek ไปเวลาเดิมบนแอนิเมชันใหม่แล้วเล่นต่อ เวลาที่เลยความยาวใหม่จะถูกหนีบเมื่อคลิปไม่วน และพันรอบเมื่อคลิปวน คลิปที่หยุดชั่วคราวจะหยุดที่เวลานั้นต่อ `reload()` ดาวน์โหลดแฮชที่เปลี่ยนแล้วส่ง `asset_updated` ซึ่งใส่คลิปใหม่ด้วยวิธีเดียวกัน
+
+ไฟล์เหล่านี้มาจากเพื่อนร่วมทีม `.tres` สามารถฝังสคริปต์ได้ ดังนั้นดาวน์โหลดจะถูกรับก็ต่อเมื่อเป็นจริงทั้งหมดนี้:
+
+- ทรัพยากรรากเป็น Animation
+- ทรัพยากรภายนอกและทรัพยากรย่อยเป็นข้อมูลในตัว: texture เสียง ฟอนต์ วัสดุ เส้นโค้ง ไล่สี และกล่องสไตล์แบบง่าย
+- ไม่มีการกำหนดคุณสมบัติ `script` ไม่ฝัง `script/source` และไม่ชี้ไปที่พาธ `.gd` / `.cs`
+
+อย่างอื่นจะถูกปฏิเสธ คำเตือนจะระบุชื่อไฟล์และเหตุผล และคลิปในซีนจะอยู่ต่อ แทร็กเมธอดใช้ได้ เพราะเรียกเมธอดที่มีอยู่แล้วบนซีน และไม่ได้เพิ่มโค้ด
+
+ข้อจำกัด:
+
+- NodePath ของแทร็กต้องตรงกับซีน (`Sprite2D:position` สัมพัทธ์กับรากของ AnimationPlayer ซึ่งปกติคือพ่อแม่ของมัน) พาธที่ซีนไม่มีจะไม่ทำอะไร
+- ค่าแทร็กที่ชี้ไปที่ `res://...` จะโหลดได้ก็ต่อเมื่อไฟล์นั้นอยู่ใน export อยู่แล้ว ไฟล์ที่หายจะทำให้คีย์นั้นว่าง คลิปที่เหลือยังเล่นได้
+- เมื่อชื่อไฟล์นั้นเป็นไอดี texture แบบ hot-swap ที่ดาวน์โหลดแล้ว (`tex_player.png` → `tex_player`) คีย์จะถูกแทนด้วย texture จาก hot-swap ตอนที่ใส่แอนิเมชัน ถ้า texture มาทีหลัง จะถูกหยิบในครั้งถัดไปที่ใส่แอนิเมชันนั้น เสียงและ `res://` อย่างอื่นจะไม่ถูกเขียนใหม่
+- ใช้ `.tres` เป็นหลัก `.res` ที่ไม่บีบอัดจะถูกรับเมื่อชนิดเป็น Animation และตารางสตริงไม่มีคลาสสคริปต์ `.res` ที่บีบอัด (`RSCC`) จะถูกปฏิเสธ `.res` ที่ตารางสตริงมีชื่อคลาส `Script` ตรงตัวจะถูกปฏิเสธ ซึ่งเกิดได้ถ้ามีโหนดชื่อ `Script` ให้เปลี่ยนชื่อโหนดนั้นหรือบันทึกเป็น `.tres`
+- ไม่มีการ retarget คลิป พาธของกระดูกและคุณสมบัติถูกใช้ตามที่บันทึก
 
 สัญญาณบน `AssetManager`:
 
@@ -272,18 +355,21 @@ workflow แคชผล export ของ Godot ด้วยแฮชของ�
 
 ## สิ่งที่ตรวจแล้ว และสิ่งที่ยังไม่ได้ตรวจ
 
-ตรวจในรอบนี้ด้วย Godot 4.6.3 แบบ headless พร้อมเทสต์หน่วยของ manifest และตรวจซ้ำหลังเปลี่ยนให้เว็บใช้ `fetch()`:
+ตรวจในรอบนี้ด้วย Godot 4.6.3 แบบ headless พร้อมเทสต์หน่วยของ manifest และตรวจซ้ำหลังเปลี่ยนให้เว็บใช้ `fetch()` การ hot-swap แอนิเมชันถูกตรวจในชุด 4.6.3 เดียวกัน และบน web export ของ Godot 4.8-beta1
 
 - ลำดับ URL การต่อ URL แบบสัมพัทธ์ และการไม่รับ base URL แบบสัมพัทธ์บนเดสก์ท็อป
 - PNG, JPG, WebP, OGG, MP3, WAV 8/16/24 บิต การวนของ `bgm_` / `bgm.` และการปฏิเสธบัฟเฟอร์ที่เสีย
 - ค่าเริ่มต้นแบบต้องเปิดเอง พฤติกรรมแคชของ `Assets.fetch` การถอยเมื่อชนิดไม่ตรง ไอดีที่มีจุด ไฟล์ในโฟลเดอร์ย่อย การข้ามไฟล์ที่แฮชไม่เปลี่ยนใน `reload()` การคงไฟล์เดิมเมื่อ manifest ล้มเหลว เพดานจำนวนดาวน์โหลดพร้อมกัน และการอัปเดตของ `HotSwapSprite` / `HotSwapTextureRect` / `HotSwapAudio`
 - `AudioManager` อ่านสตรีมรีโมตจากคีย์ของ `AssetEntry`
+- รายการแอนิเมชันใน manifest สำหรับ `.tres` และ `.res` โดยข้ามไฟล์ที่มีสคริปต์ ซีน และทรัพยากรที่ไม่ใช่ Animation `AnimationSwap` ถอดรหัส `anim_player_run.tres` จากเทมเพลตและ `.res` แบบไบนารี ปฏิเสธ Script ที่ฝังหรืออ้างถึงก่อนสคริปต์นั้นจะรัน และปฏิเสธ `.res` ที่ตารางสตริงมีชื่อ `GDScript` `HotSwapAnimationPlayer` แทน `run` จาก `anim_run` และแทน `dash` จาก `animation_ids` คงคลิปที่กำลังเล่นให้เล่นต่อ คงคลิปที่หยุดชั่วคราวให้หยุดต่อ และปล่อยชื่อคลิปที่ไม่มีอยู่ คีย์ texture ที่ชื่อไฟล์เป็นไอดี hot-swap ที่ดาวน์โหลดแล้วจะถูกแทนด้วย texture นั้น
 - export เว็บของ Godot 4.8-beta1 แบบปิดเธรด (`GODOT_THREADS_ENABLED = false`) แล้วเปิดใน Chrome แบบ headless การตอบแบบ gzip จาก origin เดียวกันทำให้ `HTTPRequest` พิมพ์ความล้มเหลว `err != 0 && err != 1` จาก `stream_peer_gzip.cpp` และคืนผลลัพธ์ 8 พร้อม HTTP 200 และเนื้อหาว่าง URL เดียวกันผ่าน HTTP/1.0 แบบไม่บีบอัดสำเร็จ `fetch()` และ `RemoteAssetLoader` ถอดรหัส manifest ที่ถูก gzip และ PNG ขนาด 1×1 ได้ `fetch()` ยังอ่าน manifest จริงบน Pages ที่ `https://slost.github.io/lost-hotswap-test/manifest.json` (HTTP 200, 951 ไบต์)
+- web export อีกชุดของ 4.8-beta1 แบบปิดเธรด (`Build configuration: Emscripten 6.0.12, single-threaded, no GDExtension support.`) ใน Chrome แบบ headless โฟลเดอร์แอสเซ็ตถูกเสิร์ฟด้วย `Content-Encoding: gzip` ล็อกของเอนจินแสดง `remote base_url = http://127.0.0.1:8771/assets/` คลิป `run` ที่ฝังในซีนเล่นก่อน (`Sprite2D` เลื่อน x ผ่านประมาณ 1.8 บนคลิปยาว 1 วินาที) หลังดาวน์โหลด `anim_run.tres` ความยาวคลิปกลายเป็น 0.4 การเล่นดำเนินต่อ และ x ไปถึงประมาณ 104 การ seek ไป 0.2 วินาทีและการ advance 0.2 วินาทีวางสไปรต์ที่ x=100 ซึ่งเป็นคลิปรีโมต (0 ถึง 200 ใน 0.4 วินาที) `?assets=off` คงคลิปในซีนที่ความยาว 1.0 `fetch_animation` ยังเป็น null และการ advance 0.2 วินาทีวางสไปรต์ที่ x=2
 - กฎแท็กของ workflow ในเครื่อง: `4.6` + `stable`, `4.6.1` + `stable`, `4.8-beta1`, `4.7.2-rc1`, และ `4.8-dev7` `godot --version` ของเอดิเตอร์ 4.8-beta1 คือ `4.8.beta1.official.4d10419ca` และ `version.txt` ในชุดเทมเพลตคือ `4.8.beta1`
 
 ยังไม่ได้ตรวจ:
 
 - workflow ของ GitHub Actions ยังไม่ได้รันบน GitHub
-- `?assets=` ผ่าน `JavaScriptBridge` ยังไม่ได้รันในเบราว์เซอร์ บนเว็บนี่คือคำสั่ง `URL` / `URLSearchParams` ชุดเดียวกับชุดเริ่มต้น `join_url()` ครอบกรณีที่ไม่ใช้ JS และถูกเทสต์แล้ว
+- `?assets=<url>` ที่เป็น base URL กำหนดเองยังไม่ได้เปิดในเบราว์เซอร์ ส่วน `?assets=off` ถูกตรวจแล้ว: เพจแอนิเมชันบนเว็บคงคลิปในซีน `join_url()` ครอบกรณีที่ไม่ใช้ JS และถูกเทสต์แล้ว
 - สาขานี้ยังไม่ได้ถูก deploy ขึ้น GitHub Pages และไม่ได้สร้างเกม `slost/lost-hotswap-test` ใหม่จากสาขานี้ `HTTPRequest` จากเพจบน localhost ไปยัง URL ของ Pages นั้นสำเร็จ เพราะการตอบข้าม origin ไม่เปิดเผย `Content-Encoding` เกมที่โฮสต์บน Pages อยู่ origin เดียวกับไฟล์แอสเซ็ต ซึ่งคือกรณี gzip ด้านบน
 - ไม่ได้ติดตั้งเอดิเตอร์ Godot 4.2 และ 4.3 ในรอบนี้
+- แทร็กเสียงของแอนิเมชันและ `res://` ที่ไม่ใช่ texture จะไม่ถูกเขียนใหม่เป็นไอดี hot-swap ไม่มีการ retarget กระดูก `.res` ที่บีบอัด (`RSCC`) ถูกปฏิเสธ `.res` ที่ตารางสตริงมีชื่อคลาส `Script` ถูกปฏิเสธ รวมถึงกรณีที่โหนดชื่อ `Script`

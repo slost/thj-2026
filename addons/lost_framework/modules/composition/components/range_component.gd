@@ -102,6 +102,8 @@ func _create_debug_drawer() -> Node2D:
 	drawer.set("range", range)
 	drawer.set("color", debug_color)
 	drawer.z_as_relative = false
+	# Above typical gameplay. A host Game.Layer enum is not part of this addon.
+	drawer.z_index = 4096
 
 	return drawer
 
@@ -116,7 +118,6 @@ var range: float = 0.0
 var color: Color = Color.WHITE
 
 func _draw() -> void:
-	z_index = Game.Layer.OVERLAY
 	if range <= 0.0:
 		return
 	draw_circle(Vector2.ZERO, range, color)

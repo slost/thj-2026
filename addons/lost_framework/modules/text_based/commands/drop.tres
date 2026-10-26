@@ -1,0 +1,71 @@
+[gd_resource type="Resource" script_class="DropCommandDef" format=3]
+
+[ext_resource type="Script" uid="uid://dpnlkjo7jv6cg" path="res://addons/lost_framework/modules/text_based/commands/scripts/drop_command_def.gd" id="1_command"]
+[ext_resource type="Script" uid="uid://bi7kikbh7mnl2" path="res://addons/lost_framework/modules/text_based/command_message.gd" id="2_message"]
+[ext_resource type="Script" uid="uid://dbkqe3edfftg0" path="res://addons/lost_framework/modules/text_based/command_localization.gd" id="9_localization"]
+
+[sub_resource type="Resource" id="Message_dropped"]
+script = ExtResource("2_message")
+key = &"dropped"
+text = "Dropped."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_not_carried"]
+script = ExtResource("2_message")
+key = &"not_carried"
+text = "You don't have the {object}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "You can't do that."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_dropped"]
+script = ExtResource("2_message")
+key = &"dropped"
+text = "วางแล้ว"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_not_carried"]
+script = ExtResource("2_message")
+key = &"not_carried"
+text = "คุณไม่ได้ถือ{object}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "ทำแบบนั้นไม่ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_dropped_seen"]
+script = ExtResource("2_message")
+key = &"dropped_seen"
+text = "{actor}วาง{object}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Localization_th"]
+script = ExtResource("9_localization")
+locale = "th"
+messages = Array[ExtResource("2_message")]([SubResource("Message_th_dropped"), SubResource("Message_th_not_carried"), SubResource("Message_th_cant_do"), SubResource("Message_th_dropped_seen")])
+name = "วาง"
+aliases = PackedStringArray("วาง", "ทิ้ง")
+help_text = "วางของที่ถืออยู่ลง"
+help_examples = Array[String](["วางดาบ", "ทิ้งกุญแจ"])
+metadata/_custom_type_script = "uid://dbkqe3edfftg0"
+
+[resource]
+script = ExtResource("1_command")
+id = &"drop"
+name = "drop"
+aliases = PackedStringArray("drop")
+object_requirement = 2
+object_scope = 2
+help_text = "Put down something you carry."
+help_examples = Array[String](["drop sword"])
+help_category = "Objects"
+localizations = Array[ExtResource("9_localization")]([SubResource("Localization_th")])
+messages = Array[ExtResource("2_message")]([SubResource("Message_dropped"), SubResource("Message_not_carried"), SubResource("Message_cant_do")])
+metadata/_custom_type_script = "uid://dspyiq1a2i7vd"

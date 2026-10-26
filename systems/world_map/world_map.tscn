@@ -1,0 +1,95 @@
+[gd_scene format=3 uid="uid://ckem45o8g6s2s"]
+
+[ext_resource type="Texture2D" uid="uid://b3i4l48wkcvmk" path="res://contents/assets/text_world_mockup.png" id="1_3vtoj"]
+[ext_resource type="Script" uid="uid://2d1be4m128iw" path="res://systems/world_map/world_map.gd" id="1_k73hb"]
+[ext_resource type="Script" uid="uid://bgit4iapmj1bm" path="res://addons/lost_framework/modules/asset_manager/hot_swap_sprite.gd" id="2_fe0ic"]
+[ext_resource type="PackedScene" uid="uid://bmtlacr4kkmnv" path="res://systems/world_map/town_location.tscn" id="3_6dblr"]
+[ext_resource type="Script" uid="uid://dneuq16wtfe1r" path="res://addons/lost_framework/modules/data_definition/description_variant.gd" id="4_blbmt"]
+[ext_resource type="Script" uid="uid://jc6n263ren8b" path="res://systems/world_map/town_def.gd" id="5_mtdre"]
+
+[sub_resource type="TileSet" id="TileSet_o83da"]
+tile_size = Vector2i(128, 128)
+
+[sub_resource type="Resource" id="Resource_sqqbm"]
+script = ExtResource("5_mtdre")
+id = &"small_village"
+name = "Smaill Village"
+metadata/_custom_type_script = "uid://jc6n263ren8b"
+
+[sub_resource type="Resource" id="Resource_sjh82"]
+script = ExtResource("5_mtdre")
+id = &"small_village_b"
+name = "Small Village B"
+metadata/_custom_type_script = "uid://jc6n263ren8b"
+
+[sub_resource type="Resource" id="Resource_ivm68"]
+script = ExtResource("5_mtdre")
+id = &"small_village_c"
+name = "Small Village C"
+metadata/_custom_type_script = "uid://jc6n263ren8b"
+
+[sub_resource type="LabelSettings" id="LabelSettings_6ji8r"]
+font_size = 32
+
+[node name="WorldMap" type="Node2D" unique_id=1345538956 node_paths=PackedStringArray("indicator", "debug_label")]
+script = ExtResource("1_k73hb")
+indicator = NodePath("IndicatorSprite")
+debug_label = NodePath("CanvasLayer/DebugLabel")
+
+[node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=809263297]
+tile_set = SubResource("TileSet_o83da")
+
+[node name="Mockup" type="Sprite2D" parent="." unique_id=129406785]
+modulate = Color(0.32265994, 0.32265994, 0.32265994, 1)
+scale = Vector2(1.1451613, 1.1478723)
+texture = ExtResource("1_3vtoj")
+
+[node name="TownLocation" parent="." unique_id=165821674 instance=ExtResource("3_6dblr")]
+def = SubResource("Resource_sqqbm")
+
+[node name="TownLocation2" parent="." unique_id=1593138790 instance=ExtResource("3_6dblr")]
+position = Vector2(303, 43)
+def = SubResource("Resource_sjh82")
+
+[node name="TownLocation3" parent="." unique_id=1914575462 node_paths=PackedStringArray("required_locations") instance=ExtResource("3_6dblr")]
+position = Vector2(0, 128)
+def = SubResource("Resource_ivm68")
+required_locations = [NodePath("../TownLocation2")]
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1736554280]
+
+[node name="IndicatorSprite" type="Sprite2D" parent="." unique_id=477057813]
+position = Vector2(128, 128)
+script = ExtResource("2_fe0ic")
+asset_id = "tex_indicator"
+metadata/_custom_type_script = "uid://bgit4iapmj1bm"
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1288702519]
+
+[node name="DebugLabel" type="Label" parent="CanvasLayer" unique_id=2113755158]
+offset_left = 1152.0
+offset_top = 128.0
+offset_right = 1792.0
+offset_bottom = 384.0
+text = "aaaa
+bbbb
+cccc
+dddd"
+label_settings = SubResource("LabelSettings_6ji8r")
+
+[node name="RestartButton" type="Button" parent="CanvasLayer"]
+offset_left = 1152.0
+offset_top = 400.0
+offset_right = 1456.0
+offset_bottom = 448.0
+text = "Restart"
+
+[node name="DeleteSaveButton" type="Button" parent="CanvasLayer"]
+offset_left = 1472.0
+offset_top = 400.0
+offset_right = 1792.0
+offset_bottom = 448.0
+text = "Delete Save"
+
+[connection signal="pressed" from="CanvasLayer/RestartButton" to="." method="_on_restart_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/DeleteSaveButton" to="." method="_on_delete_save_button_pressed"]

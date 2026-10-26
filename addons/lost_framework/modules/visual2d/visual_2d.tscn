@@ -9,6 +9,7 @@ shader = ExtResource("3_2gf65")
 shader_parameter/clr = Color(1, 1, 1, 1)
 shader_parameter/type = 2
 shader_parameter/thickness = 1.0
+shader_parameter/outline_only = false
 
 [node name="Visual2D" type="Node2D" unique_id=664217792 node_paths=PackedStringArray("main_sprite", "outline_sprite", "animation_player")]
 script = ExtResource("1_ac2m0")

@@ -1,0 +1,63 @@
+[gd_resource type="Resource" script_class="InventoryCommandDef" format=3]
+
+[ext_resource type="Script" uid="uid://dcnvifh53og8s" path="res://addons/lost_framework/modules/text_based/commands/scripts/inventory_command_def.gd" id="1_command"]
+[ext_resource type="Script" uid="uid://bi7kikbh7mnl2" path="res://addons/lost_framework/modules/text_based/command_message.gd" id="2_message"]
+[ext_resource type="Script" uid="uid://dbkqe3edfftg0" path="res://addons/lost_framework/modules/text_based/command_localization.gd" id="9_localization"]
+
+[sub_resource type="Resource" id="Message_carrying"]
+script = ExtResource("2_message")
+key = &"carrying"
+text = "You are carrying: {list}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_empty_handed"]
+script = ExtResource("2_message")
+key = &"empty_handed"
+text = "You are empty-handed."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "You can't do that."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_carrying"]
+script = ExtResource("2_message")
+key = &"carrying"
+text = "คุณถือ: {list}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_empty_handed"]
+script = ExtResource("2_message")
+key = &"empty_handed"
+text = "คุณไม่ได้ถืออะไรเลย"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "ทำแบบนั้นไม่ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Localization_th"]
+script = ExtResource("9_localization")
+locale = "th"
+messages = Array[ExtResource("2_message")]([SubResource("Message_th_carrying"), SubResource("Message_th_empty_handed"), SubResource("Message_th_cant_do")])
+name = "ดูของที่ถือ"
+aliases = PackedStringArray("กระเป๋า")
+help_text = "ดูของที่ถืออยู่"
+help_examples = Array[String](["กระเป๋า"])
+metadata/_custom_type_script = "uid://dbkqe3edfftg0"
+
+[resource]
+script = ExtResource("1_command")
+id = &"inventory"
+name = "inventory"
+aliases = PackedStringArray("inventory", "i")
+help_text = "List what you carry."
+help_examples = Array[String](["inventory", "i"])
+help_category = "Info"
+localizations = Array[ExtResource("9_localization")]([SubResource("Localization_th")])
+messages = Array[ExtResource("2_message")]([SubResource("Message_carrying"), SubResource("Message_empty_handed"), SubResource("Message_cant_do")])
+metadata/_custom_type_script = "uid://dspyiq1a2i7vd"

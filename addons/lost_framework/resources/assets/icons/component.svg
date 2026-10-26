@@ -1,14 +1,7 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
-<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-<svg height="800px" width="800px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
-	 viewBox="0 0 512 512" xml:space="preserve">
-<path style="fill:#FAE8AC;" d="M411.452,512H296.909c-10.345,0-18.732-8.387-18.732-18.732c0-34.785-28.3-63.086-63.086-63.086
-	c-34.785,0-63.085,28.3-63.085,63.086c0,10.345-8.387,18.732-18.732,18.732H18.732C8.387,512,0,503.613,0,493.268V374.969
-	c0-10.345,8.387-18.732,18.732-18.732c34.785,0,63.085-28.3,63.085-63.086s-28.3-63.086-63.085-63.086
-	C8.387,230.065,0,221.679,0,211.334V100.549c0-10.345,8.387-18.732,18.732-18.732h97.561C125.093,35.294,166.048,0,215.091,0
-	s89.998,35.294,98.8,81.818h97.561c10.345,0,18.732,8.387,18.732,18.732v93.802c46.523,8.801,81.816,49.756,81.816,98.8
-	s-35.293,89.998-81.816,98.8v101.317C430.184,503.613,421.797,512,411.452,512z"/>
-<path style="fill:#F6D86E;" d="M430.184,194.351v-93.802c0-10.345-8.387-18.732-18.732-18.732h-97.561
-	C305.091,35.294,264.136,0,215.091,0v430.182c34.785,0,63.086,28.3,63.086,63.086c0,10.345,8.387,18.732,18.732,18.732h114.543
-	c10.345,0,18.732-8.387,18.732-18.732V391.951c46.523-8.801,81.816-49.756,81.816-98.8S476.707,203.153,430.184,194.351z"/>
-</svg>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Transformed by: SVG Repo Mixer Tools -->
+<svg width="800px" height="800px" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="SVGRepo_bgCarrier" stroke-width="0"/>
+<g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
+<g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M15 4L8 0L1 4V12L8 16L15 12V4ZM8 11C9.65685 11 11 9.65685 11 8C11 6.34315 9.65685 5 8 5C6.34315 5 5 6.34315 5 8C5 9.65685 6.34315 11 8 11Z" fill="#c38ef1"/> </g>
+</svg>

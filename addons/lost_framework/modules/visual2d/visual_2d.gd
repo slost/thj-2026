@@ -7,6 +7,7 @@ class_name Visual2D
 ## Art states come from [VisualDef]. A state can replace the texture, sheet,
 ## region, offset, flip, modulate, outline, and animation. Fields left unused
 ## keep the current sprite. Clips stored on the definition are installed with it.
+## A marker on a clip is emitted when playback crosses it. A method track can call [method mark] for the same cue.
 ## The outline stays aligned with the main sprite. Scale, rotation, and position
 ## are inherited because the outline is a child of the main sprite.
 ## Runtime shader edits use a unique material copy.
@@ -14,6 +15,8 @@ class_name Visual2D
 signal texture_changed(texture: Texture2D)
 signal state_changed(state_name: StringName)
 signal animation_finished(anim_name: StringName)
+## Emitted when playback crosses a marker, or when a method track calls [method mark].
+signal animation_marker(anim_name: StringName, marker: StringName)
 
 enum MaterialTarget {
 	MAIN,
@@ -80,6 +83,9 @@ var _bound_animation_player: AnimationPlayer
 var _animation_waits: Array = []
 var _advance_from_state: StringName = &""
 var _advance_clip: StringName = &""
+var _marker_anim: StringName = &""
+var _marker_position := 0.0
+var _marker_hold := false
 
 
 func _ready() -> void:
@@ -243,7 +249,12 @@ func apply_visual_state(visual_state: VisualState) -> void:
 		set_outline_style(visual_state.outline_style)
 	if visual_state.animation == &"" or animation_player == null or Engine.is_editor_hint():
 		return
-	if not play(visual_state.animation) or visual_state.next_state == &"":
+	if is_playing(visual_state.animation) and not visual_state.restart_animation:
+		if visual_state.next_state != &"":
+			_advance_from_state = _state
+			_advance_clip = get_current_animation()
+		return
+	if not play(visual_state.animation, visual_state.blend_time) or visual_state.next_state == &"":
 		return
 	_advance_from_state = _state
 	_advance_clip = get_current_animation()
@@ -256,6 +267,8 @@ func play(anim_name: StringName = &"", custom_blend := -1.0, custom_speed := 1.0
 	var resolved := _resolve_animation_name(anim_name)
 	if not _can_play(resolved):
 		return false
+	_prepare_replay(resolved, from_end)
+	_marker_anim = &""
 	animation_player.play(resolved, custom_blend, custom_speed, from_end)
 	return true
 
@@ -264,6 +277,8 @@ func play_backwards(anim_name: StringName = &"", custom_blend := -1.0) -> bool:
 	var resolved := _resolve_animation_name(anim_name)
 	if not _can_play(resolved):
 		return false
+	_prepare_replay(resolved, true)
+	_marker_anim = &""
 	animation_player.play_backwards(resolved, custom_blend)
 	return true
 
@@ -318,6 +333,7 @@ func stop(keep_state := false) -> void:
 	var current := get_current_animation()
 	_advance_from_state = &""
 	_advance_clip = &""
+	_marker_anim = &""
 	animation_player.stop(keep_state)
 	_sync_outline_from_main()
 	_settle_animation_waits(current, true)
@@ -362,6 +378,44 @@ func set_animation_speed(speed_scale: float) -> void:
 	if animation_player == null:
 		return
 	animation_player.speed_scale = speed_scale
+
+
+## Seconds already played on the current clip. [code]0[/code] when nothing is assigned.
+func get_playback_position() -> float:
+	if animation_player == null or animation_player.current_animation == &"":
+		return 0.0
+	return animation_player.current_animation_position
+
+
+## Length of [param anim_name], or of the current clip when the name is empty.
+func get_animation_length(anim_name: StringName = &"") -> float:
+	if animation_player == null:
+		return 0.0
+	var target := get_current_animation() if anim_name == &"" else _resolve_animation_name(anim_name)
+	if target == &"" or not animation_player.has_animation(target):
+		return 0.0
+	var clip := animation_player.get_animation(target)
+	if clip == null:
+		return 0.0
+	return clip.length
+
+
+## Moves the current clip to [param seconds]. The sprite updates immediately when [param update] is true.
+## Markers between the old time and the new time are not emitted.
+func seek(seconds: float, update := true) -> void:
+	if animation_player == null:
+		return
+	_marker_hold = true
+	animation_player.seek(seconds, update)
+	_marker_anim = get_current_animation()
+	_marker_position = animation_player.current_animation_position
+	_marker_hold = false
+	_sync_outline_from_main()
+
+
+## Emits [signal animation_marker] for a method track on this visual.
+func mark(marker_name: StringName) -> void:
+	animation_marker.emit(get_current_animation(), marker_name)
 
 #endregion
 
@@ -555,8 +609,8 @@ func _bind_animation_player() -> void:
 	_unbind_animation_player()
 	if not animation_player.animation_finished.is_connected(_on_animation_finished):
 		animation_player.animation_finished.connect(_on_animation_finished)
-	if not animation_player.mixer_applied.is_connected(_sync_outline_from_main):
-		animation_player.mixer_applied.connect(_sync_outline_from_main)
+	if not animation_player.mixer_applied.is_connected(_on_mixer_applied):
+		animation_player.mixer_applied.connect(_on_mixer_applied)
 	if not animation_player.current_animation_changed.is_connected(_on_current_animation_changed):
 		animation_player.current_animation_changed.connect(_on_current_animation_changed)
 	_bound_animation_player = animation_player
@@ -569,11 +623,80 @@ func _unbind_animation_player() -> void:
 	if is_instance_valid(_bound_animation_player):
 		if _bound_animation_player.animation_finished.is_connected(_on_animation_finished):
 			_bound_animation_player.animation_finished.disconnect(_on_animation_finished)
-		if _bound_animation_player.mixer_applied.is_connected(_sync_outline_from_main):
-			_bound_animation_player.mixer_applied.disconnect(_sync_outline_from_main)
+		if _bound_animation_player.mixer_applied.is_connected(_on_mixer_applied):
+			_bound_animation_player.mixer_applied.disconnect(_on_mixer_applied)
 		if _bound_animation_player.current_animation_changed.is_connected(_on_current_animation_changed):
 			_bound_animation_player.current_animation_changed.disconnect(_on_current_animation_changed)
 	_bound_animation_player = null
+
+
+## Playing a clip that is already current does not return to the start on its own.
+## Seek there first so [method play] and [method play_backwards] start again, without emitting the markers in between.
+func _prepare_replay(anim_name: StringName, from_end: bool) -> void:
+	var current := get_current_animation()
+	if current == &"" or anim_name == &"" or not _animation_names_match(current, anim_name):
+		return
+	var clip := animation_player.get_animation(current)
+	var start := clip.length if from_end and clip != null else 0.0
+	_marker_hold = true
+	animation_player.seek(start, true)
+	_marker_anim = current
+	_marker_position = start
+	_marker_hold = false
+
+
+func _on_mixer_applied() -> void:
+	_sync_outline_from_main()
+	_emit_playback_markers()
+
+
+func _emit_playback_markers() -> void:
+	if _marker_hold or animation_player == null or not animation_player.is_playing():
+		return
+	var anim_name := animation_player.current_animation
+	var clip := animation_player.get_animation(anim_name)
+	if clip == null or clip.get_marker_names().is_empty():
+		_marker_anim = anim_name
+		_marker_position = animation_player.current_animation_position
+		return
+	var playback_position := animation_player.current_animation_position
+	var forward := animation_player.get_playing_speed() >= 0.0
+	if anim_name != _marker_anim:
+		_marker_anim = anim_name
+		var origin := -1.0 if forward else clip.length + 1.0
+		_emit_markers_in_range(clip, anim_name, origin, playback_position, forward)
+		_marker_position = playback_position
+		return
+	if forward:
+		if playback_position + 0.00001 < _marker_position:
+			_emit_markers_in_range(clip, anim_name, _marker_position, clip.length, true)
+			_emit_markers_in_range(clip, anim_name, -1.0, playback_position, true)
+		else:
+			_emit_markers_in_range(clip, anim_name, _marker_position, playback_position, true)
+	elif playback_position > _marker_position + 0.00001:
+		_emit_markers_in_range(clip, anim_name, _marker_position, 0.0, false)
+		_emit_markers_in_range(clip, anim_name, clip.length + 1.0, playback_position, false)
+	else:
+		_emit_markers_in_range(clip, anim_name, _marker_position, playback_position, false)
+	_marker_position = playback_position
+
+
+func _emit_markers_in_range(clip: Animation, anim_name: StringName, from: float, to: float, forward: bool) -> void:
+	var found: Array[Dictionary] = []
+	for marker_name in clip.get_marker_names():
+		var time := clip.get_marker_time(marker_name)
+		var crossed := false
+		if forward:
+			crossed = time > from and time <= to
+		else:
+			crossed = time < from and time >= to
+		if crossed:
+			found.append({"name": marker_name, "time": time})
+	found.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.time < b.time)
+	if not forward:
+		found.reverse()
+	for entry in found:
+		animation_marker.emit(anim_name, entry.name)
 
 
 func _on_animation_finished(anim_name: StringName) -> void:

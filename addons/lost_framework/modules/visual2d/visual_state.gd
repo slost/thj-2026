@@ -37,6 +37,10 @@ class_name VisualState
 @export_group("Playback")
 ## Animation played when [Visual2D] applies this state. Empty keeps the current animation.
 @export var animation: StringName
+## Seconds spent blending into [member animation]. [code]-1[/code] keeps the player's default blend.
+@export_range(-1.0, 10.0, 0.05) var blend_time := -1.0
+## Starts [member animation] again when this state is applied while that clip is already playing.
+@export var restart_animation := false
 ## State applied when [member animation] finishes. Empty stays on this state.
 ## A looping clip never finishes, so it does not advance.
 @export var next_state: StringName

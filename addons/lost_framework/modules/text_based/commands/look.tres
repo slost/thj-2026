@@ -1,0 +1,246 @@
+[gd_resource type="Resource" script_class="LookCommandDef" format=3]
+
+[ext_resource type="Script" uid="uid://b0cis0qdrpdws" path="res://addons/lost_framework/modules/text_based/commands/scripts/look_command_def.gd" id="1_command"]
+[ext_resource type="Script" uid="uid://bi7kikbh7mnl2" path="res://addons/lost_framework/modules/text_based/command_message.gd" id="2_message"]
+[ext_resource type="Script" uid="uid://dbkqe3edfftg0" path="res://addons/lost_framework/modules/text_based/command_localization.gd" id="9_localization"]
+
+[sub_resource type="Resource" id="Message_room"]
+script = ExtResource("2_message")
+key = &"room"
+text = "{room}\n{description}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_you_see"]
+script = ExtResource("2_message")
+key = &"you_see"
+text = "You see: {list}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_exits"]
+script = ExtResource("2_message")
+key = &"exits"
+text = "Exits: {list}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_exit_door"]
+script = ExtResource("2_message")
+key = &"exit_door"
+text = "{direction} ({door_state})"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_door_open"]
+script = ExtResource("2_message")
+key = &"door_open"
+text = "an open {door}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_door_closed"]
+script = ExtResource("2_message")
+key = &"door_closed"
+text = "a closed {door}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_door_locked"]
+script = ExtResource("2_message")
+key = &"door_locked"
+text = "a locked {door}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_door_unlocked"]
+script = ExtResource("2_message")
+key = &"door_unlocked"
+text = "an unlocked {door}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_no_exits"]
+script = ExtResource("2_message")
+key = &"no_exits"
+text = "There is no obvious way out."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_nowhere"]
+script = ExtResource("2_message")
+key = &"nowhere"
+text = "You are nowhere."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_nothing_that_way"]
+script = ExtResource("2_message")
+key = &"nothing_that_way"
+text = "You see nothing special that way."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_view_blocked"]
+script = ExtResource("2_message")
+key = &"view_blocked"
+text = "To the {direction} there is {door_state}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_view_room"]
+script = ExtResource("2_message")
+key = &"view_room"
+text = "To the {direction} you see the {room}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_view_contents"]
+script = ExtResource("2_message")
+key = &"view_contents"
+text = "There you see: {list}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_beyond"]
+script = ExtResource("2_message")
+key = &"beyond"
+text = "Beyond it {list}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_beyond_part"]
+script = ExtResource("2_message")
+key = &"beyond_part"
+text = "to the {direction}, {what}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_another_room"]
+script = ExtResource("2_message")
+key = &"another_room"
+text = "another room"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_known_room"]
+script = ExtResource("2_message")
+key = &"known_room"
+text = "the {room}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "You can't do that."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_you_see"]
+script = ExtResource("2_message")
+key = &"you_see"
+text = "คุณเห็น: {list}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_exits"]
+script = ExtResource("2_message")
+key = &"exits"
+text = "ทางออก: {list}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_door_open"]
+script = ExtResource("2_message")
+key = &"door_open"
+text = "{door}ที่เปิดอยู่"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_door_closed"]
+script = ExtResource("2_message")
+key = &"door_closed"
+text = "{door}ที่ปิดอยู่"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_door_locked"]
+script = ExtResource("2_message")
+key = &"door_locked"
+text = "{door}ที่ล็อกอยู่"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_door_unlocked"]
+script = ExtResource("2_message")
+key = &"door_unlocked"
+text = "{door}ที่ไม่ได้ล็อก"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_no_exits"]
+script = ExtResource("2_message")
+key = &"no_exits"
+text = "ไม่เห็นทางออกเลย"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_nowhere"]
+script = ExtResource("2_message")
+key = &"nowhere"
+text = "คุณไม่ได้อยู่ที่ไหนเลย"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_nothing_that_way"]
+script = ExtResource("2_message")
+key = &"nothing_that_way"
+text = "ทางนั้นไม่มีอะไรน่าสนใจ"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_view_blocked"]
+script = ExtResource("2_message")
+key = &"view_blocked"
+text = "ทาง{direction}มี{door_state}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_view_room"]
+script = ExtResource("2_message")
+key = &"view_room"
+text = "ทาง{direction}คุณเห็น{room}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_view_contents"]
+script = ExtResource("2_message")
+key = &"view_contents"
+text = "ที่นั่นมี: {list}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_beyond"]
+script = ExtResource("2_message")
+key = &"beyond"
+text = "ถัดไปอีก {list}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_beyond_part"]
+script = ExtResource("2_message")
+key = &"beyond_part"
+text = "ทาง{direction}เป็น{what}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_another_room"]
+script = ExtResource("2_message")
+key = &"another_room"
+text = "อีกห้องหนึ่ง"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_known_room"]
+script = ExtResource("2_message")
+key = &"known_room"
+text = "{room}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "ทำแบบนั้นไม่ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Localization_th"]
+script = ExtResource("9_localization")
+locale = "th"
+messages = Array[ExtResource("2_message")]([SubResource("Message_th_you_see"), SubResource("Message_th_exits"), SubResource("Message_th_door_open"), SubResource("Message_th_door_closed"), SubResource("Message_th_door_locked"), SubResource("Message_th_door_unlocked"), SubResource("Message_th_no_exits"), SubResource("Message_th_nowhere"), SubResource("Message_th_nothing_that_way"), SubResource("Message_th_view_blocked"), SubResource("Message_th_view_room"), SubResource("Message_th_view_contents"), SubResource("Message_th_beyond"), SubResource("Message_th_beyond_part"), SubResource("Message_th_another_room"), SubResource("Message_th_known_room"), SubResource("Message_th_cant_do")])
+name = "ดู"
+aliases = PackedStringArray("ดู", "มอง", "ดูไป", "มองไป")
+help_text = "บอกว่าตอนนี้อยู่ที่ไหน\nใส่ทิศเพื่อดูสถานที่ถัดไปทางนั้น หรือใส่สิ่งของเพื่อสำรวจสิ่งนั้น"
+help_examples = Array[String](["ดู", "มองไปทางเหนือ", "ดูกล่อง"])
+metadata/_custom_type_script = "uid://dbkqe3edfftg0"
+
+[resource]
+script = ExtResource("1_command")
+id = &"look"
+name = "look"
+aliases = PackedStringArray("look", "l", "see")
+object_requirement = 1
+with_object_command = &"examine"
+accepts_direction = true
+help_text = "Describe where you are.\nWith a direction it describes the next place that way; with a thing it examines it."
+help_examples = Array[String](["look", "look north", "look box"])
+help_category = "Info"
+localizations = Array[ExtResource("9_localization")]([SubResource("Localization_th")])
+messages = Array[ExtResource("2_message")]([SubResource("Message_room"), SubResource("Message_you_see"), SubResource("Message_exits"), SubResource("Message_exit_door"), SubResource("Message_door_open"), SubResource("Message_door_closed"), SubResource("Message_door_locked"), SubResource("Message_door_unlocked"), SubResource("Message_no_exits"), SubResource("Message_nowhere"), SubResource("Message_nothing_that_way"), SubResource("Message_view_blocked"), SubResource("Message_view_room"), SubResource("Message_view_contents"), SubResource("Message_beyond"), SubResource("Message_beyond_part"), SubResource("Message_another_room"), SubResource("Message_known_room"), SubResource("Message_cant_do")])
+metadata/_custom_type_script = "uid://dspyiq1a2i7vd"

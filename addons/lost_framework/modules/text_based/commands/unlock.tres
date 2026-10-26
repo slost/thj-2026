@@ -1,0 +1,139 @@
+[gd_resource type="Resource" script_class="UnlockCommandDef" format=3]
+
+[ext_resource type="Script" uid="uid://bwvck0l106qy6" path="res://addons/lost_framework/modules/text_based/commands/scripts/unlock_command_def.gd" id="1_command"]
+[ext_resource type="Script" uid="uid://bi7kikbh7mnl2" path="res://addons/lost_framework/modules/text_based/command_message.gd" id="2_message"]
+[ext_resource type="Script" uid="uid://dbkqe3edfftg0" path="res://addons/lost_framework/modules/text_based/command_localization.gd" id="9_localization"]
+
+[sub_resource type="Resource" id="Message_unlocked"]
+script = ExtResource("2_message")
+key = &"unlocked"
+text = "You unlock the {object}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_unlocked_with"]
+script = ExtResource("2_message")
+key = &"unlocked_with"
+text = "You unlock the {object} with the {target}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_not_lockable"]
+script = ExtResource("2_message")
+key = &"not_lockable"
+text = "You can't unlock the {object}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_already_unlocked"]
+script = ExtResource("2_message")
+key = &"already_unlocked"
+text = "The {object} isn't locked."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_need_key"]
+script = ExtResource("2_message")
+key = &"need_key"
+text = "You need a key to unlock the {object}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_key_not_carried"]
+script = ExtResource("2_message")
+key = &"key_not_carried"
+text = "You don't have the {target}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_wrong_key"]
+script = ExtResource("2_message")
+key = &"wrong_key"
+text = "The {target} doesn't fit the {object}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "You can't do that."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_unlocked"]
+script = ExtResource("2_message")
+key = &"unlocked"
+text = "ปลดล็อก{object}แล้ว"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_unlocked_with"]
+script = ExtResource("2_message")
+key = &"unlocked_with"
+text = "ใช้{target}ปลดล็อก{object}แล้ว"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_not_lockable"]
+script = ExtResource("2_message")
+key = &"not_lockable"
+text = "ปลดล็อก{object}ไม่ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_already_unlocked"]
+script = ExtResource("2_message")
+key = &"already_unlocked"
+text = "{object}ไม่ได้ล็อกอยู่"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_need_key"]
+script = ExtResource("2_message")
+key = &"need_key"
+text = "ต้องมีกุญแจถึงจะปลดล็อก{object}ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_key_not_carried"]
+script = ExtResource("2_message")
+key = &"key_not_carried"
+text = "คุณไม่มี{target}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_wrong_key"]
+script = ExtResource("2_message")
+key = &"wrong_key"
+text = "{target}ไข{object}ไม่ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "ทำแบบนั้นไม่ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_unlocked_seen"]
+script = ExtResource("2_message")
+key = &"unlocked_seen"
+text = "{actor}ไข{object}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_unlocked_with_seen"]
+script = ExtResource("2_message")
+key = &"unlocked_with_seen"
+text = "{actor}ไข{object}ด้วย{target}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Localization_th"]
+script = ExtResource("9_localization")
+locale = "th"
+messages = Array[ExtResource("2_message")]([SubResource("Message_th_unlocked"), SubResource("Message_th_unlocked_with"), SubResource("Message_th_not_lockable"), SubResource("Message_th_already_unlocked"), SubResource("Message_th_need_key"), SubResource("Message_th_key_not_carried"), SubResource("Message_th_wrong_key"), SubResource("Message_th_cant_do"), SubResource("Message_th_unlocked_seen"), SubResource("Message_th_unlocked_with_seen")])
+name = "ปลดล็อก"
+aliases = PackedStringArray("ปลดล็อก", "ปลดล็อค", "ไข")
+help_text = "ปลดล็อกประตูหรือกล่องด้วยกุญแจ"
+help_examples = Array[String](["ปลดล็อกประตูด้วยกุญแจ"])
+metadata/_custom_type_script = "uid://dbkqe3edfftg0"
+
+[resource]
+script = ExtResource("1_command")
+id = &"unlock"
+name = "unlock"
+aliases = PackedStringArray("unlock")
+object_requirement = 2
+target_requirement = 1
+target_scope = 2
+prepositions = PackedStringArray("with")
+help_text = "Unlock a door or a box with its key."
+help_examples = Array[String](["unlock door with key"])
+help_category = "Objects"
+localizations = Array[ExtResource("9_localization")]([SubResource("Localization_th")])
+messages = Array[ExtResource("2_message")]([SubResource("Message_unlocked"), SubResource("Message_unlocked_with"), SubResource("Message_not_lockable"), SubResource("Message_already_unlocked"), SubResource("Message_need_key"), SubResource("Message_key_not_carried"), SubResource("Message_wrong_key"), SubResource("Message_cant_do")])
+metadata/_custom_type_script = "uid://dspyiq1a2i7vd"

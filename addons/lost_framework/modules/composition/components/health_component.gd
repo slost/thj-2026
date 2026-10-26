@@ -1,35 +1,17 @@
 extends Component
 class_name HealthComponent
 
-#region EXPORTS
-
-## Maximum health
-@export var max_health: float = 10.0
-
-## Start with full health
-@export var start_full: bool = true
-
-#endregion
-
-
-#region STATE
-
-var current_health: float
-
-#endregion
-
-
-#region SIGNALS
 
 signal damaged(amount: float, current_health: float)
 signal healed(amount: float, current_health: float)
 signal health_changed(current_health: float, max_health: float)
 signal died
 
-#endregion
+@export var max_health: float = 10.0 ## Maximum health
+@export var start_full: bool = true ## Start with full health
 
+var current_health: float
 
-#region SETUP
 
 func _setup() -> void:
 	super._setup()
@@ -41,11 +23,8 @@ func _setup() -> void:
 
 	health_changed.emit(current_health, max_health)
 
-#endregion
 
-
-#region READ-ONLY API (FOR UI)
-
+#region Read-only API
 func get_health() -> float:
 	return current_health
 
@@ -66,8 +45,7 @@ func is_alive() -> bool:
 #endregion
 
 
-#region GAMEPLAY API
-
+#region Gameplay API
 func apply_damage(amount: float) -> void:
 	if amount <= 0.0:
 		return

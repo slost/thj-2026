@@ -1,0 +1,100 @@
+[gd_resource type="Resource" script_class="GoCommandDef" format=3]
+
+[ext_resource type="Script" uid="uid://sxw66mxfruh8" path="res://addons/lost_framework/modules/text_based/commands/scripts/go_command_def.gd" id="1_command"]
+[ext_resource type="Script" uid="uid://bi7kikbh7mnl2" path="res://addons/lost_framework/modules/text_based/command_message.gd" id="2_message"]
+[ext_resource type="Script" uid="uid://dbkqe3edfftg0" path="res://addons/lost_framework/modules/text_based/command_localization.gd" id="9_localization"]
+
+[sub_resource type="Resource" id="Message_no_exit"]
+script = ExtResource("2_message")
+key = &"no_exit"
+text = "You can't go that way."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_door_closed"]
+script = ExtResource("2_message")
+key = &"door_closed"
+text = "The {door} is closed."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_door_locked"]
+script = ExtResource("2_message")
+key = &"door_locked"
+text = "The {door} is locked."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_leaves"]
+script = ExtResource("2_message")
+key = &"leaves"
+text = "{actor} leaves {direction}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_arrives"]
+script = ExtResource("2_message")
+key = &"arrives"
+text = "{actor} arrives."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "You can't do that."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_no_exit"]
+script = ExtResource("2_message")
+key = &"no_exit"
+text = "ไปทางนั้นไม่ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_door_closed"]
+script = ExtResource("2_message")
+key = &"door_closed"
+text = "{door}ปิดอยู่"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_door_locked"]
+script = ExtResource("2_message")
+key = &"door_locked"
+text = "{door}ล็อกอยู่"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "ทำแบบนั้นไม่ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_leaves"]
+script = ExtResource("2_message")
+key = &"leaves"
+text = "{actor}ออกไปทาง{direction}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_arrives"]
+script = ExtResource("2_message")
+key = &"arrives"
+text = "{actor}มาถึง"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Localization_th"]
+script = ExtResource("9_localization")
+locale = "th"
+messages = Array[ExtResource("2_message")]([SubResource("Message_th_no_exit"), SubResource("Message_th_door_closed"), SubResource("Message_th_door_locked"), SubResource("Message_th_cant_do"), SubResource("Message_th_leaves"), SubResource("Message_th_arrives")])
+name = "ไป"
+aliases = PackedStringArray("ไป", "เดิน")
+help_text = "เดินไปตามทิศ\nพิมพ์แค่ทิศก็ได้ เช่น \"เหนือ\""
+help_examples = Array[String](["ไปทิศเหนือ", "เหนือ"])
+metadata/_custom_type_script = "uid://dbkqe3edfftg0"
+
+[resource]
+script = ExtResource("1_command")
+id = &"go"
+name = "go"
+aliases = PackedStringArray("go")
+needs_direction = true
+help_text = "Walk in a direction.\nA direction alone works too: \"north\" or \"n\"."
+help_examples = Array[String](["go north", "n"])
+help_category = "Movement"
+localizations = Array[ExtResource("9_localization")]([SubResource("Localization_th")])
+messages = Array[ExtResource("2_message")]([SubResource("Message_no_exit"), SubResource("Message_door_closed"), SubResource("Message_door_locked"), SubResource("Message_cant_do"), SubResource("Message_leaves"), SubResource("Message_arrives")])
+metadata/_custom_type_script = "uid://dspyiq1a2i7vd"

@@ -1,0 +1,82 @@
+[gd_resource type="Resource" script_class="CloseCommandDef" format=3]
+
+[ext_resource type="Script" uid="uid://bk6gmualujg72" path="res://addons/lost_framework/modules/text_based/commands/scripts/close_command_def.gd" id="1_command"]
+[ext_resource type="Script" uid="uid://bi7kikbh7mnl2" path="res://addons/lost_framework/modules/text_based/command_message.gd" id="2_message"]
+[ext_resource type="Script" uid="uid://dbkqe3edfftg0" path="res://addons/lost_framework/modules/text_based/command_localization.gd" id="9_localization"]
+
+[sub_resource type="Resource" id="Message_closed"]
+script = ExtResource("2_message")
+key = &"closed"
+text = "You close the {object}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_not_openable"]
+script = ExtResource("2_message")
+key = &"not_openable"
+text = "You can't close the {object}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_already_closed"]
+script = ExtResource("2_message")
+key = &"already_closed"
+text = "The {object} is already closed."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "You can't do that."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_closed"]
+script = ExtResource("2_message")
+key = &"closed"
+text = "ปิด{object}แล้ว"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_not_openable"]
+script = ExtResource("2_message")
+key = &"not_openable"
+text = "ปิด{object}ไม่ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_already_closed"]
+script = ExtResource("2_message")
+key = &"already_closed"
+text = "{object}ปิดอยู่แล้ว"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "ทำแบบนั้นไม่ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_closed_seen"]
+script = ExtResource("2_message")
+key = &"closed_seen"
+text = "{actor}ปิด{object}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Localization_th"]
+script = ExtResource("9_localization")
+locale = "th"
+messages = Array[ExtResource("2_message")]([SubResource("Message_th_closed"), SubResource("Message_th_not_openable"), SubResource("Message_th_already_closed"), SubResource("Message_th_cant_do"), SubResource("Message_th_closed_seen")])
+name = "ปิด"
+aliases = PackedStringArray("ปิด")
+help_text = "ปิดประตูหรือภาชนะ"
+help_examples = Array[String](["ปิดประตู"])
+metadata/_custom_type_script = "uid://dbkqe3edfftg0"
+
+[resource]
+script = ExtResource("1_command")
+id = &"close"
+name = "close"
+aliases = PackedStringArray("close")
+object_requirement = 2
+help_text = "Close a door or a container."
+help_examples = Array[String](["close door"])
+help_category = "Objects"
+localizations = Array[ExtResource("9_localization")]([SubResource("Localization_th")])
+messages = Array[ExtResource("2_message")]([SubResource("Message_closed"), SubResource("Message_not_openable"), SubResource("Message_already_closed"), SubResource("Message_cant_do")])
+metadata/_custom_type_script = "uid://dspyiq1a2i7vd"

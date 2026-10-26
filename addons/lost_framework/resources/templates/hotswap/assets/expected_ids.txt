@@ -17,3 +17,6 @@ sfx.scissors.use
 # Music (bgm_ and bgm. loop)
 bgm_menu
 bgm.level1
+
+# Animations (.tres / .res). anim_player_run.tres replaces the "player/run" clip.
+anim_player_run

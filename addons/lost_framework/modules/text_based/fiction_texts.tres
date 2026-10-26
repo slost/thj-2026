@@ -1,0 +1,208 @@
+[gd_resource type="Resource" script_class="FictionTexts" format=3]
+
+[ext_resource type="Script" uid="uid://d1vsc48s4p5bn" path="res://addons/lost_framework/modules/text_based/fiction_texts.gd" id="1_texts"]
+[ext_resource type="Script" uid="uid://bi7kikbh7mnl2" path="res://addons/lost_framework/modules/text_based/command_message.gd" id="2_message"]
+[ext_resource type="Script" uid="uid://bxvo5odhuymwa" path="res://addons/lost_framework/modules/text_based/text_localization.gd" id="3_localization"]
+
+[sub_resource type="Resource" id="Message_th_unknown_words"]
+script = ExtResource("2_message")
+key = &"unknown_words"
+text = "ไม่เข้าใจคำว่า \"{text}\""
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_no_verb"]
+script = ExtResource("2_message")
+key = &"no_verb"
+text = "ไม่รู้ว่าจะให้ทำอะไรกับ \"{text}\""
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_unknown_verb"]
+script = ExtResource("2_message")
+key = &"unknown_verb"
+text = "ไม่รู้วิธี \"{text}\""
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_not_here"]
+script = ExtResource("2_message")
+key = &"not_here"
+text = "ไม่เห็น \"{text}\" แถวนี้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_not_found"]
+script = ExtResource("2_message")
+key = &"not_found"
+text = "ไม่มีอะไรตรงกับ \"{text}\""
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_self"]
+script = ExtResource("2_message")
+key = &"self"
+text = "{verb}ตัวเองไม่ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_no_object_expected"]
+script = ExtResource("2_message")
+key = &"no_object_expected"
+text = "เข้าใจแค่ว่าอยากจะ{verb}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_no_target_expected"]
+script = ExtResource("2_message")
+key = &"no_target_expected"
+text = "เข้าใจแค่ว่าอยากจะ{verb}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_no_pronoun"]
+script = ExtResource("2_message")
+key = &"no_pronoun"
+text = "ยังไม่ได้บอกว่าหมายถึงอะไร"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_wrong_preposition"]
+script = ExtResource("2_message")
+key = &"wrong_preposition"
+text = "ใช้ \"{text}\" กับ{verb}ไม่ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_which"]
+script = ExtResource("2_message")
+key = &"which"
+text = "หมายถึง \"{text}\" อันไหน? {choices}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_object_question"]
+script = ExtResource("2_message")
+key = &"object_question"
+text = "จะ{verb}อะไร?"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_target_question"]
+script = ExtResource("2_message")
+key = &"target_question"
+text = "จะ{verb}{object}{preposition}อะไร?"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_direction_question"]
+script = ExtResource("2_message")
+key = &"direction_question"
+text = "จะไปทางไหน?"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_object_name"]
+script = ExtResource("2_message")
+key = &"object_name"
+text = "{name}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_object_it"]
+script = ExtResource("2_message")
+key = &"object_it"
+text = "มัน"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_object_and"]
+script = ExtResource("2_message")
+key = &"object_and"
+text = "และ"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_direction_north"]
+script = ExtResource("2_message")
+key = &"direction_north"
+text = "เหนือ"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_direction_northeast"]
+script = ExtResource("2_message")
+key = &"direction_northeast"
+text = "ตะวันออกเฉียงเหนือ"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_direction_east"]
+script = ExtResource("2_message")
+key = &"direction_east"
+text = "ตะวันออก"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_direction_southeast"]
+script = ExtResource("2_message")
+key = &"direction_southeast"
+text = "ตะวันออกเฉียงใต้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_direction_south"]
+script = ExtResource("2_message")
+key = &"direction_south"
+text = "ใต้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_direction_southwest"]
+script = ExtResource("2_message")
+key = &"direction_southwest"
+text = "ตะวันตกเฉียงใต้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_direction_west"]
+script = ExtResource("2_message")
+key = &"direction_west"
+text = "ตะวันตก"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_direction_northwest"]
+script = ExtResource("2_message")
+key = &"direction_northwest"
+text = "ตะวันตกเฉียงเหนือ"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_direction_up"]
+script = ExtResource("2_message")
+key = &"direction_up"
+text = "ข้างบน"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_direction_down"]
+script = ExtResource("2_message")
+key = &"direction_down"
+text = "ข้างล่าง"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_direction_in"]
+script = ExtResource("2_message")
+key = &"direction_in"
+text = "ข้างใน"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_direction_out"]
+script = ExtResource("2_message")
+key = &"direction_out"
+text = "ข้างนอก"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_preposition_in"]
+script = ExtResource("2_message")
+key = &"preposition_in"
+text = "ลงใน"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_preposition_with"]
+script = ExtResource("2_message")
+key = &"preposition_with"
+text = "ด้วย"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_preposition_on"]
+script = ExtResource("2_message")
+key = &"preposition_on"
+text = "บน"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Localization_th"]
+script = ExtResource("3_localization")
+locale = "th"
+messages = Array[ExtResource("2_message")]([SubResource("Message_th_unknown_words"), SubResource("Message_th_no_verb"), SubResource("Message_th_unknown_verb"), SubResource("Message_th_not_here"), SubResource("Message_th_not_found"), SubResource("Message_th_self"), SubResource("Message_th_no_object_expected"), SubResource("Message_th_no_target_expected"), SubResource("Message_th_wrong_preposition"), SubResource("Message_th_no_pronoun"), SubResource("Message_th_which"), SubResource("Message_th_object_question"), SubResource("Message_th_target_question"), SubResource("Message_th_direction_question"), SubResource("Message_th_object_name"), SubResource("Message_th_object_it"), SubResource("Message_th_object_and"), SubResource("Message_th_direction_north"), SubResource("Message_th_direction_northeast"), SubResource("Message_th_direction_east"), SubResource("Message_th_direction_southeast"), SubResource("Message_th_direction_south"), SubResource("Message_th_direction_southwest"), SubResource("Message_th_direction_west"), SubResource("Message_th_direction_northwest"), SubResource("Message_th_direction_up"), SubResource("Message_th_direction_down"), SubResource("Message_th_direction_in"), SubResource("Message_th_direction_out"), SubResource("Message_th_preposition_in"), SubResource("Message_th_preposition_with"), SubResource("Message_th_preposition_on")])
+metadata/_custom_type_script = "uid://bxvo5odhuymwa"
+
+[resource]
+script = ExtResource("1_texts")
+localizations = Array[ExtResource("3_localization")]([SubResource("Localization_th")])
+metadata/_custom_type_script = "uid://d1vsc48s4p5bn"
