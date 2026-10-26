@@ -1,0 +1,151 @@
+[gd_resource type="Resource" script_class="LockCommandDef" format=3]
+
+[ext_resource type="Script" uid="uid://cxb88fffgrlkf" path="res://addons/lost_framework/modules/text_based/commands/scripts/lock_command_def.gd" id="1_command"]
+[ext_resource type="Script" uid="uid://bi7kikbh7mnl2" path="res://addons/lost_framework/modules/text_based/command_message.gd" id="2_message"]
+[ext_resource type="Script" uid="uid://dbkqe3edfftg0" path="res://addons/lost_framework/modules/text_based/command_localization.gd" id="9_localization"]
+
+[sub_resource type="Resource" id="Message_locked"]
+script = ExtResource("2_message")
+key = &"locked"
+text = "You lock the {object}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_locked_with"]
+script = ExtResource("2_message")
+key = &"locked_with"
+text = "You lock the {object} with the {target}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_not_lockable"]
+script = ExtResource("2_message")
+key = &"not_lockable"
+text = "You can't lock the {object}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_already_locked"]
+script = ExtResource("2_message")
+key = &"already_locked"
+text = "The {object} is already locked."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_close_first"]
+script = ExtResource("2_message")
+key = &"close_first"
+text = "You need to close the {object} first."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_need_key"]
+script = ExtResource("2_message")
+key = &"need_key"
+text = "You need a key to lock the {object}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_key_not_carried"]
+script = ExtResource("2_message")
+key = &"key_not_carried"
+text = "You don't have the {target}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_wrong_key"]
+script = ExtResource("2_message")
+key = &"wrong_key"
+text = "The {target} doesn't fit the {object}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "You can't do that."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_locked"]
+script = ExtResource("2_message")
+key = &"locked"
+text = "ล็อก{object}แล้ว"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_locked_with"]
+script = ExtResource("2_message")
+key = &"locked_with"
+text = "ใช้{target}ล็อก{object}แล้ว"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_not_lockable"]
+script = ExtResource("2_message")
+key = &"not_lockable"
+text = "ล็อก{object}ไม่ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_already_locked"]
+script = ExtResource("2_message")
+key = &"already_locked"
+text = "{object}ล็อกอยู่แล้ว"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_close_first"]
+script = ExtResource("2_message")
+key = &"close_first"
+text = "ต้องปิด{object}ก่อน"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_need_key"]
+script = ExtResource("2_message")
+key = &"need_key"
+text = "ต้องมีกุญแจถึงจะล็อก{object}ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_key_not_carried"]
+script = ExtResource("2_message")
+key = &"key_not_carried"
+text = "คุณไม่มี{target}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_wrong_key"]
+script = ExtResource("2_message")
+key = &"wrong_key"
+text = "{target}ใช้ล็อก{object}ไม่ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "ทำแบบนั้นไม่ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_locked_seen"]
+script = ExtResource("2_message")
+key = &"locked_seen"
+text = "{actor}ล็อก{object}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_locked_with_seen"]
+script = ExtResource("2_message")
+key = &"locked_with_seen"
+text = "{actor}ล็อก{object}ด้วย{target}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Localization_th"]
+script = ExtResource("9_localization")
+locale = "th"
+messages = Array[ExtResource("2_message")]([SubResource("Message_th_locked"), SubResource("Message_th_locked_with"), SubResource("Message_th_not_lockable"), SubResource("Message_th_already_locked"), SubResource("Message_th_close_first"), SubResource("Message_th_need_key"), SubResource("Message_th_key_not_carried"), SubResource("Message_th_wrong_key"), SubResource("Message_th_cant_do"), SubResource("Message_th_locked_seen"), SubResource("Message_th_locked_with_seen")])
+name = "ล็อก"
+aliases = PackedStringArray("ล็อก", "ล็อค", "ลงกลอน")
+help_text = "ล็อกประตูหรือกล่องด้วยกุญแจ"
+help_examples = Array[String](["ล็อกประตูด้วยกุญแจ"])
+metadata/_custom_type_script = "uid://dbkqe3edfftg0"
+
+[resource]
+script = ExtResource("1_command")
+id = &"lock"
+name = "lock"
+aliases = PackedStringArray("lock")
+object_requirement = 2
+target_requirement = 1
+target_scope = 2
+prepositions = PackedStringArray("with")
+help_text = "Lock a door or a box with its key."
+help_examples = Array[String](["lock door with key"])
+help_category = "Objects"
+localizations = Array[ExtResource("9_localization")]([SubResource("Localization_th")])
+messages = Array[ExtResource("2_message")]([SubResource("Message_locked"), SubResource("Message_locked_with"), SubResource("Message_not_lockable"), SubResource("Message_already_locked"), SubResource("Message_close_first"), SubResource("Message_need_key"), SubResource("Message_key_not_carried"), SubResource("Message_wrong_key"), SubResource("Message_cant_do")])
+metadata/_custom_type_script = "uid://dspyiq1a2i7vd"

@@ -1,0 +1,56 @@
+[gd_resource type="Resource" script_class="SaveCommandDef" format=3]
+
+[ext_resource type="Script" path="res://addons/lost_framework/modules/text_based/commands/scripts/save_command_def.gd" id="1_command"]
+[ext_resource type="Script" uid="uid://bi7kikbh7mnl2" path="res://addons/lost_framework/modules/text_based/command_message.gd" id="2_message"]
+[ext_resource type="Script" uid="uid://dbkqe3edfftg0" path="res://addons/lost_framework/modules/text_based/command_localization.gd" id="9_localization"]
+
+[sub_resource type="Resource" id="Message_saved"]
+script = ExtResource("2_message")
+key = &"saved"
+text = "Saved."
+
+[sub_resource type="Resource" id="Message_save_failed"]
+script = ExtResource("2_message")
+key = &"save_failed"
+text = "Could not save."
+
+[sub_resource type="Resource" id="Message_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "You can't do that."
+
+[sub_resource type="Resource" id="Message_th_saved"]
+script = ExtResource("2_message")
+key = &"saved"
+text = "เซฟแล้ว"
+
+[sub_resource type="Resource" id="Message_th_save_failed"]
+script = ExtResource("2_message")
+key = &"save_failed"
+text = "เซฟไม่ได้"
+
+[sub_resource type="Resource" id="Message_th_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "ทำแบบนั้นไม่ได้"
+
+[sub_resource type="Resource" id="Localization_th"]
+script = ExtResource("9_localization")
+locale = "th"
+messages = Array[ExtResource("2_message")]([SubResource("Message_th_saved"), SubResource("Message_th_save_failed"), SubResource("Message_th_cant_do")])
+name = "เซฟ"
+aliases = PackedStringArray("เซฟ")
+help_text = "บันทึกเรื่อง"
+help_examples = Array[String](["เซฟ"])
+
+[resource]
+script = ExtResource("1_command")
+id = &"save"
+name = "save"
+aliases = PackedStringArray("save")
+help_text = "Save the story."
+help_examples = Array[String](["save"])
+help_category = "Meta"
+is_meta = true
+localizations = Array[ExtResource("9_localization")]([SubResource("Localization_th")])
+messages = Array[ExtResource("2_message")]([SubResource("Message_saved"), SubResource("Message_save_failed"), SubResource("Message_cant_do")])

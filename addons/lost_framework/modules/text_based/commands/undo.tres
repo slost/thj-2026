@@ -1,0 +1,56 @@
+[gd_resource type="Resource" script_class="UndoCommandDef" format=3]
+
+[ext_resource type="Script" path="res://addons/lost_framework/modules/text_based/commands/scripts/undo_command_def.gd" id="1_command"]
+[ext_resource type="Script" uid="uid://bi7kikbh7mnl2" path="res://addons/lost_framework/modules/text_based/command_message.gd" id="2_message"]
+[ext_resource type="Script" uid="uid://dbkqe3edfftg0" path="res://addons/lost_framework/modules/text_based/command_localization.gd" id="9_localization"]
+
+[sub_resource type="Resource" id="Message_undone"]
+script = ExtResource("2_message")
+key = &"undone"
+text = "Undone."
+
+[sub_resource type="Resource" id="Message_nothing_to_undo"]
+script = ExtResource("2_message")
+key = &"nothing_to_undo"
+text = "Nothing to undo."
+
+[sub_resource type="Resource" id="Message_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "You can't do that."
+
+[sub_resource type="Resource" id="Message_th_undone"]
+script = ExtResource("2_message")
+key = &"undone"
+text = "ย้อนแล้ว"
+
+[sub_resource type="Resource" id="Message_th_nothing_to_undo"]
+script = ExtResource("2_message")
+key = &"nothing_to_undo"
+text = "ไม่มีย้อน"
+
+[sub_resource type="Resource" id="Message_th_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "ทำแบบนั้นไม่ได้"
+
+[sub_resource type="Resource" id="Localization_th"]
+script = ExtResource("9_localization")
+locale = "th"
+messages = Array[ExtResource("2_message")]([SubResource("Message_th_undone"), SubResource("Message_th_nothing_to_undo"), SubResource("Message_th_cant_do")])
+name = "ย้อน"
+aliases = PackedStringArray("ย้อน")
+help_text = "ย้อนการเปลี่ยนแปลงล่าสุด"
+help_examples = Array[String](["ย้อน"])
+
+[resource]
+script = ExtResource("1_command")
+id = &"undo"
+name = "undo"
+aliases = PackedStringArray("undo")
+help_text = "Undo the last change."
+help_examples = Array[String](["undo"])
+help_category = "Meta"
+is_meta = true
+localizations = Array[ExtResource("9_localization")]([SubResource("Localization_th")])
+messages = Array[ExtResource("2_message")]([SubResource("Message_undone"), SubResource("Message_nothing_to_undo"), SubResource("Message_cant_do")])

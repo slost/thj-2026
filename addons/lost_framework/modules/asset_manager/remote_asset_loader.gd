@@ -434,7 +434,9 @@ func _on_file_completed(result: int, code: int, _headers: PackedStringArray,
 	else:
 		var res := decode_bytes(str(entry["file"]), id, body, entry.get("loop", null))
 		if res == null:
-			push_warning("[AssetManager] Could not decode '%s' (%s). Keeping placeholder." % [id, entry["file"]])
+			var ext := str(entry["file"]).get_extension().to_lower()
+			if ext != "tres" and ext != "res":
+				push_warning("[AssetManager] Could not decode '%s' (%s). Keeping placeholder." % [id, entry["file"]])
 		else:
 			_resources[id] = res
 			_remote_hash[id] = entry["hash"]
@@ -493,6 +495,8 @@ static func decode_bytes(file_name: String, asset_id: String, bytes: PackedByteA
 			return mp3
 		"wav":
 			return parse_wav(bytes, loop)
+		"tres", "res":
+			return AnimationSwap.decode_bytes(file_name, asset_id, bytes)
 	push_warning("[AssetManager] Unsupported file type '.%s' for '%s'" % [ext, asset_id])
 	return null
 

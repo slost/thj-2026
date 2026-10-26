@@ -1,0 +1,169 @@
+[gd_resource type="Resource" script_class="OpenCommandDef" format=3]
+
+[ext_resource type="Script" uid="uid://cu5uth3v64wd4" path="res://addons/lost_framework/modules/text_based/commands/scripts/open_command_def.gd" id="1_command"]
+[ext_resource type="Script" uid="uid://bi7kikbh7mnl2" path="res://addons/lost_framework/modules/text_based/command_message.gd" id="2_message"]
+[ext_resource type="Script" uid="uid://dbkqe3edfftg0" path="res://addons/lost_framework/modules/text_based/command_localization.gd" id="9_localization"]
+
+[sub_resource type="Resource" id="Message_opened"]
+script = ExtResource("2_message")
+key = &"opened"
+text = "You open the {object}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_opened_revealing"]
+script = ExtResource("2_message")
+key = &"opened_revealing"
+text = "You open the {object}, revealing: {list}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_unlock_and_open"]
+script = ExtResource("2_message")
+key = &"unlock_and_open"
+text = "You unlock the {object} with the {target} and open it."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_not_openable"]
+script = ExtResource("2_message")
+key = &"not_openable"
+text = "You can't open the {object}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_already_open"]
+script = ExtResource("2_message")
+key = &"already_open"
+text = "The {object} is already open."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_locked"]
+script = ExtResource("2_message")
+key = &"locked"
+text = "The {object} is locked."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_cant_open_with"]
+script = ExtResource("2_message")
+key = &"cant_open_with"
+text = "You can't open the {object} with the {target}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_key_not_carried"]
+script = ExtResource("2_message")
+key = &"key_not_carried"
+text = "You don't have the {target}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_wrong_key"]
+script = ExtResource("2_message")
+key = &"wrong_key"
+text = "The {target} doesn't fit the {object}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "You can't do that."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_opened"]
+script = ExtResource("2_message")
+key = &"opened"
+text = "เปิด{object}แล้ว"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_opened_revealing"]
+script = ExtResource("2_message")
+key = &"opened_revealing"
+text = "เปิด{object}แล้ว ข้างในมี: {list}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_unlock_and_open"]
+script = ExtResource("2_message")
+key = &"unlock_and_open"
+text = "ใช้{target}ไข{object}แล้วเปิดออก"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_not_openable"]
+script = ExtResource("2_message")
+key = &"not_openable"
+text = "เปิด{object}ไม่ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_already_open"]
+script = ExtResource("2_message")
+key = &"already_open"
+text = "{object}เปิดอยู่แล้ว"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_locked"]
+script = ExtResource("2_message")
+key = &"locked"
+text = "{object}ล็อกอยู่"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_cant_open_with"]
+script = ExtResource("2_message")
+key = &"cant_open_with"
+text = "ใช้{target}เปิด{object}ไม่ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_key_not_carried"]
+script = ExtResource("2_message")
+key = &"key_not_carried"
+text = "คุณไม่มี{target}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_wrong_key"]
+script = ExtResource("2_message")
+key = &"wrong_key"
+text = "{target}ไข{object}ไม่ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "ทำแบบนั้นไม่ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_opened_seen"]
+script = ExtResource("2_message")
+key = &"opened_seen"
+text = "{actor}เปิด{object}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_opened_revealing_seen"]
+script = ExtResource("2_message")
+key = &"opened_revealing_seen"
+text = "{actor}เปิด{object} แล้วเห็น: {list}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_unlock_and_open_seen"]
+script = ExtResource("2_message")
+key = &"unlock_and_open_seen"
+text = "{actor}ไข{object}ด้วย{target}แล้วเปิด"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Localization_th"]
+script = ExtResource("9_localization")
+locale = "th"
+messages = Array[ExtResource("2_message")]([SubResource("Message_th_opened"), SubResource("Message_th_opened_revealing"), SubResource("Message_th_unlock_and_open"), SubResource("Message_th_not_openable"), SubResource("Message_th_already_open"), SubResource("Message_th_locked"), SubResource("Message_th_cant_open_with"), SubResource("Message_th_key_not_carried"), SubResource("Message_th_wrong_key"), SubResource("Message_th_cant_do"), SubResource("Message_th_opened_seen"), SubResource("Message_th_opened_revealing_seen"), SubResource("Message_th_unlock_and_open_seen")])
+name = "เปิด"
+aliases = PackedStringArray("เปิด", "แง้ม")
+help_text = "เปิดประตู กล่อง หรือภาชนะอื่น\nถ้ามีกุญแจ \"เปิดประตูด้วยกุญแจ\" จะปลดล็อกก่อนแล้วเปิด"
+help_examples = Array[String](["เปิดกล่อง", "เปิดประตูด้วยกุญแจ"])
+metadata/_custom_type_script = "uid://dbkqe3edfftg0"
+
+[resource]
+script = ExtResource("1_command")
+id = &"open"
+name = "open"
+aliases = PackedStringArray("open")
+object_requirement = 2
+target_requirement = 1
+target_scope = 2
+prepositions = PackedStringArray("with")
+help_text = "Open a door, a box or another container.\nWith a key, \"open door with key\" unlocks it first."
+help_examples = Array[String](["open box", "open door with key"])
+help_category = "Objects"
+localizations = Array[ExtResource("9_localization")]([SubResource("Localization_th")])
+messages = Array[ExtResource("2_message")]([SubResource("Message_opened"), SubResource("Message_opened_revealing"), SubResource("Message_unlock_and_open"), SubResource("Message_not_openable"), SubResource("Message_already_open"), SubResource("Message_locked"), SubResource("Message_cant_open_with"), SubResource("Message_key_not_carried"), SubResource("Message_wrong_key"), SubResource("Message_cant_do")])
+metadata/_custom_type_script = "uid://dspyiq1a2i7vd"

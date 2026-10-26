@@ -5,6 +5,7 @@ static var manager: AssetManager
 const PLACEHOLDER_DIR := "res://placeholders/"
 const TEXTURE_FILE_EXTS: PackedStringArray = ["png", "webp", "jpg", "jpeg", "svg", "tres", "res"]
 const AUDIO_FILE_EXTS: PackedStringArray = ["ogg", "mp3", "wav", "tres", "res"]
+const ANIMATION_FILE_EXTS: PackedStringArray = ["tres", "res"]
 
 static var _fallback_tex: Texture2D
 static var _fallback_beep: AudioStream
@@ -86,6 +87,18 @@ static func fetch_audio(key: String) -> AudioStream:
 	if from_file is AudioStream:
 		return from_file
 	return _placeholder_audio()
+
+
+## Animation for [param key]. Returns null when no remote, local, or placeholder Animation exists.
+## [HotSwapAnimationPlayer] keeps the scene clip until a remote Animation is accepted.
+static func fetch_animation(key: String) -> Animation:
+	var res: Variant = try_fetch(key)
+	if res is Animation:
+		return res
+	var from_file := _load_placeholder_file(key, ANIMATION_FILE_EXTS)
+	if from_file is Animation:
+		return from_file
+	return null
 
 
 ## True while [param key] has no compatible remote file yet. True when remote mode is off.

@@ -135,9 +135,8 @@ func apply_audio() -> void:
 
 func apply_language() -> void:
 	TranslationServer.set_locale(language)
-	# Game is a project autoload in full Lost games. This demo has no Game node.
-	# The original call parsed `Game` as a global and failed to compile the script
-	# (Identifier "Game" not declared), so the Settings autoload could not start.
+	# Game is a host-project autoload. Resolve it by path so this script still
+	# parses in projects that do not register Game.
 	var game := get_node_or_null("/root/Game")
 	if game != null and "current_language" in game:
 		game.set("current_language", language)

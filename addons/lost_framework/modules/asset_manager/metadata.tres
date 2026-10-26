@@ -9,6 +9,6 @@ name = "Asset Manager"
 version = "0.3"
 type = 0
 role = 0
-description = "Indexes AssetEntry resources and can optionally hot-swap textures and audio from a remote manifest."
+description = "Indexes AssetEntry resources and can optionally hot-swap textures, audio, and animations from a remote manifest."
 category = "Asset"
 metadata/_custom_type_script = "uid://bsc64h183wp8h"

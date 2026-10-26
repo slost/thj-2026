@@ -1,0 +1,100 @@
+[gd_resource type="Resource" script_class="ExamineCommandDef" format=3]
+
+[ext_resource type="Script" uid="uid://c8avcyowl66tj" path="res://addons/lost_framework/modules/text_based/commands/scripts/examine_command_def.gd" id="1_command"]
+[ext_resource type="Script" uid="uid://bi7kikbh7mnl2" path="res://addons/lost_framework/modules/text_based/command_message.gd" id="2_message"]
+[ext_resource type="Script" uid="uid://dbkqe3edfftg0" path="res://addons/lost_framework/modules/text_based/command_localization.gd" id="9_localization"]
+
+[sub_resource type="Resource" id="Message_no_description"]
+script = ExtResource("2_message")
+key = &"no_description"
+text = "You see nothing special about the {object}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_contents"]
+script = ExtResource("2_message")
+key = &"contents"
+text = "The {object} contains: {list}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_is_closed"]
+script = ExtResource("2_message")
+key = &"is_closed"
+text = "The {object} is closed."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_carrying"]
+script = ExtResource("2_message")
+key = &"carrying"
+text = "You are carrying: {list}."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_empty_handed"]
+script = ExtResource("2_message")
+key = &"empty_handed"
+text = "You are empty-handed."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "You can't do that."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_no_description"]
+script = ExtResource("2_message")
+key = &"no_description"
+text = "{object}ไม่มีอะไรพิเศษ"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_contents"]
+script = ExtResource("2_message")
+key = &"contents"
+text = "ใน{object}มี: {list}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_is_closed"]
+script = ExtResource("2_message")
+key = &"is_closed"
+text = "{object}ปิดอยู่"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_carrying"]
+script = ExtResource("2_message")
+key = &"carrying"
+text = "คุณถือ: {list}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_empty_handed"]
+script = ExtResource("2_message")
+key = &"empty_handed"
+text = "คุณไม่ได้ถืออะไรเลย"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "ทำแบบนั้นไม่ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Localization_th"]
+script = ExtResource("9_localization")
+locale = "th"
+messages = Array[ExtResource("2_message")]([SubResource("Message_th_no_description"), SubResource("Message_th_contents"), SubResource("Message_th_is_closed"), SubResource("Message_th_carrying"), SubResource("Message_th_empty_handed"), SubResource("Message_th_cant_do")])
+name = "สำรวจ"
+aliases = PackedStringArray("สำรวจ", "ตรวจดู")
+help_text = "สำรวจสิ่งของอย่างละเอียด"
+help_examples = Array[String](["สำรวจกล่อง", "ตรวจดูดาบ"])
+metadata/_custom_type_script = "uid://dbkqe3edfftg0"
+
+[resource]
+script = ExtResource("1_command")
+id = &"examine"
+name = "examine"
+aliases = PackedStringArray("examine", "x")
+object_requirement = 2
+help_text = "Look closely at something."
+help_examples = Array[String](["examine box", "x sword"])
+help_category = "Info"
+localizations = Array[ExtResource("9_localization")]([SubResource("Localization_th")])
+messages = Array[ExtResource("2_message")]([SubResource("Message_no_description"), SubResource("Message_contents"), SubResource("Message_is_closed"), SubResource("Message_carrying"), SubResource("Message_empty_handed"), SubResource("Message_cant_do")])
+metadata/_custom_type_script = "uid://dspyiq1a2i7vd"

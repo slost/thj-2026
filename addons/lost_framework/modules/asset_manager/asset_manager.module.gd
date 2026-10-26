@@ -1,8 +1,8 @@
 @tool
 extends Refs.MODULE
 class_name AssetManager
-## Indexes local [AssetEntry] resources and, when enabled, overlays textures and
-## audio from a remote manifest. Remote loading is off by default.
+## Indexes local [AssetEntry] resources and, when enabled, overlays textures,
+## audio, and Animation resources from a remote manifest. Remote loading is off by default.
 ## See [code]HOTSWAP.md[/code] in this folder.
 
 ## A remote file replaced the local placeholder or an older remote version.
@@ -414,6 +414,8 @@ func _same_media_kind(local: Resource, remote: Resource) -> bool:
 	if local is Texture2D and remote is Texture2D:
 		return true
 	if local is AudioStream and remote is AudioStream:
+		return true
+	if local is Animation and remote is Animation:
 		return true
 	return local.get_class() == remote.get_class()
 #endregion

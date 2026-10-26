@@ -1,0 +1,185 @@
+[gd_resource type="Resource" script_class="HelpCommandDef" format=3]
+
+[ext_resource type="Script" uid="uid://67xieomwfwe4" path="res://addons/lost_framework/modules/text_based/commands/scripts/help_command_def.gd" id="1_command"]
+[ext_resource type="Script" uid="uid://bi7kikbh7mnl2" path="res://addons/lost_framework/modules/text_based/command_message.gd" id="2_message"]
+[ext_resource type="Script" uid="uid://dbkqe3edfftg0" path="res://addons/lost_framework/modules/text_based/command_localization.gd" id="9_localization"]
+
+[sub_resource type="Resource" id="Message_category"]
+script = ExtResource("2_message")
+key = &"category"
+text = "{category}:"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_list_line"]
+script = ExtResource("2_message")
+key = &"list_line"
+text = "  {names}: {summary}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_list_line_bare"]
+script = ExtResource("2_message")
+key = &"list_line_bare"
+text = "  {names}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_list_hint"]
+script = ExtResource("2_message")
+key = &"list_hint"
+text = "Type \"help <command>\" for details."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_examples"]
+script = ExtResource("2_message")
+key = &"examples"
+text = "Examples:"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_example_line"]
+script = ExtResource("2_message")
+key = &"example_line"
+text = "  {example}"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_unknown_command"]
+script = ExtResource("2_message")
+key = &"unknown_command"
+text = "There is no command \"{text}\". Type \"help\" for a list of commands."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_unknown_hint"]
+script = ExtResource("2_message")
+key = &"unknown_hint"
+text = "Type \"help\" for a list of commands."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_category_movement"]
+script = ExtResource("2_message")
+key = &"category_movement"
+text = "Movement"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_category_objects"]
+script = ExtResource("2_message")
+key = &"category_objects"
+text = "Objects"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_category_info"]
+script = ExtResource("2_message")
+key = &"category_info"
+text = "Info"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_category_conversation"]
+script = ExtResource("2_message")
+key = &"category_conversation"
+text = "Conversation"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_category_meta"]
+script = ExtResource("2_message")
+key = &"category_meta"
+text = "Meta"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_category_other"]
+script = ExtResource("2_message")
+key = &"category_other"
+text = "Other"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "You can't do that."
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_list_hint"]
+script = ExtResource("2_message")
+key = &"list_hint"
+text = "พิมพ์ \"ช่วยเหลือ <คำสั่ง>\" เพื่อดูรายละเอียด"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_examples"]
+script = ExtResource("2_message")
+key = &"examples"
+text = "ตัวอย่าง:"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_unknown_command"]
+script = ExtResource("2_message")
+key = &"unknown_command"
+text = "ไม่มีคำสั่ง \"{text}\" พิมพ์ \"ช่วยเหลือ\" เพื่อดูรายการคำสั่ง"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_unknown_hint"]
+script = ExtResource("2_message")
+key = &"unknown_hint"
+text = "พิมพ์ \"ช่วยเหลือ\" เพื่อดูรายการคำสั่ง"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_category_movement"]
+script = ExtResource("2_message")
+key = &"category_movement"
+text = "การเคลื่อนที่"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_category_objects"]
+script = ExtResource("2_message")
+key = &"category_objects"
+text = "สิ่งของ"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_category_info"]
+script = ExtResource("2_message")
+key = &"category_info"
+text = "ข้อมูล"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_category_conversation"]
+script = ExtResource("2_message")
+key = &"category_conversation"
+text = "บทสนทนา"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_category_meta"]
+script = ExtResource("2_message")
+key = &"category_meta"
+text = "ระบบ"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_category_other"]
+script = ExtResource("2_message")
+key = &"category_other"
+text = "อื่นๆ"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Message_th_cant_do"]
+script = ExtResource("2_message")
+key = &"cant_do"
+text = "ทำแบบนั้นไม่ได้"
+metadata/_custom_type_script = "uid://bi7kikbh7mnl2"
+
+[sub_resource type="Resource" id="Localization_th"]
+script = ExtResource("9_localization")
+locale = "th"
+messages = Array[ExtResource("2_message")]([SubResource("Message_th_list_hint"), SubResource("Message_th_examples"), SubResource("Message_th_unknown_command"), SubResource("Message_th_unknown_hint"), SubResource("Message_th_category_movement"), SubResource("Message_th_category_objects"), SubResource("Message_th_category_info"), SubResource("Message_th_category_conversation"), SubResource("Message_th_category_meta"), SubResource("Message_th_category_other"), SubResource("Message_th_cant_do")])
+name = "ช่วยเหลือ"
+aliases = PackedStringArray("ช่วยเหลือ", "คำสั่ง")
+help_text = "แสดงรายการคำสั่ง หรืออธิบายคำสั่งเดียว"
+help_examples = Array[String](["ช่วยเหลือ", "ช่วยเหลือ หยิบ"])
+metadata/_custom_type_script = "uid://dbkqe3edfftg0"
+
+[resource]
+script = ExtResource("1_command")
+id = &"help"
+name = "help"
+aliases = PackedStringArray("help", "?", "commands")
+help_text = "List the commands, or explain one."
+help_examples = Array[String](["help", "help take"])
+help_category = "Info"
+is_meta = true
+accepts_command = true
+localizations = Array[ExtResource("9_localization")]([SubResource("Localization_th")])
+messages = Array[ExtResource("2_message")]([SubResource("Message_category"), SubResource("Message_list_line"), SubResource("Message_list_line_bare"), SubResource("Message_list_hint"), SubResource("Message_examples"), SubResource("Message_example_line"), SubResource("Message_unknown_command"), SubResource("Message_unknown_hint"), SubResource("Message_category_movement"), SubResource("Message_category_objects"), SubResource("Message_category_info"), SubResource("Message_category_conversation"), SubResource("Message_category_meta"), SubResource("Message_category_other"), SubResource("Message_cant_do")])
+metadata/_custom_type_script = "uid://dspyiq1a2i7vd"
