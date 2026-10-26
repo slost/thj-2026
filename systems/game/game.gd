@@ -5,6 +5,8 @@ const BATTLE_SCENE: String = "res://systems/battle/battle.tscn"
 const MAP_SCENE: String = "res://systems/world_map/world_map.tscn"
 const DESTROYED_RATIO: float = 0.5 # The ratio of the town's restore points to be destroyed.
 const MAP_SAVE_SLOT := 0
+const DISABLED_COLOR: Color = Color.DIM_GRAY
+
 
 # States
 var raid_target_id := "" ## Save key of the town that was raided.

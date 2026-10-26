@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cospigsfyasoa"
-path="res://.godot/imported/tex_portrait_pointing.png-dec1b1b11d09e48281a2c03d4907a51f.ctex"
+path="res://.godot/imported/tex_portrait_focus.png-1884ac9617964a89635fefd25fd93d87.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://placeholders/tex_portrait_pointing.png"
-dest_files=["res://.godot/imported/tex_portrait_pointing.png-dec1b1b11d09e48281a2c03d4907a51f.ctex"]
+source_file="res://placeholders/tex_portrait_focus.png"
+dest_files=["res://.godot/imported/tex_portrait_focus.png-1884ac9617964a89635fefd25fd93d87.ctex"]
 
 [params]
 
