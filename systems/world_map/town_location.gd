@@ -119,12 +119,13 @@ func _update_visual() -> void:
 
 #region Signals
 func _on_mouse_entered() -> void:
-	Game.world_map.focus_location_on(self)
 	_squash.play()
+	if not is_locked():
+		Game.world_map.focus_location_on(self)
 
 
 func _on_mouse_exited() -> void:
-	if Game.world_map.focus_location == self:
+	if Game.world_map.focus_location == self and not Game.world_map.is_location_selected():
 		Game.world_map.unfocus_location()
 	_squash.release()
 

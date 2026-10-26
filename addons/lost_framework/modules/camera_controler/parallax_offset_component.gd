@@ -27,7 +27,15 @@ func _process(_delta: float) -> void:
 		return
 
 	var shift := pan.offset
-	visual.position = _base_position + Vector2(shift.x * factor.x, shift.y * factor.y)
+	var parallax := Vector2(shift.x * factor.x, shift.y * factor.y)
+	var parent_node := visual.get_parent() as Node2D
+	if parent_node:
+		var parent_scale := parent_node.global_scale
+		if not is_zero_approx(parent_scale.x):
+			parallax.x /= parent_scale.x
+		if not is_zero_approx(parent_scale.y):
+			parallax.y /= parent_scale.y
+	visual.position = _base_position + parallax
 
 
 func _resolve_pan() -> bool:

@@ -67,6 +67,16 @@ func _target_offset() -> Vector2:
 	return Vector2(from_center.x * max_offset.x, from_center.y * max_offset.y)
 
 
+## Turns mouse panning on or off. Turning it off snaps the camera back to its rest offset.
+func set_active(active: bool) -> void:
+	set_enabled(active)
+	if active or not _resolve_camera():
+		return
+
+	offset = Vector2.ZERO
+	camera.offset = _base_offset
+
+
 func _teardown() -> void:
 	if is_in_group(&"mouse_pan"):
 		remove_from_group(&"mouse_pan")
