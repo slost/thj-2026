@@ -26,6 +26,11 @@ func _ready() -> void:
 	unfocus_location()
 	set_state()
 
+	# Test resources
+	Game.change_resource(Game.ResourceType.CORPSE, 10)
+	Game.change_resource(Game.ResourceType.BONE, 5)
+	Game.change_resource(Game.ResourceType.WEAPON, -3)
+
 
 func _input(event: InputEvent) -> void:
 	if event is not InputEventMouseButton:

@@ -1,0 +1,30 @@
+[gd_scene format=3 uid="uid://bcylly0bi2ki5"]
+
+[ext_resource type="Script" uid="uid://br4lnhmjemdvn" path="res://systems/ui/resource_container.gd" id="1_3tmn1"]
+[ext_resource type="Script" uid="uid://crmljyqhag08o" path="res://addons/lost_framework/modules/asset_manager/hot_swap_texture_rect.gd" id="2_3tmn1"]
+[ext_resource type="Texture2D" uid="uid://n4il446g0bh1" path="res://placeholders/tex_res_bone.png" id="2_8eyut"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_vjbm6"]
+font_size = 48
+
+[node name="HBoxContainer" type="HBoxContainer" unique_id=638644848 node_paths=PackedStringArray("resource_icon", "resource_label")]
+offset_right = 133.0
+offset_bottom = 88.0
+theme_override_constants/separation = 32
+script = ExtResource("1_3tmn1")
+resource_icon = NodePath("HotSwapTextureRect")
+resource_label = NodePath("Label")
+
+[node name="HotSwapTextureRect" type="TextureRect" parent="." unique_id=253163267]
+custom_minimum_size = Vector2(64, 64)
+custom_maximum_size = Vector2(64, 64)
+propagate_maximum_size = true
+layout_mode = 2
+texture = ExtResource("2_8eyut")
+script = ExtResource("2_3tmn1")
+metadata/_custom_type_script = "uid://crmljyqhag08o"
+
+[node name="Label" type="Label" parent="." unique_id=620930049]
+layout_mode = 2
+text = "0"
+label_settings = SubResource("LabelSettings_vjbm6")
