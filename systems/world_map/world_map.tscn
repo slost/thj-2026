@@ -3,9 +3,12 @@
 [ext_resource type="Texture2D" uid="uid://b3i4l48wkcvmk" path="res://contents/assets/text_world_mockup.png" id="1_3vtoj"]
 [ext_resource type="Script" uid="uid://2d1be4m128iw" path="res://systems/world_map/world_map.gd" id="1_k73hb"]
 [ext_resource type="Script" uid="uid://bgit4iapmj1bm" path="res://addons/lost_framework/modules/asset_manager/hot_swap_sprite.gd" id="2_fe0ic"]
+[ext_resource type="Texture2D" uid="uid://cospigsfyasoa" path="res://placeholders/tex_portrait_pointing.png" id="3_4jwq5"]
 [ext_resource type="PackedScene" uid="uid://bmtlacr4kkmnv" path="res://systems/world_map/town_location.tscn" id="3_6dblr"]
 [ext_resource type="Script" uid="uid://dneuq16wtfe1r" path="res://addons/lost_framework/modules/data_definition/description_variant.gd" id="4_blbmt"]
 [ext_resource type="Script" uid="uid://jc6n263ren8b" path="res://systems/world_map/town_def.gd" id="5_mtdre"]
+[ext_resource type="Script" uid="uid://dw84jg68x20tf" path="res://addons/lost_framework/modules/camera_controler/mouse_pan_component.gd" id="6_pan"]
+[ext_resource type="Script" uid="uid://dr6gpm73wngym" path="res://addons/lost_framework/modules/camera_controler/parallax_offset_component.gd" id="7_parallax"]
 
 [sub_resource type="TileSet" id="TileSet_o83da"]
 tile_size = Vector2i(128, 128)
@@ -39,6 +42,28 @@ debug_label = NodePath("CanvasLayer/DebugLabel")
 [node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=809263297]
 tile_set = SubResource("TileSet_o83da")
 
+[node name="FarBackground" type="Node2D" parent="." unique_id=1554592198]
+
+[node name="ParallaxOffset" type="Node" parent="FarBackground" unique_id=1961176340 node_paths=PackedStringArray("visual")]
+script = ExtResource("7_parallax")
+visual = NodePath("..")
+
+[node name="NearBackground" type="Node2D" parent="." unique_id=164887823]
+z_index = 2
+position = Vector2(-512, 256)
+
+[node name="HotSwapSprite" type="Sprite2D" parent="NearBackground" unique_id=450813439]
+position = Vector2(-18, 108)
+texture = ExtResource("3_4jwq5")
+script = ExtResource("2_fe0ic")
+asset_id = "tex_portrait_pointing"
+metadata/_custom_type_script = "uid://bgit4iapmj1bm"
+
+[node name="ParallaxOffset" type="Node" parent="NearBackground" unique_id=1140344268 node_paths=PackedStringArray("visual")]
+script = ExtResource("7_parallax")
+visual = NodePath("..")
+factor = Vector2(-0.55, -0.55)
+
 [node name="Mockup" type="Sprite2D" parent="." unique_id=129406785]
 modulate = Color(0.32265994, 0.32265994, 0.32265994, 1)
 scale = Vector2(1.1451613, 1.1478723)
@@ -57,6 +82,9 @@ def = SubResource("Resource_ivm68")
 required_locations = [NodePath("../TownLocation2")]
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1736554280]
+
+[node name="MousePan" type="Node" parent="Camera2D" unique_id=1592599313]
+script = ExtResource("6_pan")
 
 [node name="IndicatorSprite" type="Sprite2D" parent="." unique_id=477057813]
 position = Vector2(128, 128)
