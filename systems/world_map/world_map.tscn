@@ -3,18 +3,15 @@
 [ext_resource type="Script" uid="uid://2d1be4m128iw" path="res://systems/world_map/world_map.gd" id="1_k73hb"]
 [ext_resource type="Script" uid="uid://bgit4iapmj1bm" path="res://addons/lost_framework/modules/asset_manager/hot_swap_sprite.gd" id="2_fe0ic"]
 [ext_resource type="Texture2D" uid="uid://cospigsfyasoa" path="res://placeholders/tex_portrait_focus.png" id="2_lq8d4"]
+[ext_resource type="Texture2D" uid="uid://dmrr2777i00dl" path="res://placeholders/tex_icon_map.png" id="2_vjbm6"]
+[ext_resource type="Texture2D" uid="uid://dcfrgwtq1idis" path="res://placeholders/tex_icon_camp.png" id="4_nmuip"]
+[ext_resource type="Texture2D" uid="uid://b3i16r87cnfk" path="res://placeholders/tex_icon_book.png" id="5_wy6xx"]
 [ext_resource type="Texture2D" uid="uid://dqmg8d3tr3fsm" path="res://placeholders/text_pages.png" id="6_5rc7b"]
 [ext_resource type="Script" uid="uid://dw84jg68x20tf" path="res://addons/lost_framework/modules/camera_controler/mouse_pan_component.gd" id="6_pan"]
 [ext_resource type="PackedScene" uid="uid://bcylly0bi2ki5" path="res://systems/ui/resource_container.tscn" id="6_vjbm6"]
 [ext_resource type="Script" uid="uid://dr6gpm73wngym" path="res://addons/lost_framework/modules/camera_controler/parallax_offset_component.gd" id="7_parallax"]
 [ext_resource type="PackedScene" uid="uid://caqqo21gm7uu2" path="res://systems/world_map/map.tscn" id="8_5xdch"]
-[ext_resource type="PackedScene" uid="uid://bmtlacr4kkmnv" path="res://systems/world_map/town_location.tscn" id="9_vjbm6"]
 [ext_resource type="Script" uid="uid://bo1xnktwb64sr" path="res://systems/world_map/map_state_button.gd" id="10_5rc7b"]
-[ext_resource type="Texture2D" uid="uid://daxebvd3b1w3v" path="res://placeholders/text_icon_map.png" id="10_5xdch"]
-[ext_resource type="Script" uid="uid://dneuq16wtfe1r" path="res://addons/lost_framework/modules/data_definition/description_variant.gd" id="10_nmuip"]
-[ext_resource type="Texture2D" uid="uid://538mh8ghhlh5" path="res://placeholders/text_icon_flag.png" id="11_5rc7b"]
-[ext_resource type="Script" uid="uid://jc6n263ren8b" path="res://systems/world_map/town_def.gd" id="11_wy6xx"]
-[ext_resource type="Texture2D" uid="uid://bl2bp2my04bfu" path="res://placeholders/text_icon_code.png" id="12_lq8d4"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_6ji8r"]
 font_size = 32
@@ -54,24 +51,6 @@ corner_radius_bottom_left = 16
 expand_margin_left = 16.0
 expand_margin_right = 16.0
 
-[sub_resource type="Resource" id="Resource_1rdru"]
-script = ExtResource("11_wy6xx")
-id = &"small_village"
-name = "Smaill Village"
-metadata/_custom_type_script = "uid://jc6n263ren8b"
-
-[sub_resource type="Resource" id="Resource_chvb7"]
-script = ExtResource("11_wy6xx")
-id = &"small_village_b"
-name = "Small Village B"
-metadata/_custom_type_script = "uid://jc6n263ren8b"
-
-[sub_resource type="Resource" id="Resource_igfla"]
-script = ExtResource("11_wy6xx")
-id = &"small_village_c"
-name = "Small Village C"
-metadata/_custom_type_script = "uid://jc6n263ren8b"
-
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_26kkc"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_lq8d4"]
@@ -82,10 +61,10 @@ font_color = Color(0, 0, 0, 1)
 
 [node name="WorldMap" type="Node2D" unique_id=1345538956 node_paths=PackedStringArray("indicator", "debug_label", "portrait", "map", "camp", "book", "town_info", "map_marker", "map_button", "camp_button", "code_button")]
 script = ExtResource("1_k73hb")
-indicator = NodePath("Map/IndicatorSprite")
+indicator = NodePath("FarBackground/Map/IndicatorSprite")
 debug_label = NodePath("UI/DebugLabel")
 portrait = NodePath("NearBackground/HotSwapSprite")
-map = NodePath("Map")
+map = NodePath("FarBackground/Map")
 camp = NodePath("Camp")
 book = NodePath("BookBackground")
 town_info = NodePath("UI/TownInfo")
@@ -140,14 +119,14 @@ theme_override_constants/separation = 16
 [node name="MapButton" type="Button" parent="UI/StateContainer" unique_id=1026624835]
 layout_mode = 2
 offset_transform_enabled = true
-icon = ExtResource("10_5xdch")
+icon = ExtResource("2_vjbm6")
 flat = true
 script = ExtResource("10_5rc7b")
 
 [node name="CampButton" type="Button" parent="UI/StateContainer" unique_id=1873331812]
 layout_mode = 2
 offset_transform_enabled = true
-icon = ExtResource("11_5rc7b")
+icon = ExtResource("4_nmuip")
 flat = true
 script = ExtResource("10_5rc7b")
 state = 2
@@ -155,7 +134,7 @@ state = 2
 [node name="CodeButton" type="Button" parent="UI/StateContainer" unique_id=1420579940]
 layout_mode = 2
 offset_transform_enabled = true
-icon = ExtResource("12_lq8d4")
+icon = ExtResource("5_wy6xx")
 flat = true
 script = ExtResource("10_5rc7b")
 state = 3
@@ -231,29 +210,17 @@ scale = Vector2(0.99999994, 0.99999994)
 
 [node name="FarBackground" type="Node2D" parent="." unique_id=1554592198]
 
-[node name="ParallaxOffset" type="Node" parent="FarBackground" unique_id=1961176340 node_paths=PackedStringArray("visual")]
-script = ExtResource("7_parallax")
-visual = NodePath("..")
+[node name="Map" parent="FarBackground" unique_id=1660380084 instance=ExtResource("8_5xdch")]
 
-[node name="Map" parent="." unique_id=1660380084 instance=ExtResource("8_5xdch")]
-
-[node name="IndicatorSprite" type="Sprite2D" parent="Map" unique_id=477057813]
+[node name="IndicatorSprite" type="Sprite2D" parent="FarBackground/Map" unique_id=477057813]
 position = Vector2(128, 128)
 script = ExtResource("2_fe0ic")
 asset_id = "tex_indicator"
 metadata/_custom_type_script = "uid://bgit4iapmj1bm"
 
-[node name="TownLocation4" parent="Map" unique_id=165821674 instance=ExtResource("9_vjbm6")]
-def = SubResource("Resource_1rdru")
-
-[node name="TownLocation5" parent="Map" unique_id=1538130626 instance=ExtResource("9_vjbm6")]
-position = Vector2(303, 43)
-def = SubResource("Resource_chvb7")
-
-[node name="TownLocation6" parent="Map" unique_id=1472448905 node_paths=PackedStringArray("required_locations") instance=ExtResource("9_vjbm6")]
-position = Vector2(0, 128)
-def = SubResource("Resource_igfla")
-required_locations = [NodePath("")]
+[node name="ParallaxOffset" type="Node" parent="FarBackground" unique_id=1961176340 node_paths=PackedStringArray("visual")]
+script = ExtResource("7_parallax")
+visual = NodePath("..")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1736554280]
 
@@ -279,41 +246,40 @@ text = "CAMP"
 [node name="BookBackground" type="Node2D" parent="." unique_id=164887823]
 visible = false
 z_index = 9
-position = Vector2(-512, 256)
 
 [node name="ParallaxOffset" type="Node" parent="BookBackground" unique_id=1140344268 node_paths=PackedStringArray("visual")]
 script = ExtResource("7_parallax")
 visual = NodePath("..")
+enabled = false
 
-[node name="Mockup" type="Sprite2D" parent="BookBackground" unique_id=1483137710]
-position = Vector2(512, -256)
-scale = Vector2(1.2, 1.2)
+[node name="BookScreen" type="Sprite2D" parent="BookBackground" unique_id=595848099]
 texture = ExtResource("6_5rc7b")
 script = ExtResource("2_fe0ic")
+asset_id = "tex_book_screen"
 metadata/_custom_type_script = "uid://bgit4iapmj1bm"
 
 [node name="Label" type="Label" parent="BookBackground" unique_id=903882784]
-offset_left = -244.0
-offset_top = -550.0
-offset_right = 394.0
-offset_bottom = -371.0
+offset_left = -688.0
+offset_top = -292.0
+offset_right = -50.0
+offset_bottom = -113.0
 text = "Code blocks
 that the player have"
 label_settings = SubResource("LabelSettings_lq8d4")
 
 [node name="Label2" type="Label" parent="BookBackground" unique_id=791570193]
-offset_left = 739.0
-offset_top = -526.0
-offset_right = 1110.0
-offset_bottom = -430.0
+offset_left = 237.0
+offset_top = -245.0
+offset_right = 608.0
+offset_bottom = -149.0
 text = "Script"
 label_settings = SubResource("LabelSettings_lq8d4")
 
 [node name="Label3" type="Label" parent="BookBackground" unique_id=228503504]
-offset_left = 1310.0
-offset_top = -283.0
-offset_right = 1681.0
-offset_bottom = -187.0
+offset_left = 612.0
+offset_top = 124.0
+offset_right = 983.0
+offset_bottom = 220.0
 rotation = -1.5707964
 text = "Book Mark"
 label_settings = SubResource("LabelSettings_lq8d4")
