@@ -4,15 +4,9 @@
 [ext_resource type="Script" uid="uid://buc57hp82amat" path="res://systems/ui/gui.gd" id="1_ugo1u"]
 [ext_resource type="Script" uid="uid://dr6gpm73wngym" path="res://addons/lost_framework/modules/camera_controler/parallax_offset_component.gd" id="2_ugo1u"]
 [ext_resource type="Texture2D" uid="uid://cospigsfyasoa" path="res://placeholders/tex_portrait_focus.png" id="3_ck3vr"]
-[ext_resource type="Shader" uid="uid://ctjirle8qgplx" path="res://addons/lost_framework/resources/assets/shaders/outline.gdshader" id="3_fc8et"]
 [ext_resource type="Script" uid="uid://bgit4iapmj1bm" path="res://addons/lost_framework/modules/asset_manager/hot_swap_sprite.gd" id="4_fc8et"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_a8e4d"]
-shader = ExtResource("3_fc8et")
-shader_parameter/clr = Color(0, 0, 0, 1)
-shader_parameter/type = 2
-shader_parameter/thickness = 8.0
-shader_parameter/outline_only = false
 
 [node name="NearBackground" type="Node2D" unique_id=257330761 node_paths=PackedStringArray("portrait")]
 z_index = 9
