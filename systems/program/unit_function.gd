@@ -3,10 +3,10 @@ class_name UnitFunction
 extends Resource
 
 @export var function_name: String = "New Function"
-@export var rules: Array[Rule] = []
+@export var rules: Array[ProgramRule] = []
 
 ## Set by run() when a rule acts. Read by ProgramRunner for rule_executed.
-var last_executed_rule: Rule = null
+var last_executed_rule: ProgramRule = null
 
 
 ## Runs the first matching rule. Returns true if an action was executed.

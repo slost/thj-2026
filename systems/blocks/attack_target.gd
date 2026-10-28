@@ -1,13 +1,13 @@
 extends ActionBlock
-class_name AttackAction
+class_name AttackTarget
 
 
 func _init() -> void:
-	name = "attack"
+	name = "AttackTarget"
 
 
-## True while a living target is already in range, even if the swing is on cooldown.
-## Returning true ends the think so a later rule does not walk closer.
+## Stays true while the target is in range, including during the cooldown,
+## so a later rule does not walk the unit out of melee.
 func can_execute(unit: Unit2D, ctx: ExecContext) -> bool:
 	var target := ctx.target as Unit2D
 	if target == null or not is_instance_valid(target) or target.state == Unit2D.State.DEAD:

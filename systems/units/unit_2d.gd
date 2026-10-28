@@ -256,6 +256,10 @@ func can_attack() -> bool:
 	return _cooldown_left <= 0.0 and state != State.DEAD and state != State.SPAWNING
 
 
+func get_attack_cooldown_left() -> float:
+	return _cooldown_left
+
+
 func attack(target: Unit2D) -> void:
 	if target == null or not is_instance_valid(target) or target.state == State.DEAD:
 		return
@@ -339,6 +343,10 @@ func _follow_goal(delta: float) -> void:
 	if not _goal_cell_valid or cell_changed or _repath_cooldown <= 0.0 or stuck:
 		_rebuild_path()
 	_advance_waypoints()
+
+
+func get_debug_waypoints() -> PackedVector2Array:
+	return _waypoints
 
 
 func _rebuild_path() -> void:

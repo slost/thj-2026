@@ -1,12 +1,12 @@
 extends ConditionBlock
-class_name EnemyNearbyCondition
+class_name EnemyInDetectRange
 
 
 func _init() -> void:
-	name = "enemy nearby"
+	name = "EnemyInDetectRange"
 
 
-## Writes the nearest enemy within detect_range into ctx.target.
+## Nearest enemy inside detect_range. Writes that unit into ctx.target.
 func check(unit: Unit2D, ctx: ExecContext) -> bool:
 	if unit.stats == null:
 		return false

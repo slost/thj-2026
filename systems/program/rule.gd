@@ -1,6 +1,6 @@
 ## One line in a function: [condition AND condition ...] <action>
 ## Empty conditions = always true ("otherwise").
-class_name Rule
+class_name ProgramRule
 extends Resource
 
 @export var conditions: Array[ConditionBlock] = []

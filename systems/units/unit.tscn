@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://ccyt64151tvr7" path="res://addons/lost_framework/modules/composition/component_container.gd" id="6_cgeqx"]
 [ext_resource type="Script" uid="uid://dgfcfexheyfng" path="res://addons/lost_framework/modules/composition/components/health_bar_component.gd" id="7_cgeqx"]
 [ext_resource type="Script" uid="uid://hwspds5p73t4" path="res://systems/program/program_runner.gd" id="8_runner"]
+[ext_resource type="Script" uid="uid://b8hsaob2md2d5" path="res://systems/units/unit_focus_component.gd" id="9_focus"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_qb6br"]
 shader = ExtResource("2_0e6tn")
@@ -133,6 +134,9 @@ metadata/_custom_type_script = "uid://ccyt64151tvr7"
 [node name="HealthComponent" type="Node" parent="ComponentContainer" unique_id=997526682]
 script = ExtResource("6_bawf0")
 metadata/_custom_type_script = "uid://cgkfcqvgeeafr"
+
+[node name="UnitFocusComponent" type="Node" parent="ComponentContainer" unique_id=2129008352]
+script = ExtResource("9_focus")
 
 [node name="HealthBarComponent" type="Node" parent="ComponentContainer" unique_id=1813112527]
 script = ExtResource("7_cgeqx")

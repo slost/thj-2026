@@ -2,7 +2,7 @@
 class_name ProgramRunner
 extends Node
 
-signal rule_executed(fn: UnitFunction, rule: Rule)  ## for UI highlight / debug
+signal rule_executed(fn: UnitFunction, rule: ProgramRule)  ## for UI highlight / debug
 
 const BASE_THINK_INTERVAL := 0.5
 const MIN_CPU := 0.05

@@ -1,9 +1,9 @@
 extends ActionBlock
-class_name MoveToTargetAction
+class_name MoveToTarget
 
 
 func _init() -> void:
-	name = "move to target"
+	name = "MoveToTarget"
 
 
 func can_execute(_unit: Unit2D, ctx: ExecContext) -> bool:
