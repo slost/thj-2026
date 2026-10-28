@@ -5,10 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://bpoxa1i7dtoir" path="res://systems/units/unit.tscn" id="3_5d18c"]
 [ext_resource type="Texture2D" uid="uid://4pp0ymujorvi" path="res://placeholders/tex_tileset.png" id="3_n7end"]
 [ext_resource type="TileSet" uid="uid://b6cn8ildm8ly" path="res://contents/tile_set.tres" id="4_4m8cc"]
-[ext_resource type="Script" uid="uid://coi4mm0t2s5bp" path="res://systems/battle/grid_nav.gd" id="5_grid"]
 [ext_resource type="Script" uid="uid://dgc74ndnvgo3f" path="res://systems/battle/focus_director.gd" id="6_focus"]
-[ext_resource type="Script" uid="uid://bgit4iapmj1bm" path="res://addons/lost_framework/modules/asset_manager/hot_swap_sprite.gd" id="7_swap"]
-[ext_resource type="Texture2D" uid="uid://nw07g6yfjsxp" path="res://placeholders/tex_indicator.png" id="8_indicator"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_fl75l"]
 texture = ExtResource("3_n7end")
@@ -33,8 +30,8 @@ tile_size = Vector2i(128, 128)
 sources/1 = SubResource("TileSetAtlasSource_fl75l")
 
 [sub_resource type="LabelSettings" id="LabelSettings_debug"]
-font_size = 28
-outline_size = 8
+font_size = 16
+outline_size = 4
 outline_color = Color(0, 0, 0, 1)
 
 [node name="BattleTest" type="Node2D" unique_id=162485497]
@@ -55,18 +52,6 @@ tile_set = SubResource("TileSet_5b36d")
 [node name="Unit" parent="." unique_id=1376488434 instance=ExtResource("3_5d18c")]
 position = Vector2(283, 132)
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=1926605162]
-
-[node name="GridNav" type="Node" parent="." unique_id=904694905]
-script = ExtResource("5_grid")
-
-[node name="IndicatorSprite" type="Sprite2D" parent="." unique_id=289455095]
-visible = false
-z_index = 20
-texture = ExtResource("8_indicator")
-script = ExtResource("7_swap")
-asset_id = "tex_indicator"
-
 [node name="UI" type="CanvasLayer" parent="." unique_id=1396947815]
 layer = 10
 
@@ -74,11 +59,10 @@ layer = 10
 offset_left = 32.0
 offset_top = 24.0
 offset_right = 720.0
-offset_bottom = 520.0
+offset_bottom = 280.0
 text = "Nothing focused"
 label_settings = SubResource("LabelSettings_debug")
 
-[node name="FocusDirector" type="Node" parent="." unique_id=159339507 node_paths=PackedStringArray("indicator", "debug_label")]
+[node name="FocusDirector" type="Node" parent="." unique_id=159339507 node_paths=PackedStringArray("debug_label")]
 script = ExtResource("6_focus")
-indicator = NodePath("../IndicatorSprite")
 debug_label = NodePath("../UI/DebugLabel")

@@ -6,7 +6,6 @@ class_name UnitDebugOverlay
 const GROUP := &"unit_debug_overlay"
 
 var _label: Label
-var _last_rule: String = "-"
 
 
 func _ready() -> void:
@@ -22,19 +21,6 @@ func _ready() -> void:
 	settings.outline_color = Color(0, 0, 0, 1)
 	_label.label_settings = settings
 	add_child(_label)
-	call_deferred("_bind_runner")
-
-
-func _bind_runner() -> void:
-	var unit := get_parent() as Unit2D
-	if unit == null or unit.runner == null:
-		return
-	if not unit.runner.rule_executed.is_connected(_on_rule_executed):
-		unit.runner.rule_executed.connect(_on_rule_executed)
-
-
-func _on_rule_executed(_fn: UnitFunction, rule: ProgramRule) -> void:
-	_last_rule = rule.get_label() if rule != null else "-"
 
 
 func set_overlay_visible(shown: bool) -> void:
@@ -55,10 +41,15 @@ func _process(_delta: float) -> void:
 	var unit := get_parent() as Unit2D
 	if unit == null or _label == null:
 		return
-	var cpu := 0.0
+	var cpu := 1
+	var gpu := 1
 	if unit.stats != null:
 		cpu = unit.stats.cpu
-	_label.text = "%s\nCPU %s\n%s\n%s" % [unit.name, cpu, Unit2D.State.keys()[unit.state], _last_rule]
+		gpu = unit.stats.gpu
+	var action := "-"
+	if not unit.queue_actions.is_empty() and unit.queue_actions[0]:
+		action = unit.queue_actions[0].get_block_label()
+	_label.text = "%s\nCPU %d  GPU %d\n%s\n%s" % [unit.name, cpu, gpu, Unit2D.State.keys()[unit.state], action]
 	queue_redraw()
 
 

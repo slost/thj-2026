@@ -10,7 +10,7 @@ func _init() -> void:
 	name = "LowHp"
 
 
-func check(unit: Unit2D, _ctx: ExecContext) -> bool:
+func evaluate(unit: Unit2D, _ctx: ExecContext) -> bool:
 	if unit.stats == null or unit.stats.max_hp <= 0:
 		return false
 	return float(unit.stats.hp) / float(unit.stats.max_hp) <= threshold
