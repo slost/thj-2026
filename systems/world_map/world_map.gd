@@ -2,7 +2,7 @@ extends Node2D
 class_name WorldMap
 
 
-enum State {MAP, FOCUS, CAMP, CODE}
+enum State {MAP, PINNED, CAMP, CODE, FOCUS}
 
 @export var indicator: Node2D
 @export var debug_label: Label
@@ -49,7 +49,7 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if current_state != State.MAP and current_state != State.FOCUS:
+	if current_state != State.MAP and current_state != State.FOCUS and current_state != State.PINNED:
 		return
 	if event is not InputEventMouseButton or not event.pressed:
 		return
@@ -110,7 +110,7 @@ func is_location_selected() -> bool:
 func focus_location_on(_location: TownLocation) -> void:
 	if _is_selected:
 		return
-	if current_state != State.MAP and current_state != State.FOCUS:
+	if current_state != State.MAP and current_state != State.FOCUS and current_state != State.PINNED:
 		return
 
 	focus_location = _location
@@ -157,7 +157,8 @@ func _update_debug_label() -> void:
 
 
 func set_state(new_state: State = State.MAP) -> void:
-	if new_state != State.FOCUS and _is_selected:
+	var keeps_selection := new_state == State.FOCUS or new_state == State.PINNED
+	if _is_selected and not keeps_selection:
 		_is_selected = false
 		focus_location = null
 		indicator.hide()
@@ -179,7 +180,7 @@ func _select_location(location: TownLocation) -> void:
 	if town_info:
 		town_info.show()
 	_update_debug_label()
-	set_state(State.FOCUS)
+	set_state(State.PINNED)
 	_frame_map_on(location)
 
 
@@ -245,11 +246,6 @@ func _town_at_mouse() -> TownLocation:
 
 
 func _update_state() -> void:
-	if current_state == State.MAP or  current_state == State.FOCUS:
-		map.set_process(true)
-	else:
-		map.set_process(false)
-
 	set_camp_visible(current_state == State.CAMP)
 	set_book_visible(current_state == State.CODE)
 
@@ -276,7 +272,7 @@ func _update_buttons() -> void:
 		btn.modulate = Game.DISABLED_COLOR
 
 	match current_state:
-		State.MAP, State.FOCUS:
+		State.MAP, State.FOCUS, State.PINNED:
 			map_button.modulate = Color.WHITE
 		State.CAMP:
 			camp_button.modulate = Color.WHITE

@@ -29,7 +29,7 @@ func _on_mouse_entered() -> void:
 
 func _on_mouse_exited() -> void:
 	_tween_scale(NORMAL_SCALE)
-	if (Game.world_map.current_state == 0 or Game.world_map.current_state == 1) and (state == 0 or state == 1):
+	if _is_map_view(Game.world_map.current_state) and _is_map_view(state):
 		modulate = Color.WHITE
 		return
 	if Game.world_map.current_state != state:
@@ -37,6 +37,10 @@ func _on_mouse_exited() -> void:
 		return
 	modulate = Color.WHITE
 	
+
+func _is_map_view(value: WorldMap.State) -> bool:
+	return value == WorldMap.State.MAP or value == WorldMap.State.PINNED or value == WorldMap.State.FOCUS
+
 
 func _tween_scale(target: Vector2) -> void:
 	# Stop the previous tween so quick hover in/out doesn't fight.

@@ -7,6 +7,9 @@ const _FADE_SPEED := 10.0
 const _ALPHA_CUTOFF := 0.12
 
 @export var portrait: HotSwapSprite
+@export var book: HotSwapSprite
+@export var far: HotSwapSprite
+@export var hand: HotSwapSprite
 
 var _fullscreen_requested := false
 ## Opaque texels for a texture, built once. Keys are texture instance ids.
@@ -227,26 +230,60 @@ func _screen_rect(sprite: Sprite2D) -> Rect2:
 
 
 func update_portrait() -> void:
-	var texture_id := ""
-	if Game.current_stage is WorldMap:
-		var state := (Game.current_stage as WorldMap).current_state
-		match state:
-			WorldMap.State.MAP:
-				texture_id = "tex_portrait_idle"
-			WorldMap.State.FOCUS:
-				texture_id = "tex_portrait_point"
-			WorldMap.State.CAMP:
-				texture_id = "tex_portrait_evil"
-			WorldMap.State.CODE:
-				texture_id = "tex_portrait_write"
+	var portrait_texture := ""
+	var book_texture := ""
+	var far_texture := ""
+	hand.hide()
+	if Game.current_stage is not WorldMap:
+		return
+	
+	var state := (Game.current_stage as WorldMap).current_state
+	match state:
+		WorldMap.State.MAP:
+			portrait_texture = "tex_portrait_idle_1"
+		WorldMap.State.PINNED:
+			portrait_texture = "tex_portrait_point"
+			book_texture = "tex_portrait_point_book"
+		WorldMap.State.CAMP:
+			portrait_texture = "tex_portrait_evil"
+			book_texture = "tex_portrait_evil_book"
+		WorldMap.State.CODE:
+			portrait_texture = "tex_portrait_write"
+			book_texture = "tex_portrait_write_book"
+			hand.show()
+		_:
+			portrait_texture = "tex_portrait_evil" # TODO: add more portrait states for battle
+
+	if state == WorldMap.State.MAP or state == WorldMap.State.CODE:
+		far.show()
 	else:
-		texture_id = "tex_portrait_evil" # TODO: add more portrait states for battle
-
-	set_portrait(texture_id)
+		far.hide()
 
 
-func set_portrait(texture_id: String) -> void:
+	if state == WorldMap.State.MAP:
+		book.hide()
+		far_texture = "tex_portrait_idle_book"
+	elif state == WorldMap.State.CODE:
+		book.show()
+		far_texture = "tex_portrait_write_effects"
+	else:
+		book.show()
+
+	set_portrait(portrait_texture)
+	set_book(book_texture)
+	set_far(far_texture)
+
+
+func set_portrait(texture_Id: String) -> void:
 	if portrait:
-		portrait.set("asset_id", texture_id)
+		portrait.set("asset_id", texture_Id)
 
 
+func set_book(texture_Id: String) -> void:
+	if book:
+		book.set("asset_id", texture_Id)
+
+
+func set_far(texture_Id: String) -> void:
+	if far:
+		far.set("asset_id", texture_Id)
