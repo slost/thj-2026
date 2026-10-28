@@ -19,9 +19,20 @@ var _nav_region: NavigationRegion2D
 
 func _ready() -> void:
 	add_to_group(GROUP)
-	_map = _find_map(get_parent())
+	_map = _find_map_upwards()
 	_build()
 	_bake_navigation()
+
+
+## The map stays on the battle level. GridNav itself lives under the shared Battle scene.
+func _find_map_upwards() -> TileMapLayer:
+	var node: Node = self
+	while node != null:
+		var found := _find_map(node)
+		if found:
+			return found
+		node = node.get_parent()
+	return null
 
 
 func navigation_vertex_count() -> int:
