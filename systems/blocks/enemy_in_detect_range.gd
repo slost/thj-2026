@@ -7,7 +7,7 @@ func _init() -> void:
 
 
 ## Nearest enemy inside detect_range. Writes that unit into ctx.target.
-func check(unit: Unit2D, ctx: ExecContext) -> bool:
+func evaluate(unit: Unit2D, ctx: ExecContext) -> bool:
 	if unit.stats == null:
 		return false
 	var enemy := unit.find_nearest_enemy(unit.stats.detect_range)

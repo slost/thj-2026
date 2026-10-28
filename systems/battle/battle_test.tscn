@@ -67,6 +67,13 @@ texture = ExtResource("8_indicator")
 script = ExtResource("7_swap")
 asset_id = "tex_indicator"
 
+[node name="PinIndicator" type="Sprite2D" parent="."]
+visible = false
+z_index = 19
+texture = ExtResource("8_indicator")
+script = ExtResource("7_swap")
+asset_id = "tex_indicator"
+
 [node name="UI" type="CanvasLayer" parent="." unique_id=1396947815]
 layer = 10
 
@@ -78,7 +85,8 @@ offset_bottom = 520.0
 text = "Nothing focused"
 label_settings = SubResource("LabelSettings_debug")
 
-[node name="FocusDirector" type="Node" parent="." unique_id=159339507 node_paths=PackedStringArray("indicator", "debug_label")]
+[node name="FocusDirector" type="Node" parent="." unique_id=159339507 node_paths=PackedStringArray("indicator", "pin_indicator", "debug_label")]
 script = ExtResource("6_focus")
 indicator = NodePath("../IndicatorSprite")
+pin_indicator = NodePath("../PinIndicator")
 debug_label = NodePath("../UI/DebugLabel")

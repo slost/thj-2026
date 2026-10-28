@@ -10,5 +10,5 @@ func _init() -> void:
 	name = "RandomChance"
 
 
-func check(_unit: Unit2D, _ctx: ExecContext) -> bool:
+func evaluate(_unit: Unit2D, _ctx: ExecContext) -> bool:
 	return randf() < chance

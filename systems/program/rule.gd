@@ -17,13 +17,28 @@ func matches(unit: Unit2D, ctx: ExecContext) -> bool:
 	return action.can_execute(unit, ctx)
 
 
+func get_action_label() -> String:
+	if action == null:
+		return "-"
+	return action.get_block_label()
+
+
+func get_ram_cost() -> int:
+	var total := 0
+	for condition in conditions:
+		if condition:
+			total += condition.get_ram_cost()
+	if action:
+		total += action.get_ram_cost()
+	return total
+
+
 func get_label() -> String:
 	var parts := PackedStringArray()
 	if conditions.is_empty():
 		parts.append("otherwise")
 	else:
 		for condition in conditions:
-			var label := "condition" if condition == null or condition.name.is_empty() else condition.name
+			var label := "condition" if condition == null else condition.get_block_label()
 			parts.append("[%s]" % label)
-	var action_label := "action" if action == null or action.name.is_empty() else action.name
-	return "%s <%s>" % [" ".join(parts), action_label]
+	return "%s <%s>" % [" ".join(parts), get_action_label()]

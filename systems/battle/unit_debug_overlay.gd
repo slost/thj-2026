@@ -6,7 +6,7 @@ class_name UnitDebugOverlay
 const GROUP := &"unit_debug_overlay"
 
 var _label: Label
-var _last_rule: String = "-"
+var _current_action: String = "-"
 
 
 func _ready() -> void:
@@ -34,7 +34,7 @@ func _bind_runner() -> void:
 
 
 func _on_rule_executed(_fn: UnitFunction, rule: ProgramRule) -> void:
-	_last_rule = rule.get_label() if rule != null else "-"
+	_current_action = rule.get_action_label() if rule != null else "-"
 
 
 func set_overlay_visible(shown: bool) -> void:
@@ -55,10 +55,12 @@ func _process(_delta: float) -> void:
 	var unit := get_parent() as Unit2D
 	if unit == null or _label == null:
 		return
-	var cpu := 0.0
+	var cpu := 1
+	var gpu := 1
 	if unit.stats != null:
 		cpu = unit.stats.cpu
-	_label.text = "%s\nCPU %s\n%s\n%s" % [unit.name, cpu, Unit2D.State.keys()[unit.state], _last_rule]
+		gpu = unit.stats.gpu
+	_label.text = "%s\nCPU %d  GPU %d\n%s\n%s" % [unit.name, cpu, gpu, Unit2D.State.keys()[unit.state], _current_action]
 	queue_redraw()
 
 

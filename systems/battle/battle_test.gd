@@ -13,8 +13,14 @@ const _BLOCK_WANDER := "res://data/blocks/wander.tres"
 const _BLOCK_STAND := "res://data/blocks/stand_still.tres"
 
 const _MINION_CELLS: Array[Vector2i] = [Vector2i(-4, -2), Vector2i(-4, 0), Vector2i(-4, 2)]
-const _MINION_CPU: Array[float] = [0.5, 1.0, 2.0]
-const _MINION_NAMES: Array[String] = ["Minion Slow", "Minion Normal", "Minion Fast"]
+const _MINION_CPU: Array[int] = [1, 4, 2]
+const _MINION_GPU: Array[int] = [4, 1, 2]
+const _MINION_NAMES: Array[String] = ["Minion Brute", "Minion Tactician", "Minion Nested"]
+const _MINION_TINTS: Array[Color] = [
+	Color(0.45, 0.95, 0.4),
+	Color(0.95, 0.88, 0.35),
+	Color(0.72, 0.55, 0.95),
+]
 const _VILLAGER_CELLS: Array[Vector2i] = [Vector2i(2, -2), Vector2i(2, 0), Vector2i(2, 2)]
 const _FLEE_CELLS: Array[Vector2i] = [Vector2i(6, -2), Vector2i(6, 0), Vector2i(6, 2)]
 
@@ -31,6 +37,7 @@ func _enter_tree() -> void:
 	_hunt_program = _build_demo_program()
 	_stand_program = _build_stand_program()
 	_flee_program = _build_flee_program()
+	var nested := _build_nested_program()
 	var hunt := _hunt_program
 	var dummy := _stand_program
 
@@ -47,14 +54,15 @@ func _enter_tree() -> void:
 		fleers.append(template.duplicate() as Unit2D)
 
 	for index in minions.size():
-		_setup_unit(minions[index], _MINION_NAMES[index], Unit2D.Team.MINION, hunt, _MINION_CPU[index], map.map_to_local(_MINION_CELLS[index]), Color(0.65, 0.95, 0.65))
+		var program := nested if index == 2 else hunt
+		_setup_unit(minions[index], _MINION_NAMES[index], Unit2D.Team.MINION, program, _MINION_CPU[index], _MINION_GPU[index], map.map_to_local(_MINION_CELLS[index]), _MINION_TINTS[index])
 		if minions[index] != template:
 			add_child.call_deferred(minions[index])
 	for index in villagers.size():
-		_setup_unit(villagers[index], "Villager %d" % (index + 1), Unit2D.Team.VILLAGER, dummy, 1.0, map.map_to_local(_VILLAGER_CELLS[index]), Color(1.0, 0.82, 0.65))
+		_setup_unit(villagers[index], "Villager %d" % (index + 1), Unit2D.Team.VILLAGER, dummy, 1, 1, map.map_to_local(_VILLAGER_CELLS[index]), Color(1.0, 0.82, 0.65))
 		add_child.call_deferred(villagers[index])
 	for index in fleers.size():
-		_setup_unit(fleers[index], "Villager Flee %d" % (index + 1), Unit2D.Team.VILLAGER, _flee_program, 1.0, map.map_to_local(_FLEE_CELLS[index]), Color(0.7, 0.85, 1.0))
+		_setup_unit(fleers[index], "Villager Flee %d" % (index + 1), Unit2D.Team.VILLAGER, _flee_program, 1, 1, map.map_to_local(_FLEE_CELLS[index]), Color(0.7, 0.85, 1.0))
 		add_child.call_deferred(fleers[index])
 
 
@@ -64,9 +72,9 @@ func _ready() -> void:
 	$UI.add_child(menu)
 
 
-func _setup_unit(unit: Unit2D, unit_name: String, team: Unit2D.Team, program: UnitProgram, cpu: float, pos: Vector2, tint: Color) -> void:
+func _setup_unit(unit: Unit2D, unit_name: String, team: Unit2D.Team, program: UnitProgram, cpu: int, gpu: int, pos: Vector2, tint: Color) -> void:
 	unit.name = unit_name
-	unit.def = _build_def(team, program, cpu)
+	unit.def = _build_def(team, program, cpu, gpu)
 	unit.position = pos
 	unit.modulate = tint
 	var overlay := _Overlay.new()
@@ -87,6 +95,15 @@ func set_debug_overlay_visible(shown: bool) -> void:
 	get_tree().call_group(UnitDebugOverlay.GROUP, &"set_overlay_visible", shown)
 
 
+func is_unit_debug_visible() -> bool:
+	return _debug_visible
+
+
+func toggle_unit_debug() -> bool:
+	set_debug_overlay_visible(not _debug_visible)
+	return _debug_visible
+
+
 func delete_selected_unit() -> void:
 	var director := $FocusDirector as FocusDirector
 	if director == null:
@@ -100,12 +117,12 @@ func delete_selected_unit() -> void:
 
 func spawn_minion() -> Unit2D:
 	_spawn_serial += 1
-	return _spawn_unit("Minion %d" % _spawn_serial, Unit2D.Team.MINION, _hunt_program, 1.0, Color(0.65, 0.95, 0.65))
+	return _spawn_unit("Minion %d" % _spawn_serial, Unit2D.Team.MINION, _hunt_program, 2, 2, Color(0.65, 0.95, 0.65))
 
 
 func spawn_villager() -> Unit2D:
 	_spawn_serial += 1
-	return _spawn_unit("Villager Flee %d" % (3 + _spawn_serial), Unit2D.Team.VILLAGER, _flee_program, 1.0, Color(0.7, 0.85, 1.0))
+	return _spawn_unit("Villager Flee %d" % (3 + _spawn_serial), Unit2D.Team.VILLAGER, _flee_program, 1, 1, Color(0.7, 0.85, 1.0))
 
 
 func toggle_pause() -> bool:
@@ -113,9 +130,9 @@ func toggle_pause() -> bool:
 	return get_tree().paused
 
 
-func _spawn_unit(unit_name: String, team: Unit2D.Team, program: UnitProgram, cpu: float, tint: Color) -> Unit2D:
+func _spawn_unit(unit_name: String, team: Unit2D.Team, program: UnitProgram, cpu: int, gpu: int, tint: Color) -> Unit2D:
 	var unit := _UNIT_SCENE.instantiate() as Unit2D
-	_setup_unit(unit, unit_name, team, program, cpu, _random_walkable_position(), tint)
+	_setup_unit(unit, unit_name, team, program, cpu, gpu, _random_walkable_position(), tint)
 	add_child(unit)
 	return unit
 
@@ -130,12 +147,14 @@ func _random_walkable_position() -> Vector2:
 	return map.map_to_local(cell)
 
 
-func _build_def(team: Unit2D.Team, program: UnitProgram, cpu: float) -> UnitDef:
+func _build_def(team: Unit2D.Team, program: UnitProgram, cpu: int, gpu: int) -> UnitDef:
 	var def := UnitDef.new()
 	def.team = team
 	def.speed = 160.0
 	def.detect_range = 8
 	def.cpu = cpu
+	def.gpu = gpu
+	def.ram = 8
 	def.starting_program = program
 	var events: Array[EventGraph.Event] = []
 	events.append(EventGraph.Event.ON_SPAWN)
@@ -145,6 +164,39 @@ func _build_def(team: Unit2D.Team, program: UnitProgram, cpu: float) -> UnitDef:
 	events.append(EventGraph.Event.ON_DEATH)
 	def.allowed_events = events
 	return def
+
+
+## if detect then if attack range -> attack
+## if detect -> move
+## otherwise wander
+func _build_nested_program() -> UnitProgram:
+	var attack_range := _condition(_BLOCK_ATTACK_RANGE)
+	var detect_then_attack := _condition(_BLOCK_DETECT_RANGE)
+	detect_then_attack.then_condition = attack_range
+
+	var attack_rule := ProgramRule.new()
+	var attack_conditions: Array[ConditionBlock] = []
+	attack_conditions.append(detect_then_attack)
+	attack_rule.conditions = attack_conditions
+	attack_rule.action = _action(_BLOCK_ATTACK)
+
+	var move_rule := ProgramRule.new()
+	var move_conditions: Array[ConditionBlock] = []
+	move_conditions.append(_condition(_BLOCK_DETECT_RANGE))
+	move_rule.conditions = move_conditions
+	move_rule.action = _action(_BLOCK_MOVE)
+
+	var wander_rule := ProgramRule.new()
+	wander_rule.action = _action(_BLOCK_WANDER)
+
+	var brain := UnitFunction.new()
+	brain.function_name = "NestedHunt"
+	var rules: Array[ProgramRule] = []
+	rules.append(attack_rule)
+	rules.append(move_rule)
+	rules.append(wander_rule)
+	brain.rules = rules
+	return _program_with(brain)
 
 
 ## [EnemyInAttackRange] <AttackTarget>
@@ -224,7 +276,8 @@ func _condition(path: String) -> ConditionBlock:
 	var block := load(path) as ConditionBlock
 	if block == null:
 		push_error("Missing condition block: %s" % path)
-	return block
+		return null
+	return block.duplicate() as ConditionBlock
 
 
 func _action(path: String) -> ActionBlock:

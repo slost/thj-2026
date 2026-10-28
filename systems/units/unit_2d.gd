@@ -14,8 +14,8 @@ const ARRIVE_RADIUS := 8.0
 const REPATH_INTERVAL := 0.4
 const STUCK_TIME := 1.0
 const STUCK_DISTANCE := 4.0
-## How long ATTACKING lasts until an "attack" animation exists.
-const ATTACK_HOLD := 0.45
+const CORPSE_LINGER := 2.5
+const CORPSE_FADE := 1.5
 
 @export var def: UnitDef
 @export var anim_player: AnimationPlayer
@@ -32,6 +32,7 @@ var state := State.SPAWNING
 
 var _cooldown_left: float = 0.0
 var _attack_time_left: float = 0.0
+var _attack_duration: float = 0.0
 var _attack_waits_for_animation: bool = false
 var _last_attacker: Node = null
 var _dying: bool = false
@@ -45,17 +46,23 @@ var _goal_cell: Vector2i = Vector2i.ZERO
 var _goal_cell_valid: bool = false
 var _stuck_timer: float = 0.0
 var _stuck_anchor: Vector2 = Vector2.ZERO
+var _tint: Color = Color.WHITE
+var _corpse_time: float = 0.0
 
 
 func _ready() -> void:
 	add_to_group(GROUP)
 	motion_mode = MOTION_MODE_FLOATING
+	_tint = modulate
 	_apply_definition()
 	_wire_health()
 	_begin_spawn()
 
 
 func _physics_process(delta: float) -> void:
+	if state == State.DEAD:
+		_tick_corpse(delta)
+		return
 	if _cooldown_left > 0.0:
 		_cooldown_left = maxf(_cooldown_left - delta, 0.0)
 	if state == State.ATTACKING:
@@ -94,6 +101,7 @@ func _apply_definition() -> void:
 	else:
 		stats = UnitStats.new()
 		program = _empty_program()
+	_apply_gpu_animation()
 
 
 func _empty_program() -> UnitProgram:
@@ -182,10 +190,23 @@ func die() -> void:
 	_notify_allies()
 
 
-## Health bar, think bar, and the per-unit debug label stay off after death.
+func _tick_corpse(delta: float) -> void:
+	_corpse_time += delta
+	if _corpse_time <= CORPSE_LINGER:
+		return
+	var fade := clampf((_corpse_time - CORPSE_LINGER) / CORPSE_FADE, 0.0, 1.0)
+	var color := _tint
+	color.a = 1.0 - fade
+	modulate = color
+	if fade >= 1.0:
+		queue_free()
+
+
+## Health bar, think bar, animation bar, and the per-unit debug label stay off after death.
 func _hide_dead_chrome() -> void:
 	_hide_visuals(get_node_or_null("ComponentContainer/HealthBarComponent"))
 	_hide_visuals(get_node_or_null("ComponentContainer/ThinkBarComponent"))
+	_hide_visuals(get_node_or_null("ComponentContainer/AnimationBarComponent"))
 	var overlay := get_node_or_null("DebugOverlay") as CanvasItem
 	if overlay:
 		overlay.visible = false
@@ -304,15 +325,17 @@ func attack(target: Unit2D) -> void:
 	target.take_damage(stats.damage, self)
 
 
-## Stay in ATTACKING for the attack animation, or for ATTACK_HOLD when it is missing.
+## Stay in ATTACKING for the attack animation, or for Formular.calculate_attack_duration.
 func _begin_attack_hold() -> void:
 	if anim_player and anim_player.has_animation(&"attack"):
 		_attack_waits_for_animation = true
+		_attack_duration = 0.0
 		_attack_time_left = 0.0
 		anim_player.play(&"attack")
 		return
 	_attack_waits_for_animation = false
-	_attack_time_left = ATTACK_HOLD
+	_attack_duration = Formular.calculate_attack_duration(get_gpu())
+	_attack_time_left = _attack_duration
 
 
 func _tick_attack(delta: float) -> void:
@@ -327,6 +350,7 @@ func _finish_attack() -> void:
 	if state != State.ATTACKING:
 		return
 	_attack_waits_for_animation = false
+	_attack_duration = 0.0
 	_attack_time_left = 0.0
 	if _has_move_goal:
 		set_state(State.MOVING)
@@ -440,7 +464,36 @@ func _advance_waypoints() -> void:
 	if to_point.length_squared() < 0.001:
 		velocity = Vector2.ZERO
 		return
-	velocity = to_point.normalized() * stats.speed
+	velocity = to_point.normalized() * get_move_speed()
+
+
+func get_gpu() -> int:
+	if stats == null:
+		return 1
+	return maxi(stats.gpu, 1)
+
+
+func get_move_speed() -> float:
+	return Formular.calculate_move_speed(get_gpu())
+
+
+## 0 at the start of the playing clip, 1 when it finishes.
+## An attack pose with no clip uses the same scale over its hold time.
+func get_animation_ratio() -> float:
+	if anim_player != null and anim_player.is_playing():
+		var anim_name := anim_player.current_animation
+		if anim_name != &"" and anim_player.has_animation(anim_name):
+			var length := anim_player.get_animation(anim_name).length
+			if length > 0.0:
+				return clampf(anim_player.current_animation_position / length, 0.0, 1.0)
+	if state == State.ATTACKING and _attack_duration > 0.0:
+		return clampf(1.0 - _attack_time_left / _attack_duration, 0.0, 1.0)
+	return 0.0
+
+
+func _apply_gpu_animation() -> void:
+	if anim_player:
+		anim_player.speed_scale = Formular.calculate_animation_speed(get_gpu())
 
 
 func _face_velocity() -> void:

@@ -6,12 +6,12 @@ extends Resource
 @export var event_graph: EventGraph = EventGraph.new()
 
 
-## Total rule lines across all functions (compare with UnitData.ram).
-func get_total_lines() -> int:
+## Total RAM spent by every block in the program.
+func get_ram_cost() -> int:
 	var total := 0
 	for fn in functions:
 		if fn:
-			total += fn.get_line_count()
+			total += fn.get_ram_cost()
 	return total
 
 

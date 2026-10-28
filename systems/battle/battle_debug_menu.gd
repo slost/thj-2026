@@ -4,6 +4,7 @@ class_name BattleDebugMenu
 
 var _delete: Button
 var _pause: Button
+var _unit_debug: Button
 
 
 func _ready() -> void:
@@ -25,6 +26,7 @@ func _ready() -> void:
 	_delete = _add_button("Delete Unit", _on_delete)
 	_add_button("Spawn Minion", _on_spawn_minion)
 	_add_button("Spawn Villager", _on_spawn_villager)
+	_unit_debug = _add_button("Hide Unit Debug", _on_toggle_debug)
 	_pause = _add_button("Pause", _on_pause)
 
 
@@ -35,6 +37,10 @@ func _process(_delta: float) -> void:
 	if _pause:
 		var paused := get_tree() != null and get_tree().paused
 		_pause.text = "Unpause" if paused else "Pause"
+	var battle := _battle()
+	if _unit_debug and battle and battle.has_method("is_unit_debug_visible"):
+		var shown: bool = battle.call("is_unit_debug_visible")
+		_unit_debug.text = "Hide Unit Debug" if shown else "Show Unit Debug"
 
 
 func _add_button(label: String, callback: Callable) -> Button:
@@ -62,6 +68,10 @@ func _on_spawn_villager() -> void:
 
 func _on_pause() -> void:
 	_call_battle(&"toggle_pause")
+
+
+func _on_toggle_debug() -> void:
+	_call_battle(&"toggle_unit_debug")
 
 
 func _battle() -> Node:

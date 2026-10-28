@@ -21,6 +21,10 @@ func run(unit: Unit2D, ctx: ExecContext) -> bool:
 	return false
 
 
-## Used by the editor to enforce the unit's RAM limit.
-func get_line_count() -> int:
-	return rules.size()
+## Sum of every block's RAM cost, including conditions nested inside a group.
+func get_ram_cost() -> int:
+	var total := 0
+	for rule in rules:
+		if rule:
+			total += rule.get_ram_cost()
+	return total

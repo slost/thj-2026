@@ -4,8 +4,7 @@ extends Node
 
 signal rule_executed(fn: UnitFunction, rule: ProgramRule)  ## for UI highlight / debug
 
-const BASE_THINK_INTERVAL := 0.5
-const MIN_CPU := 0.05
+const MIN_CPU := 1
 
 var _think_timer: float = 0.0
 var _timer_armed: bool = false
@@ -66,5 +65,5 @@ func get_think_ratio() -> float:
 func _think_interval() -> float:
 	var cpu := MIN_CPU
 	if unit != null and unit.stats != null:
-		cpu = maxf(unit.stats.cpu, MIN_CPU)
-	return BASE_THINK_INTERVAL / cpu
+		cpu = maxi(unit.stats.cpu, MIN_CPU)
+	return Formular.calculate_think_interval(cpu)
