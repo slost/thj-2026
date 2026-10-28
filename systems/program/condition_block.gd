@@ -1,5 +1,5 @@
 ## A block that answers true/false.
-## then_condition is the inner if: it runs only when this condition passes.
+## Script nesting is indentation on ScriptLine. then_condition is only used by check().
 class_name ConditionBlock
 extends CodeBlock
 

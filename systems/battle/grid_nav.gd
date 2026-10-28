@@ -1,4 +1,5 @@
-## AStar grid for one battle map. Units are not solid; bodies handle crowding.
+## AStar grid plus a navigation mesh for NavigationAgent2D.
+## Units are not holes in the mesh. Agents steer around each other.
 class_name GridNav
 extends Node
 
@@ -13,12 +14,20 @@ var tile_size: int = TILE_SIZE_FALLBACK
 
 var _map: TileMapLayer
 var _grid: AStarGrid2D
+var _nav_region: NavigationRegion2D
 
 
 func _ready() -> void:
 	add_to_group(GROUP)
 	_map = _find_map(get_parent())
 	_build()
+	_bake_navigation()
+
+
+func navigation_vertex_count() -> int:
+	if _nav_region == null or _nav_region.navigation_polygon == null:
+		return 0
+	return _nav_region.navigation_polygon.vertices.size()
 
 
 func get_tile_size() -> int:
@@ -40,6 +49,39 @@ func cell_to_world(cell: Vector2i) -> Vector2:
 	return Vector2(cell) * float(tile_size) + Vector2(tile_size, tile_size) * 0.5
 
 
+func is_walkable_cell(cell: Vector2i) -> bool:
+	return _grid != null and _grid.is_in_boundsv(cell) and not _grid.is_point_solid(cell)
+
+
+## A walkable cell next to goal when goal itself cannot be used.
+## Returns null when every neighbor is blocked or excluded.
+func find_alternate_cell(from_pos: Vector2, goal: Vector2i, excluded: Array[Vector2i]) -> Variant:
+	var origin := world_to_cell(from_pos)
+	var best := goal
+	var best_cost := 1 << 30
+	var found := false
+	for dx in range(-1, 2):
+		for dy in range(-1, 2):
+			if dx == 0 and dy == 0:
+				continue
+			var cell := goal + Vector2i(dx, dy)
+			if excluded.has(cell) or not is_walkable_cell(cell):
+				continue
+			if cell == origin:
+				continue
+			var path := find_path_world(from_pos, cell_to_world(cell))
+			if path.is_empty():
+				continue
+			var cost := path.size()
+			if not found or cost < best_cost:
+				found = true
+				best = cell
+				best_cost = cost
+	if not found:
+		return null
+	return best
+
+
 func find_path_world(from_pos: Vector2, to_pos: Vector2) -> PackedVector2Array:
 	if _grid == null:
 		return PackedVector2Array([to_pos])
@@ -54,6 +96,47 @@ func find_path_world(from_pos: Vector2, to_pos: Vector2) -> PackedVector2Array:
 	for id in ids:
 		points.append(cell_to_world(id))
 	return points
+
+
+## Walkable cells become quads that share corner vertices, so agents can path across the map.
+func _bake_navigation() -> void:
+	if _map == null or _grid == null:
+		return
+	var region := NavigationRegion2D.new()
+	region.name = "NavigationRegion2D"
+	add_child(region)
+	_nav_region = region
+	var rect := _map.get_used_rect()
+	var polygon := NavigationPolygon.new()
+	var vertices := PackedVector2Array()
+	var corner_index: Dictionary = {}
+	var quads: Array[PackedInt32Array] = []
+	for y in range(rect.position.y, rect.position.y + rect.size.y):
+		for x in range(rect.position.x, rect.position.x + rect.size.x):
+			var cell := Vector2i(x, y)
+			if not is_walkable_cell(cell):
+				continue
+			var corners: Array[Vector2i] = [
+				Vector2i(x, y),
+				Vector2i(x + 1, y),
+				Vector2i(x + 1, y + 1),
+				Vector2i(x, y + 1),
+			]
+			var quad := PackedInt32Array()
+			for corner in corners:
+				if not corner_index.has(corner):
+					corner_index[corner] = vertices.size()
+					vertices.append(region.to_local(_corner_to_world(corner)))
+				quad.append(int(corner_index[corner]))
+			quads.append(quad)
+	polygon.vertices = vertices
+	for quad in quads:
+		polygon.add_polygon(quad)
+	region.navigation_polygon = polygon
+
+
+func _corner_to_world(corner: Vector2i) -> Vector2:
+	return cell_to_world(corner) - Vector2(tile_size, tile_size) * 0.5
 
 
 func _build() -> void:

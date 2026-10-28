@@ -9,7 +9,7 @@ class_name UnitDef
 @export var detect_range: int = 4 ## detect range in tiles
 @export var attack_range: int = 2 ## attack range in tiles
 @export var attack_cooldown: float = 1.0
-@export var cpu: int = 1 ## Think speed. 1 runs a program loop every base interval.
+@export var cpu: int = 1 ## Read speed, plus a small share of move speed.
 @export var gpu: int = 1 ## Move speed and animation speed. 1 keeps the unit's base pace.
 @export var ram: int = 8 ## Max RAM spent by blocks (Remembering As Monster)
 @export var mb: int = 1 ## Monster Brain

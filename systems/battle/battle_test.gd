@@ -2,6 +2,7 @@ extends Node2D
 
 const _Overlay := preload("res://systems/battle/unit_debug_overlay.gd")
 const _DebugMenu := preload("res://systems/battle/battle_debug_menu.gd")
+const _ScriptDebug := preload("res://systems/battle/script_debug_panel.gd")
 const _UNIT_SCENE := preload("res://systems/units/unit.tscn")
 
 const _BLOCK_ATTACK_RANGE := "res://data/blocks/enemy_in_attack_range.tres"
@@ -11,6 +12,12 @@ const _BLOCK_MOVE := "res://data/blocks/move_to_target.tres"
 const _BLOCK_AWAY := "res://data/blocks/move_away_from_target.tres"
 const _BLOCK_WANDER := "res://data/blocks/wander.tres"
 const _BLOCK_STAND := "res://data/blocks/stand_still.tres"
+const _BLOCK_REMEMBER_HOSTILE := "res://data/blocks/remember_hostile.tres"
+const _BLOCK_FORGET_FIRST_TARGET := "res://data/blocks/forget_first_target.tres"
+const _BLOCK_HAS_TARGET := "res://data/blocks/has_remembered_target.tres"
+const _BLOCK_NO_TARGET := "res://data/blocks/no_remembered_target.tres"
+const _BLOCK_REMEMBERED_RANGE := "res://data/blocks/remembered_target_in_attack_range.tres"
+const _BLOCK_REMEMBERED_DEAD := "res://data/blocks/remembered_target_dead.tres"
 
 const _MINION_CELLS: Array[Vector2i] = [Vector2i(-4, -2), Vector2i(-4, 0), Vector2i(-4, 2)]
 const _MINION_CPU: Array[int] = [1, 4, 2]
@@ -70,6 +77,9 @@ func _ready() -> void:
 	var menu := _DebugMenu.new()
 	menu.name = "BattleDebugMenu"
 	$UI.add_child(menu)
+	var script_panel := _ScriptDebug.new()
+	script_panel.name = "ScriptDebugPanel"
+	$UI.add_child(script_panel)
 
 
 func _setup_unit(unit: Unit2D, unit_name: String, team: Unit2D.Team, program: UnitProgram, cpu: int, gpu: int, pos: Vector2, tint: Color) -> void:
@@ -130,6 +140,104 @@ func toggle_pause() -> bool:
 	return get_tree().paused
 
 
+func situation_in_attack_range() -> void:
+	_place_enemy_tiles(1)
+
+
+func situation_in_detect_range() -> void:
+	var unit := _pinned_unit()
+	var gap := 4
+	if unit != null and unit.stats != null:
+		gap = unit.stats.attack_range + 2
+	_place_enemy_tiles(gap)
+
+
+func situation_out_of_range() -> void:
+	var unit := _pinned_unit()
+	var gap := 12
+	if unit != null and unit.stats != null:
+		gap = unit.stats.detect_range + 3
+	_place_enemy_tiles(gap)
+
+
+func situation_low_hp() -> void:
+	var unit := _pinned_unit()
+	if unit == null or unit.health == null:
+		return
+	var goal := maxf(1.0, unit.health.max_health * 0.2)
+	if unit.health.current_health > goal:
+		unit.health.apply_damage(unit.health.current_health - goal)
+
+
+func situation_full_hp() -> void:
+	var unit := _pinned_unit()
+	if unit == null or unit.health == null:
+		return
+	unit.health.heal(unit.health.max_health)
+
+
+func situation_clear_memory() -> void:
+	var unit := _pinned_unit()
+	if unit == null:
+		return
+	unit.forget_everything()
+
+
+func _pinned_unit() -> Unit2D:
+	var director := $FocusDirector as FocusDirector
+	if director == null:
+		return null
+	return director.get_selected_unit()
+
+
+func _place_enemy_tiles(tiles: int) -> void:
+	var unit := _pinned_unit()
+	if unit == null:
+		return
+	var other := _nearest_other(unit)
+	var nav := _grid()
+	if other == null or nav == null:
+		return
+	var origin := nav.world_to_cell(unit.global_position)
+	var steps: Array[Vector2i] = [
+		Vector2i(tiles, 0),
+		Vector2i(-tiles, 0),
+		Vector2i(0, tiles),
+		Vector2i(0, -tiles),
+		Vector2i(tiles, tiles),
+		Vector2i(-tiles, tiles),
+	]
+	for step in steps:
+		var cell := origin + step
+		if cell == origin or not nav.is_walkable_cell(cell):
+			continue
+		other.set_state(Unit2D.State.IDLE)
+		other.global_position = nav.cell_to_world(cell)
+		return
+
+
+func _nearest_other(unit: Unit2D) -> Unit2D:
+	var best: Unit2D = null
+	var best_dist := INF
+	for node in get_tree().get_nodes_in_group(Unit2D.GROUP):
+		var other := node as Unit2D
+		if other == null or other == unit or other.state == Unit2D.State.DEAD:
+			continue
+		if not unit.is_enemy(other):
+			continue
+		var dist := unit.global_position.distance_squared_to(other.global_position)
+		if best == null or dist < best_dist:
+			best = other
+			best_dist = dist
+	return best
+
+
+func _grid() -> GridNav:
+	for node in get_tree().get_nodes_in_group(GridNav.GROUP):
+		return node as GridNav
+	return null
+
+
 func _spawn_unit(unit_name: String, team: Unit2D.Team, program: UnitProgram, cpu: int, gpu: int, tint: Color) -> Unit2D:
 	var unit := _UNIT_SCENE.instantiate() as Unit2D
 	_setup_unit(unit, unit_name, team, program, cpu, gpu, _random_walkable_position(), tint)
@@ -154,7 +262,7 @@ func _build_def(team: Unit2D.Team, program: UnitProgram, cpu: int, gpu: int) -> 
 	def.detect_range = 8
 	def.cpu = cpu
 	def.gpu = gpu
-	def.ram = 8
+	def.ram = 16
 	def.starting_program = program
 	var events: Array[EventGraph.Event] = []
 	events.append(EventGraph.Event.ON_SPAWN)
@@ -166,102 +274,69 @@ func _build_def(team: Unit2D.Team, program: UnitProgram, cpu: int, gpu: int) -> 
 	return def
 
 
-## if detect then if attack range -> attack
-## if detect -> move
-## otherwise wander
+## [Detect]
+##     <Remember>
+##     [InAttackRange]
+##         <Attack>
+##     <Move>
+## [NoTarget]
+##     <Wander>
 func _build_nested_program() -> UnitProgram:
-	var attack_range := _condition(_BLOCK_ATTACK_RANGE)
-	var detect_then_attack := _condition(_BLOCK_DETECT_RANGE)
-	detect_then_attack.then_condition = attack_range
-
-	var attack_rule := ProgramRule.new()
-	var attack_conditions: Array[ConditionBlock] = []
-	attack_conditions.append(detect_then_attack)
-	attack_rule.conditions = attack_conditions
-	attack_rule.action = _action(_BLOCK_ATTACK)
-
-	var move_rule := ProgramRule.new()
-	var move_conditions: Array[ConditionBlock] = []
-	move_conditions.append(_condition(_BLOCK_DETECT_RANGE))
-	move_rule.conditions = move_conditions
-	move_rule.action = _action(_BLOCK_MOVE)
-
-	var wander_rule := ProgramRule.new()
-	wander_rule.action = _action(_BLOCK_WANDER)
-
-	var brain := UnitFunction.new()
-	brain.function_name = "NestedHunt"
-	var rules: Array[ProgramRule] = []
-	rules.append(attack_rule)
-	rules.append(move_rule)
-	rules.append(wander_rule)
-	brain.rules = rules
-	return _program_with(brain)
+	var lines: Array[ScriptLine] = []
+	lines.append_array(_forget_dead_lines())
+	lines.append(_line(_condition(_BLOCK_DETECT_RANGE), 0))
+	lines.append(_line(_action(_BLOCK_REMEMBER_HOSTILE), 1))
+	lines.append(_line(_condition(_BLOCK_REMEMBERED_RANGE), 1))
+	lines.append(_line(_action(_BLOCK_ATTACK), 2))
+	lines.append(_line(_action(_BLOCK_MOVE), 1))
+	lines.append(_line(_condition(_BLOCK_NO_TARGET), 0))
+	lines.append(_line(_action(_BLOCK_WANDER), 1))
+	return _program_with("NestedHunt", lines)
 
 
-## [EnemyInAttackRange] <AttackTarget>
-## [EnemyInDetectRange] <MoveToTarget>
-## otherwise <Wander>
+## Remember a hostile, then attack from memory or walk toward them.
 func _build_demo_program() -> UnitProgram:
-	var attack_rule := ProgramRule.new()
-	var attack_conditions: Array[ConditionBlock] = []
-	attack_conditions.append(_condition(_BLOCK_ATTACK_RANGE))
-	attack_rule.conditions = attack_conditions
-	attack_rule.action = _action(_BLOCK_ATTACK)
-
-	var move_rule := ProgramRule.new()
-	var move_conditions: Array[ConditionBlock] = []
-	move_conditions.append(_condition(_BLOCK_DETECT_RANGE))
-	move_rule.conditions = move_conditions
-	move_rule.action = _action(_BLOCK_MOVE)
-
-	var wander_rule := ProgramRule.new()
-	wander_rule.action = _action(_BLOCK_WANDER)
-
-	var brain := UnitFunction.new()
-	brain.function_name = "Hunt"
-	var rules: Array[ProgramRule] = []
-	rules.append(attack_rule)
-	rules.append(move_rule)
-	rules.append(wander_rule)
-	brain.rules = rules
-	return _program_with(brain)
+	var lines: Array[ScriptLine] = []
+	lines.append_array(_forget_dead_lines())
+	lines.append(_line(_condition(_BLOCK_DETECT_RANGE), 0))
+	lines.append(_line(_action(_BLOCK_REMEMBER_HOSTILE), 1))
+	lines.append(_line(_condition(_BLOCK_HAS_TARGET), 0))
+	lines.append(_line(_condition(_BLOCK_REMEMBERED_RANGE), 1))
+	lines.append(_line(_action(_BLOCK_ATTACK), 2))
+	lines.append(_line(_action(_BLOCK_MOVE), 1))
+	lines.append(_line(_condition(_BLOCK_NO_TARGET), 0))
+	lines.append(_line(_action(_BLOCK_WANDER), 1))
+	return _program_with("Hunt", lines)
 
 
-## [EnemyInDetectRange] <MoveAwayFromTarget>
-## otherwise <Wander>
 func _build_flee_program() -> UnitProgram:
-	var flee_rule := ProgramRule.new()
-	var flee_conditions: Array[ConditionBlock] = []
-	flee_conditions.append(_condition(_BLOCK_DETECT_RANGE))
-	flee_rule.conditions = flee_conditions
-	flee_rule.action = _action(_BLOCK_AWAY)
-
-	var wander_rule := ProgramRule.new()
-	wander_rule.action = _action(_BLOCK_WANDER)
-
-	var brain := UnitFunction.new()
-	brain.function_name = "Flee"
-	var rules: Array[ProgramRule] = []
-	rules.append(flee_rule)
-	rules.append(wander_rule)
-	brain.rules = rules
-	return _program_with(brain)
+	var lines: Array[ScriptLine] = []
+	lines.append_array(_forget_dead_lines())
+	lines.append(_line(_condition(_BLOCK_DETECT_RANGE), 0))
+	lines.append(_line(_action(_BLOCK_REMEMBER_HOSTILE), 1))
+	lines.append(_line(_action(_BLOCK_AWAY), 1))
+	lines.append(_line(_condition(_BLOCK_NO_TARGET), 0))
+	lines.append(_line(_action(_BLOCK_WANDER), 1))
+	return _program_with("Flee", lines)
 
 
 func _build_stand_program() -> UnitProgram:
-	var stand_rule := ProgramRule.new()
-	stand_rule.action = _action(_BLOCK_STAND)
+	var lines: Array[ScriptLine] = []
+	lines.append(_line(_action(_BLOCK_STAND), 0))
+	return _program_with("Dummy", lines)
 
+
+func _forget_dead_lines() -> Array[ScriptLine]:
+	var lines: Array[ScriptLine] = []
+	lines.append(_line(_condition(_BLOCK_REMEMBERED_DEAD), 0))
+	lines.append(_line(_action(_BLOCK_FORGET_FIRST_TARGET), 1))
+	return lines
+
+
+func _program_with(function_name: String, lines: Array[ScriptLine]) -> UnitProgram:
 	var brain := UnitFunction.new()
-	brain.function_name = "Dummy"
-	var rules: Array[ProgramRule] = []
-	rules.append(stand_rule)
-	brain.rules = rules
-	return _program_with(brain)
-
-
-func _program_with(brain: UnitFunction) -> UnitProgram:
+	brain.function_name = function_name
+	brain.lines = lines
 	var graph := EventGraph.new()
 	graph.connect_function(EventGraph.Event.ON_UPDATE, brain)
 	var program := UnitProgram.new()
@@ -270,6 +345,13 @@ func _program_with(brain: UnitFunction) -> UnitProgram:
 	functions.append(brain)
 	program.functions = functions
 	return program
+
+
+func _line(block: CodeBlock, indent: int) -> ScriptLine:
+	var line := ScriptLine.new()
+	line.indent = indent
+	line.block = block
+	return line
 
 
 func _condition(path: String) -> ConditionBlock:

@@ -1,4 +1,4 @@
-## Fill that counts up to the next program loop, then resets.
+## Fill that counts up until the current script line is read, then resets.
 extends Component
 class_name ThinkBarComponent
 

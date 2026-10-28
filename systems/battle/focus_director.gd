@@ -11,6 +11,7 @@ const GROUP := &"focus_director"
 
 var _hover: FocusTargetComponent
 var _pinned: FocusTargetComponent
+var _ranges: Node2D
 
 
 func _ready() -> void:
@@ -19,6 +20,7 @@ func _ready() -> void:
 	if viewport:
 		viewport.physics_object_picking = true
 	_ensure_pin_indicator()
+	_ensure_ranges()
 	_show_empty()
 
 
@@ -73,6 +75,14 @@ func get_selected_unit() -> Unit2D:
 	return _pinned.get_host() as Unit2D
 
 
+## Hovered unit when the pointer is on one, otherwise the pinned unit.
+func get_inspected_unit() -> Unit2D:
+	var shown := _hover if _hover != null else _pinned
+	if shown == null or not is_instance_valid(shown):
+		return null
+	return shown.get_host() as Unit2D
+
+
 func _ensure_pin_indicator() -> void:
 	if pin_indicator != null or indicator == null:
 		return
@@ -85,12 +95,27 @@ func _ensure_pin_indicator() -> void:
 	pin_indicator.visible = false
 
 
+func _ensure_ranges() -> void:
+	if _ranges != null:
+		return
+	var parent := indicator.get_parent() if indicator != null else get_parent()
+	if parent == null:
+		return
+	var overlay := Node2D.new()
+	overlay.name = "FocusRanges"
+	overlay.z_index = 8
+	overlay.set_script(load("res://systems/battle/focus_range_overlay.gd"))
+	parent.add_child.call_deferred(overlay)
+	_ranges = overlay
+
+
 func _refresh() -> void:
 	_place_indicator(indicator, _hover.get_host() as Node2D if _hover != null and _hover != _pinned else null, Color.WHITE)
 	_place_indicator(pin_indicator, _pinned.get_host() as Node2D if _pinned != null else null, Color(1, 0.86, 0.45))
+	var shown := _hover if _hover != null else _pinned
+	_place_ranges(shown.get_host() as Unit2D if shown != null else null)
 	if debug_label == null:
 		return
-	var shown := _hover if _hover != null else _pinned
 	if shown == null:
 		debug_label.text = "Nothing focused"
 		return
@@ -113,10 +138,33 @@ func _place_indicator(sprite: Node2D, host: Node2D, tint: Color) -> void:
 	sprite.modulate = tint
 
 
+func _place_ranges(unit: Unit2D) -> void:
+	if _ranges == null:
+		return
+	if unit == null or unit.stats == null:
+		_ranges.visible = false
+		return
+	var tile := 128.0
+	var nav: Node = null
+	if get_tree():
+		var nodes := get_tree().get_nodes_in_group(GridNav.GROUP)
+		if not nodes.is_empty():
+			nav = nodes[0]
+	if nav and nav.has_method("get_tile_size"):
+		tile = float(nav.call("get_tile_size"))
+	_ranges.visible = true
+	_ranges.global_position = unit.global_position
+	_ranges.set("detect_radius", float(unit.stats.detect_range) * tile)
+	_ranges.set("attack_radius", float(unit.stats.attack_range) * tile)
+	_ranges.queue_redraw()
+
+
 func _show_empty() -> void:
 	if indicator:
 		indicator.visible = false
 	if pin_indicator:
 		pin_indicator.visible = false
+	if _ranges:
+		_ranges.visible = false
 	if debug_label:
 		debug_label.text = "Nothing focused"

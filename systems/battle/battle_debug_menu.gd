@@ -5,6 +5,7 @@ class_name BattleDebugMenu
 var _delete: Button
 var _pause: Button
 var _unit_debug: Button
+var _situations: Array[Button] = []
 
 
 func _ready() -> void:
@@ -28,12 +29,26 @@ func _ready() -> void:
 	_add_button("Spawn Villager", _on_spawn_villager)
 	_unit_debug = _add_button("Hide Unit Debug", _on_toggle_debug)
 	_pause = _add_button("Pause", _on_pause)
+	var situations := Label.new()
+	situations.text = "Situation"
+	situations.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	situations.add_theme_font_size_override(&"font_size", 20)
+	add_child(situations)
+	_situations.append(_add_button("Enemy In Attack", _on_attack_range))
+	_situations.append(_add_button("Enemy In Detect", _on_detect_range))
+	_situations.append(_add_button("Enemy Out Of Range", _on_out_of_range))
+	_situations.append(_add_button("Low HP", _on_low_hp))
+	_situations.append(_add_button("Full HP", _on_full_hp))
+	_situations.append(_add_button("Clear Memory", _on_clear_memory))
 
 
 func _process(_delta: float) -> void:
 	var director := _director()
+	var pinned := director != null and director.get_selected_unit() != null
 	if _delete:
-		_delete.disabled = director == null or director.get_selected_unit() == null
+		_delete.disabled = not pinned
+	for button in _situations:
+		button.disabled = not pinned
 	if _pause:
 		var paused := get_tree() != null and get_tree().paused
 		_pause.text = "Unpause" if paused else "Pause"
@@ -46,9 +61,9 @@ func _process(_delta: float) -> void:
 func _add_button(label: String, callback: Callable) -> Button:
 	var button := Button.new()
 	button.text = label
-	button.custom_minimum_size = Vector2(260, 48)
+	button.custom_minimum_size = Vector2(260, 36)
 	button.process_mode = Node.PROCESS_MODE_ALWAYS
-	button.add_theme_font_size_override(&"font_size", 24)
+	button.add_theme_font_size_override(&"font_size", 18)
 	button.pressed.connect(callback)
 	add_child(button)
 	return button
@@ -72,6 +87,30 @@ func _on_pause() -> void:
 
 func _on_toggle_debug() -> void:
 	_call_battle(&"toggle_unit_debug")
+
+
+func _on_attack_range() -> void:
+	_call_battle(&"situation_in_attack_range")
+
+
+func _on_detect_range() -> void:
+	_call_battle(&"situation_in_detect_range")
+
+
+func _on_out_of_range() -> void:
+	_call_battle(&"situation_out_of_range")
+
+
+func _on_low_hp() -> void:
+	_call_battle(&"situation_low_hp")
+
+
+func _on_full_hp() -> void:
+	_call_battle(&"situation_full_hp")
+
+
+func _on_clear_memory() -> void:
+	_call_battle(&"situation_clear_memory")
 
 
 func _battle() -> Node:
