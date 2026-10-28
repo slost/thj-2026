@@ -10,6 +10,7 @@
 [ext_resource type="Script" uid="uid://dgfcfexheyfng" path="res://addons/lost_framework/modules/composition/components/health_bar_component.gd" id="7_cgeqx"]
 [ext_resource type="Script" uid="uid://hwspds5p73t4" path="res://systems/program/program_runner.gd" id="8_runner"]
 [ext_resource type="Script" uid="uid://b8hsaob2md2d5" path="res://systems/units/unit_focus_component.gd" id="9_focus"]
+[ext_resource type="Script" path="res://systems/units/think_bar_component.gd" id="10_think"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_qb6br"]
 shader = ExtResource("2_0e6tn")
@@ -143,6 +144,11 @@ script = ExtResource("7_cgeqx")
 offset = Vector2(0, -256)
 size = Vector2(128, 6)
 metadata/_custom_type_script = "uid://dgfcfexheyfng"
+
+[node name="ThinkBarComponent" type="Node" parent="ComponentContainer"]
+script = ExtResource("10_think")
+offset = Vector2(0, -242)
+size = Vector2(128, 6)
 
 [node name="ProgramRunner" type="Node" parent="." unique_id=569437827]
 script = ExtResource("8_runner")

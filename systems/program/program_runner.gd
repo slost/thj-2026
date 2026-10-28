@@ -53,6 +53,16 @@ func fire(event: EventGraph.Event, source: Node = null) -> bool:
 	return false
 
 
+## 0 at the start of a wait, 1 the moment the next program loop runs.
+func get_think_ratio() -> float:
+	if not _timer_armed:
+		return 0.0
+	var interval := _think_interval()
+	if interval <= 0.0:
+		return 1.0
+	return clampf(1.0 - _think_timer / interval, 0.0, 1.0)
+
+
 func _think_interval() -> float:
 	var cpu := MIN_CPU
 	if unit != null and unit.stats != null:

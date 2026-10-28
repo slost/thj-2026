@@ -14,6 +14,8 @@ const ARRIVE_RADIUS := 8.0
 const REPATH_INTERVAL := 0.4
 const STUCK_TIME := 1.0
 const STUCK_DISTANCE := 4.0
+## How long ATTACKING lasts until an "attack" animation exists.
+const ATTACK_HOLD := 0.45
 
 @export var def: UnitDef
 @export var anim_player: AnimationPlayer
@@ -29,6 +31,8 @@ var program: UnitProgram
 var state := State.SPAWNING
 
 var _cooldown_left: float = 0.0
+var _attack_time_left: float = 0.0
+var _attack_waits_for_animation: bool = false
 var _last_attacker: Node = null
 var _dying: bool = false
 
@@ -54,7 +58,9 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if _cooldown_left > 0.0:
 		_cooldown_left = maxf(_cooldown_left - delta, 0.0)
-	if state == State.IDLE or state == State.MOVING:
+	if state == State.ATTACKING:
+		_tick_attack(delta)
+	elif state == State.IDLE or state == State.MOVING:
 		if runner:
 			runner.tick(delta)
 	if state == State.MOVING:
@@ -120,6 +126,8 @@ func _begin_spawn() -> void:
 func _on_animation_finished(anim_name: StringName) -> void:
 	if anim_name == &"spawn":
 		_on_spawn_finished()
+	elif anim_name == &"attack":
+		_finish_attack()
 
 
 func _on_spawn_finished() -> void:
@@ -169,8 +177,27 @@ func die() -> void:
 	if runner:
 		runner.fire(EventGraph.Event.ON_DEATH)
 	set_state(State.DEAD)
+	_hide_dead_chrome()
 	died.emit(self)
 	_notify_allies()
+
+
+## Health bar, think bar, and the per-unit debug label stay off after death.
+func _hide_dead_chrome() -> void:
+	_hide_visuals(get_node_or_null("ComponentContainer/HealthBarComponent"))
+	_hide_visuals(get_node_or_null("ComponentContainer/ThinkBarComponent"))
+	var overlay := get_node_or_null("DebugOverlay") as CanvasItem
+	if overlay:
+		overlay.visible = false
+
+
+func _hide_visuals(node: Node) -> void:
+	if node == null:
+		return
+	if node is CanvasItem:
+		(node as CanvasItem).visible = false
+	for child in node.get_children():
+		_hide_visuals(child)
 
 
 func _notify_allies() -> void:
@@ -253,7 +280,12 @@ func _grid_nav() -> GridNav:
 
 #region Commands (used by action blocks)
 func can_attack() -> bool:
-	return _cooldown_left <= 0.0 and state != State.DEAD and state != State.SPAWNING
+	return (
+		_cooldown_left <= 0.0
+		and state != State.DEAD
+		and state != State.SPAWNING
+		and state != State.ATTACKING
+	)
 
 
 func get_attack_cooldown_left() -> float:
@@ -265,11 +297,37 @@ func attack(target: Unit2D) -> void:
 		return
 	if not can_attack() or stats == null:
 		return
+	_face_toward(target.global_position)
 	set_state(State.ATTACKING)
 	_cooldown_left = stats.attack_cooldown
+	_begin_attack_hold()
 	target.take_damage(stats.damage, self)
-	if state == State.DEAD or _dying:
+
+
+## Stay in ATTACKING for the attack animation, or for ATTACK_HOLD when it is missing.
+func _begin_attack_hold() -> void:
+	if anim_player and anim_player.has_animation(&"attack"):
+		_attack_waits_for_animation = true
+		_attack_time_left = 0.0
+		anim_player.play(&"attack")
 		return
+	_attack_waits_for_animation = false
+	_attack_time_left = ATTACK_HOLD
+
+
+func _tick_attack(delta: float) -> void:
+	if _attack_waits_for_animation:
+		return
+	_attack_time_left -= delta
+	if _attack_time_left <= 0.0:
+		_finish_attack()
+
+
+func _finish_attack() -> void:
+	if state != State.ATTACKING:
+		return
+	_attack_waits_for_animation = false
+	_attack_time_left = 0.0
 	if _has_move_goal:
 		set_state(State.MOVING)
 	else:
@@ -386,12 +444,18 @@ func _advance_waypoints() -> void:
 
 
 func _face_velocity() -> void:
+	if absf(velocity.x) > 1.0:
+		_face_toward(global_position + velocity)
+
+
+func _face_toward(world_pos: Vector2) -> void:
 	var sprite := get_node_or_null("HotSwapSprite") as Node2D
 	if sprite == null:
 		return
-	if velocity.x < -1.0:
+	var dx := world_pos.x - global_position.x
+	if dx < -1.0:
 		sprite.scale.x = -absf(sprite.scale.x)
-	elif velocity.x > 1.0:
+	elif dx > 1.0:
 		sprite.scale.x = absf(sprite.scale.x)
 
 #endregion

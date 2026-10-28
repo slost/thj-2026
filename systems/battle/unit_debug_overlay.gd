@@ -38,10 +38,18 @@ func _on_rule_executed(_fn: UnitFunction, rule: ProgramRule) -> void:
 
 
 func set_overlay_visible(shown: bool) -> void:
-	visible = shown
+	visible = shown and not _unit_is_dead()
+
+
+func _unit_is_dead() -> bool:
+	var unit := get_parent() as Unit2D
+	return unit != null and unit.state == Unit2D.State.DEAD
 
 
 func _process(_delta: float) -> void:
+	if _unit_is_dead():
+		visible = false
+		return
 	if not visible:
 		return
 	var unit := get_parent() as Unit2D

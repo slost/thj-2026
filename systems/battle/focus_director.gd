@@ -62,6 +62,12 @@ func clear_selection() -> void:
 	_set_target(null)
 
 
+func get_selected_unit() -> Unit2D:
+	if not _pinned or _target == null or not is_instance_valid(_target):
+		return null
+	return _target.get_host() as Unit2D
+
+
 func _set_target(target: FocusTargetComponent) -> void:
 	if _target == target:
 		_refresh()
