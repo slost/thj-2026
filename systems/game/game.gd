@@ -19,6 +19,7 @@ const DISABLED_COLOR: Color = Color.DIM_GRAY
 # States
 var raid_target_id := "" ## Save key of the town that was raided.
 var pending_raid_damage := 0.0 ## Applied after the map reloads its saved restore points.
+var current_stage: Node
 
 # Hard-coded resources
 var corpse := 0
@@ -28,6 +29,10 @@ var collar := 0
 
 # Refs
 var world_map: WorldMap
+
+
+func change_stage(stage: Node) -> void:
+	current_stage = stage
 
 
 func raid_to(_location: TownLocation) -> void:
@@ -76,7 +81,8 @@ func _apply_pending_raid_damage() -> void:
 func restart() -> void:
 	_clear_raid_request()
 	SaveManager.delete_slot(MAP_SAVE_SLOT)
-	get_tree().change_scene_to_file(MAP_SCENE)
+	get_tree().reload_current_scene()
+	# get_tree().change_scene_to_file(MAP_SCENE)
 
 
 func delete_save() -> void:

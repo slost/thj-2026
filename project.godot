@@ -26,6 +26,8 @@ Audio="*res://addons/lost_framework/modules/audio_manager/audio_manager.module.g
 SaveManager="*res://addons/lost_framework/modules/save_manager/save_manager.module.gd"
 Settings="*res://addons/lost_framework/modules/settings/settings.module.gd"
 Game="*uid://ceh6cu1vv67q"
+Debug="*uid://bd6cg04s5bjqe"
+GUI="*uid://b2i0xnpdkp882"
 
 [display]
 
@@ -33,7 +35,6 @@ window/size/viewport_width=1920
 window/size/viewport_height=1080
 window/size/mode=3
 window/size/resizable=false
-window/size/borderless=true
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/vsync/vsync_mode=0
@@ -46,6 +47,12 @@ run/size/viewport_height=1080
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/lost_framework/plugin.cfg")
+
+[file_customization]
+
+folder_colors={
+"res://systems/": "red"
+}
 
 [lost_framework]
 

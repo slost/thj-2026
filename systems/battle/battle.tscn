@@ -1,15 +1,24 @@
 [gd_scene format=3 uid="uid://cuv33xmj8bunc"]
 
 [ext_resource type="Script" uid="uid://cluwip7k8dmsp" path="res://systems/battle/battle.gd" id="1_f5pr0"]
+[ext_resource type="Script" uid="uid://dw84jg68x20tf" path="res://addons/lost_framework/modules/camera_controler/mouse_pan_component.gd" id="2_v40hl"]
 
 [node name="Battle" type="Node2D" unique_id=1492888788]
 script = ExtResource("1_f5pr0")
 
-[node name="Button" type="Button" parent="." unique_id=1158283549]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=960104964]
+zoom = Vector2(0.7, 0.7)
+
+[node name="MousePan" type="Node" parent="Camera2D" unique_id=1513684545]
+script = ExtResource("2_v40hl")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1617395548]
+
+[node name="Button" type="Button" parent="CanvasLayer" unique_id=1158283549]
 offset_left = 256.0
 offset_top = 256.0
 offset_right = 370.0
 offset_bottom = 287.0
-text = "Back to world"
+text = "Retreat"
 
-[connection signal="pressed" from="Button" to="." method="_on_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/Button" to="." method="_on_button_pressed"]

@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://bd6cg04s5bjqe"]
+
+[ext_resource type="Script" uid="uid://blvaendeci6yd" path="res://systems/debug/debug.gd" id="1_a8e4d"]
+
+[node name="CanvasLayer" type="CanvasLayer" unique_id=845550041]
+script = ExtResource("1_a8e4d")
+
+[node name="HBoxContainer" type="VBoxContainer" parent="." unique_id=96875597]
+offset_left = 1554.0
+offset_top = 650.0
+offset_right = 1866.0
+offset_bottom = 760.0
+
+[node name="RestartButton" type="Button" parent="HBoxContainer" unique_id=337804945]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Restart"
+metadata/_edit_use_anchors_ = true
+
+[node name="DeleteSaveButton" type="Button" parent="HBoxContainer" unique_id=189976815]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Delete Save"
+metadata/_edit_use_anchors_ = true
+
+[node name="RoomsButton" type="Button" parent="HBoxContainer" unique_id=1200802099]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Back to Test Rooms"
+metadata/_edit_use_anchors_ = true
+
+[connection signal="pressed" from="HBoxContainer/RestartButton" to="." method="_on_restart_button_pressed"]
+[connection signal="pressed" from="HBoxContainer/DeleteSaveButton" to="." method="_on_delete_save_button_pressed"]
+[connection signal="pressed" from="HBoxContainer/RoomsButton" to="." method="_on_rooms_button_pressed"]

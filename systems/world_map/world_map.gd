@@ -6,7 +6,6 @@ enum State {MAP, FOCUS, CAMP, CODE}
 
 @export var indicator: Node2D
 @export var debug_label: Label
-@export var portrait: HotSwapSprite
 @export var map: Node2D
 @export var camp: Node2D
 @export var book: Node2D
@@ -22,6 +21,8 @@ enum State {MAP, FOCUS, CAMP, CODE}
 @export var camp_button: Button
 @export var code_button: Button
 
+@onready var portrait: HotSwapSprite = GUI.get_portrait()
+
 var current_state: State = State.MAP
 var focus_location: TownLocation ## The location that is currently focused on.
 var _dtag := DebugTag.new("WorldMap") ## The debug tag for the world map.
@@ -32,6 +33,7 @@ var _map_tween: Tween
 
 
 func _ready() -> void:
+	Game.change_stage(self)
 	Game.world_map = self
 	if map:
 		_map_rest_position = map.position
@@ -43,6 +45,7 @@ func _ready() -> void:
 	Game.change_resource(Game.ResourceType.CORPSE, 10)
 	Game.change_resource(Game.ResourceType.BONE, 5)
 	Game.change_resource(Game.ResourceType.WEAPON, -3)
+	
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -131,14 +134,6 @@ func unfocus_location() -> void:
 		_release_map_frame()
 
 
-func _on_restart_button_pressed() -> void:
-	Game.restart()
-
-
-func _on_delete_save_button_pressed() -> void:
-	Game.delete_save()
-
-
 func move_indicator_to(_position: Vector2) -> void:
 	indicator.global_position = _position
 
@@ -171,9 +166,9 @@ func set_state(new_state: State = State.MAP) -> void:
 		_release_map_frame()
 
 	current_state = new_state
-	_update_portrait()
 	_update_buttons()
 	_update_state()
+	GUI.update_portrait()
 
 
 func _select_location(location: TownLocation) -> void:
@@ -274,23 +269,6 @@ func set_book_visible(value: bool = true) -> void:
 			if child.has_method("set_visible"):
 				child.set_visible(value)
 		book.visible = value
-	
-
-func _update_portrait() -> void:
-	var texture_id := ""
-	
-	match current_state:
-		State.MAP:
-			texture_id = "tex_portrait_idle"
-		State.FOCUS:
-			texture_id = "tex_portrait_point"
-		State.CAMP:
-			texture_id = "tex_portrait_evil"
-		State.CODE:
-			texture_id = "tex_portrait_write"
-
-	if portrait:
-		portrait.set("asset_id", texture_id)
 
 
 func _update_buttons() -> void:

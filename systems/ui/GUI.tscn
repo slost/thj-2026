@@ -1,0 +1,63 @@
+[gd_scene format=3 uid="uid://b2i0xnpdkp882"]
+
+[ext_resource type="PackedScene" uid="uid://bcylly0bi2ki5" path="res://systems/ui/resource_container.tscn" id="1_juocw"]
+[ext_resource type="Script" uid="uid://buc57hp82amat" path="res://systems/ui/gui.gd" id="1_ugo1u"]
+[ext_resource type="Script" uid="uid://dr6gpm73wngym" path="res://addons/lost_framework/modules/camera_controler/parallax_offset_component.gd" id="2_ugo1u"]
+[ext_resource type="Texture2D" uid="uid://cospigsfyasoa" path="res://placeholders/tex_portrait_focus.png" id="3_ck3vr"]
+[ext_resource type="Shader" uid="uid://ctjirle8qgplx" path="res://addons/lost_framework/resources/assets/shaders/outline.gdshader" id="3_fc8et"]
+[ext_resource type="Script" uid="uid://bgit4iapmj1bm" path="res://addons/lost_framework/modules/asset_manager/hot_swap_sprite.gd" id="4_fc8et"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_a8e4d"]
+shader = ExtResource("3_fc8et")
+shader_parameter/clr = Color(0, 0, 0, 1)
+shader_parameter/type = 2
+shader_parameter/thickness = 8.0
+shader_parameter/outline_only = false
+
+[node name="NearBackground" type="Node2D" unique_id=257330761 node_paths=PackedStringArray("portrait")]
+z_index = 9
+script = ExtResource("1_ugo1u")
+portrait = NodePath("Gui/HotSwapSprite")
+
+[node name="Gui" type="CanvasLayer" parent="." unique_id=1627323203]
+
+[node name="ParallaxOffset" type="Node" parent="Gui" unique_id=1447826119 node_paths=PackedStringArray("visual")]
+script = ExtResource("2_ugo1u")
+visual = NodePath("../HotSwapSprite")
+factor = Vector2(-0.55, -0.55)
+
+[node name="HotSwapSprite" type="Sprite2D" parent="Gui" unique_id=604961255]
+material = SubResource("ShaderMaterial_a8e4d")
+position = Vector2(428, 921)
+texture = ExtResource("3_ck3vr")
+script = ExtResource("4_fc8et")
+asset_id = "tex_portrait_focus"
+metadata/_custom_type_script = "uid://bgit4iapmj1bm"
+
+[node name="PanelContainer" type="PanelContainer" parent="Gui" unique_id=782532032]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -314.0
+offset_right = 314.0
+offset_bottom = 67.0
+grow_horizontal = 2
+
+[node name="VBoxContainer2" type="HBoxContainer" parent="Gui/PanelContainer" unique_id=525803894]
+layout_mode = 2
+theme_override_constants/separation = 32
+
+[node name="HBoxContainer" parent="Gui/PanelContainer/VBoxContainer2" unique_id=638644848 instance=ExtResource("1_juocw")]
+layout_mode = 2
+
+[node name="HBoxContainer2" parent="Gui/PanelContainer/VBoxContainer2" unique_id=598295944 instance=ExtResource("1_juocw")]
+layout_mode = 2
+resource_type = 1
+
+[node name="HBoxContainer3" parent="Gui/PanelContainer/VBoxContainer2" unique_id=1456468309 instance=ExtResource("1_juocw")]
+layout_mode = 2
+resource_type = 2
+
+[node name="HBoxContainer4" parent="Gui/PanelContainer/VBoxContainer2" unique_id=1449044321 instance=ExtResource("1_juocw")]
+layout_mode = 2
+resource_type = 3
