@@ -1,0 +1,154 @@
+[gd_scene format=3 uid="uid://bpoxa1i7dtoir"]
+
+[ext_resource type="Script" uid="uid://brv7t2dxorpe2" path="res://systems/units/unit_2d.gd" id="1_5cw0r"]
+[ext_resource type="Texture2D" uid="uid://boxi6jsiuqwlr" path="res://systems/battle/tex_zombie.png" id="1_rul5k"]
+[ext_resource type="Shader" uid="uid://ctjirle8qgplx" path="res://addons/lost_framework/resources/assets/shaders/outline.gdshader" id="2_0e6tn"]
+[ext_resource type="Script" uid="uid://bgit4iapmj1bm" path="res://addons/lost_framework/modules/asset_manager/hot_swap_sprite.gd" id="2_5cw0r"]
+[ext_resource type="Texture2D" uid="uid://cleaedx2qgdaa" path="res://placeholders/tex_zombie.png" id="5_eqkan"]
+[ext_resource type="Script" uid="uid://cgkfcqvgeeafr" path="res://addons/lost_framework/modules/composition/components/health_component.gd" id="6_bawf0"]
+[ext_resource type="Script" uid="uid://ccyt64151tvr7" path="res://addons/lost_framework/modules/composition/component_container.gd" id="6_cgeqx"]
+[ext_resource type="Script" uid="uid://dgfcfexheyfng" path="res://addons/lost_framework/modules/composition/components/health_bar_component.gd" id="7_cgeqx"]
+[ext_resource type="Script" uid="uid://hwspds5p73t4" path="res://systems/program/program_runner.gd" id="8_runner"]
+[ext_resource type="Script" uid="uid://b8hsaob2md2d5" path="res://systems/units/unit_focus_component.gd" id="9_focus"]
+[ext_resource type="Script" path="res://systems/units/think_bar_component.gd" id="10_think"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_qb6br"]
+shader = ExtResource("2_0e6tn")
+shader_parameter/clr = Color(0, 0, 0, 1)
+shader_parameter/type = 2
+shader_parameter/thickness = 1.0
+shader_parameter/outline_only = false
+
+[sub_resource type="Animation" id="Animation_0e6tn"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("HotSwapSprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+
+[sub_resource type="Animation" id="Animation_qb6br"]
+resource_name = "spawn"
+length = 4.0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("HotSwapSprite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.47396374, 0.9, 1.2666667, 1.8333334, 2.2666667, 2.7, 3.1333334, 3.7260363),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [1, 2, 1, 2, 1, 3, 4, 3, 4]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_q1n42"]
+_data = {
+&"RESET": SubResource("Animation_0e6tn"),
+&"spawn": SubResource("Animation_qb6br")
+}
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3p6ee"]
+atlas = ExtResource("5_eqkan")
+region = Rect2(138, 0, 138, 268)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_q0na3"]
+atlas = ExtResource("5_eqkan")
+region = Rect2(276, 0, 138, 268)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_onvf2"]
+atlas = ExtResource("5_eqkan")
+region = Rect2(414, 0, 138, 268)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0ufp1"]
+atlas = ExtResource("5_eqkan")
+region = Rect2(552, 0, 138, 268)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_51ode"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3p6ee")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_q0na3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_onvf2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0ufp1")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}, {
+"frames": [],
+"loop": 1,
+"name": &"new_animation",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_eqkan"]
+radius = 64.0
+
+[node name="Unit" type="CharacterBody2D" unique_id=895876733 node_paths=PackedStringArray("anim_player")]
+script = ExtResource("1_5cw0r")
+anim_player = NodePath("AnimationPlayer")
+
+[node name="HotSwapSprite" type="Sprite2D" parent="." unique_id=24050226]
+material = SubResource("ShaderMaterial_qb6br")
+position = Vector2(0, -64)
+texture = ExtResource("1_rul5k")
+flip_h = true
+hframes = 11
+vframes = 6
+script = ExtResource("2_5cw0r")
+metadata/_custom_type_script = "uid://bgit4iapmj1bm"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1509840275]
+libraries/ = SubResource("AnimationLibrary_q1n42")
+speed_scale = 2.0
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=928843504]
+visible = false
+use_parent_material = true
+sprite_frames = SubResource("SpriteFrames_51ode")
+frame = 1
+frame_progress = 0.981323
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1653890286]
+shape = SubResource("CircleShape2D_eqkan")
+
+[node name="ComponentContainer" type="Node" parent="." unique_id=1042653082]
+script = ExtResource("6_cgeqx")
+metadata/_custom_type_script = "uid://ccyt64151tvr7"
+
+[node name="HealthComponent" type="Node" parent="ComponentContainer" unique_id=997526682]
+script = ExtResource("6_bawf0")
+metadata/_custom_type_script = "uid://cgkfcqvgeeafr"
+
+[node name="UnitFocusComponent" type="Node" parent="ComponentContainer" unique_id=2129008352]
+script = ExtResource("9_focus")
+
+[node name="HealthBarComponent" type="Node" parent="ComponentContainer" unique_id=1813112527]
+script = ExtResource("7_cgeqx")
+offset = Vector2(0, -256)
+size = Vector2(128, 6)
+metadata/_custom_type_script = "uid://dgfcfexheyfng"
+
+[node name="ThinkBarComponent" type="Node" parent="ComponentContainer"]
+script = ExtResource("10_think")
+offset = Vector2(0, -242)
+size = Vector2(128, 6)
+
+[node name="ProgramRunner" type="Node" parent="." unique_id=569437827]
+script = ExtResource("8_runner")

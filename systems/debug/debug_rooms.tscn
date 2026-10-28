@@ -34,4 +34,10 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 64
 text = "World Map"
 
+[node name="BattleButton" type="Button" parent="VBoxContainer" unique_id=1199337233]
+layout_mode = 2
+theme_override_font_sizes/font_size = 64
+text = "Battle"
+
 [connection signal="button_down" from="VBoxContainer/WorldMapButton" to="." method="_on_world_map_button_button_down"]
+[connection signal="pressed" from="VBoxContainer/BattleButton" to="." method="_on_battle_button_pressed"]

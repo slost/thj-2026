@@ -1,0 +1,76 @@
+[gd_scene format=4 uid="uid://caqqo21gm7uu2"]
+
+[ext_resource type="Shader" uid="uid://relsdnks1jq2" path="res://addons/lost_framework/resources/assets/shaders/bubble_effect.gdshader" id="1_671ko"]
+[ext_resource type="Texture2D" uid="uid://j3stu2xsbx6k" path="res://placeholders/tex_map_screen.png" id="1_nec8q"]
+[ext_resource type="Script" uid="uid://bgit4iapmj1bm" path="res://addons/lost_framework/modules/asset_manager/hot_swap_sprite.gd" id="2_671ko"]
+[ext_resource type="PackedScene" uid="uid://bmtlacr4kkmnv" path="res://systems/world_map/town_location.tscn" id="3_nec8q"]
+[ext_resource type="Script" uid="uid://dneuq16wtfe1r" path="res://addons/lost_framework/modules/data_definition/description_variant.gd" id="4_671ko"]
+[ext_resource type="TileSet" uid="uid://b6cn8ildm8ly" path="res://contents/tile_set.tres" id="4_nec8q"]
+[ext_resource type="Script" uid="uid://jc6n263ren8b" path="res://systems/world_map/town_def.gd" id="5_g4con"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_5xdch"]
+shader = ExtResource("1_671ko")
+shader_parameter/breathing_speed = 1.0
+shader_parameter/breathing_strength = 0.02000000095
+shader_parameter/wobble_speed = 0.0
+shader_parameter/wobble_strength = 0.012
+shader_parameter/distortion_speed = 0.03999999910592
+shader_parameter/distortion_strength = 0.008
+shader_parameter/rim_strength = 0.0
+shader_parameter/rim_power = 0.10000000149012
+shader_parameter/highlight_enabled = false
+shader_parameter/highlight_strength = 0.22
+shader_parameter/highlight_size = 0.18
+shader_parameter/highlight_speed = 0.25
+shader_parameter/highlight_position = Vector2(-0.22, -0.22)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_nec8q"]
+
+[sub_resource type="Resource" id="Resource_g4con"]
+script = ExtResource("5_g4con")
+id = &"small_village"
+name = "Smaill Village"
+metadata/_custom_type_script = "uid://jc6n263ren8b"
+
+[sub_resource type="Resource" id="Resource_r63pq"]
+script = ExtResource("5_g4con")
+id = &"small_village_b"
+name = "Small Village B"
+metadata/_custom_type_script = "uid://jc6n263ren8b"
+
+[sub_resource type="Resource" id="Resource_c1kel"]
+script = ExtResource("5_g4con")
+id = &"small_village_c"
+name = "Small Village C"
+metadata/_custom_type_script = "uid://jc6n263ren8b"
+
+[node name="Map" type="Node2D" unique_id=1660380084]
+
+[node name="CanvasModulate" type="CanvasModulate" parent="." unique_id=449752156]
+material = SubResource("ShaderMaterial_5xdch")
+skew = 0.31241393
+
+[node name="MapScreen" type="Sprite2D" parent="CanvasModulate" unique_id=775316653]
+texture = ExtResource("1_nec8q")
+script = ExtResource("2_671ko")
+asset_id = "tex_map_screen"
+metadata/_custom_type_script = "uid://bgit4iapmj1bm"
+
+[node name="TileMapLayer" type="TileMapLayer" parent="CanvasModulate" unique_id=968831343]
+material = SubResource("ShaderMaterial_nec8q")
+tile_map_data = PackedByteArray("AAD7//3/AAADAAMAAAD7//7/AAAEAAMAAAD7////AAAEAAQAAAD7/wAAAAAEAAQAAAD8//3/AAAEAAQAAAD8//7/AAAEAAQAAAD8/wEAAAAEAAQAAAD9//3/AAAEAAQAAAD9/wEAAAAAAAQAAAD+//3/AAAEAAQAAAD+/wEAAAABAAQAAAD///3/AAAAAAMAAAD///7/AAALAAAAAAD/////AAABAAQAAAD//wAAAAAJAAIAAAD//wEAAAABAAQAAAAAAP3/AAAEAAQAAAAAAP7/AAALAAAAAAAAAP//AAABAAQAAAAAAAAAAAAJAAIAAAAAAAEAAAABAAQAAAABAP7/AAALAAAAAAABAP//AAABAAQAAAABAAAAAAAKAAMAAAABAAEAAAAJAAEAAAACAP7/AAALAAAAAAACAP//AAABAAQAAAACAAAAAAAJAAIAAAACAAEAAAABAAQAAAADAP7/AAALAAMAAAADAP//AAALAAIAAAADAAAAAAALAAUAAAADAAEAAAACAAQAAAABAAIAAAALAAIAAAAAAAIAAAABAAUAAAD//wIAAAABAAUAAAD+/wIAAAABAAUAAAD9/wIAAAAAAAUAAAACAAIAAAABAAUAAAD9//7/AAAAAAQAAAD+//7/AAAJAAMAAAD+////AAALAAIAAAD9/wAAAAABAAQAAAD8/wAAAAABAAUAAAD8////AAAAAAQAAAD9////AAABAAQAAAD+/wAAAAAJAAUAAAADAAIAAAACAAUAAAAEAP//AAACAAUAAAAEAP7/AAACAAMAAAABAAMAAAALAAUAAAA=")
+tile_set = ExtResource("4_nec8q")
+
+[node name="Towns" type="Node2D" parent="." unique_id=1350179267]
+
+[node name="TownLocation4" parent="Towns" unique_id=165821674 instance=ExtResource("3_nec8q")]
+def = SubResource("Resource_g4con")
+
+[node name="TownLocation5" parent="Towns" unique_id=206815061 instance=ExtResource("3_nec8q")]
+position = Vector2(289.78366, 40.91856)
+def = SubResource("Resource_r63pq")
+
+[node name="TownLocation6" parent="Towns" unique_id=2121925113 node_paths=PackedStringArray("required_locations") instance=ExtResource("3_nec8q")]
+position = Vector2(-39.34165, 121.804085)
+def = SubResource("Resource_c1kel")
+required_locations = [null]
