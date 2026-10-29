@@ -5,4 +5,5 @@
 [resource]
 script = ExtResource("1_block")
 id = &"remembered_target_dead"
-name = "RememberedTargetDead"
+name = "Target is dead"
+description = "The first one you remember is dead."

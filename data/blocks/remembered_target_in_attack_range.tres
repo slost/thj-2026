@@ -5,4 +5,5 @@
 [resource]
 script = ExtResource("1_block")
 id = &"remembered_target_in_attack_range"
-name = "RememberedTargetInAttackRange"
+name = "Target within reach"
+description = "The one you remember is close enough to hit."

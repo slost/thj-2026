@@ -12,6 +12,7 @@ func _run() -> void:
 	_test_slot_clone_keeps_shared_blocks()
 	_test_indent_and_structure()
 	_test_inventory()
+	_test_translations()
 	await _test_editor_screen()
 	var game := root.get_node_or_null(^"Game")
 	if game == null:
@@ -220,10 +221,9 @@ func _test_editor_screen() -> void:
 	root.add_child(editor)
 	for _frame in 10:
 		await process_frame
-	var palette := editor.get_node(^"CanvasLayer/BlockPalette") as Control
-	var script := editor.get_node(^"CanvasLayer/ScriptView") as Control
-	var header := editor.get_node(^"CanvasLayer/ScriptHeader") as Control
-	var slots := editor.get_node(^"CanvasLayer/UnitsContainer") as Control
+	var palette := editor.get_node(^"%BlockPalette") as Control
+	var script := editor.get_node(^"%ScriptView") as ScriptView
+	var slots := editor.get_node(^"%UnitsContainer") as Control
 	var palette_rect := palette.get_global_rect()
 	var script_rect := script.get_global_rect()
 	if palette_rect.size.x < 200.0 or palette_rect.size.y < 200.0:
@@ -234,6 +234,34 @@ func _test_editor_screen() -> void:
 		_fail("palette overlaps the script page")
 	if slots.get_global_rect().position.y > script_rect.position.y:
 		_fail("unit buttons are not above the script")
+	var book := editor.get_node(^"BookScreen") as Sprite2D
+	var book_rect := _sprite_world_rect(book)
+	if not book_rect.has_point(palette_rect.get_center()):
+		_fail("palette is not on the book: %s book %s" % [palette_rect, book_rect])
+	if not book_rect.has_point(script_rect.get_center()):
+		_fail("script is not on the book: %s book %s" % [script_rect, book_rect])
+	var palette_list := editor.get_node(^"%PaletteList") as VBoxContainer
+	if palette_list.get_child_count() < 2:
+		_fail("palette did not build cards")
+	else:
+		var first_palette := palette_list.get_child(0) as BlockCard
+		var second_palette := palette_list.get_child(1) as BlockCard
+		if first_palette == null or second_palette == null:
+			_fail("palette rows are not cards")
+		elif is_equal_approx(first_palette.motion_phase(), second_palette.motion_phase()):
+			_fail("palette cards share a float phase")
+		elif not first_palette.get_node(^"Visual/Row/CountBadge").visible:
+			_fail("palette card hid the count badge")
+		elif first_palette.tooltip_text.is_empty():
+			_fail("palette card tooltip was empty")
+		else:
+			var slot_before := first_palette.position
+			var visual_before := first_palette.visual_position()
+			first_palette._process(1.0)
+			if not first_palette.position.is_equal_approx(slot_before):
+				_fail("floating moved the palette card slot")
+			if is_equal_approx(first_palette.visual_position().y, visual_before.y):
+				_fail("palette card visual did not float")
 	var owned: int = inventory.get_count(detect)
 	editor.call("_on_place", detect, 0, 0)
 	editor.call("_on_place", attack, 1, 5)
@@ -248,27 +276,43 @@ func _test_editor_screen() -> void:
 		_fail("placed action indent was %d" % lines[1].indent)
 	if inventory.get_count(detect) != owned - 1:
 		_fail("placing did not consume a condition")
-	var ram_label := header.get_child(0).get_child(1) as Label
+	var ram_label := editor.get_node(^"%RamLabel") as Label
 	if not str(ram_label.text).contains("2 / 8"):
 		_fail("RAM meter was '%s'" % ram_label.text)
-	var row_box := script.get_child(0).get_child(0) as Node
+	var row_box := editor.get_node(^"%ScriptRows") as Node
 	if row_box.get_child_count() < 2:
 		_fail("script view did not build rows")
 	else:
-		var first_label := row_box.get_child(0).get_child(1) as Label
-		var second_label := row_box.get_child(1).get_child(1) as Label
-		if first_label == null or not first_label.text.begins_with("["):
-			_fail("condition row was not bracketed")
-		if second_label == null or not second_label.text.begins_with("<"):
-			_fail("action row was not in angle brackets")
-		elif second_label.offset_left <= first_label.offset_left:
-			_fail("action row was not indented on the page")
+		var first_card := row_box.get_child(0) as BlockCard
+		var second_card := row_box.get_child(1) as BlockCard
+		if first_card == null or first_card.displayed_title() != BlockInventory.block_title(detect):
+			_fail("condition card title was '%s'" % (first_card.displayed_title() if first_card else ""))
+		elif first_card.get_node(^"Visual").theme_type_variation != &"ConditionCard":
+			_fail("condition card was not the condition shape")
+		if second_card == null or second_card.displayed_title() != BlockInventory.block_title(attack):
+			_fail("action card title was '%s'" % (second_card.displayed_title() if second_card else ""))
+		elif second_card.get_node(^"Visual").theme_type_variation != &"ActionCard":
+			_fail("action card was not the action shape")
+		elif second_card.visual_position().x <= first_card.visual_position().x:
+			_fail("action card was not indented on the page")
+		elif first_card.get_node(^"Visual/Row/CountBadge").visible:
+			_fail("script card showed a count badge")
+		elif is_equal_approx(first_card.motion_phase(), second_card.motion_phase()):
+			_fail("script cards share a float phase")
+		var top := script._plan(Vector2(script.indent_pad + 4.0, 2.0), {"source": "palette", "block": attack})
+		if int(top.x) != 0:
+			_fail("drop at the top row was gap %s" % top)
+		var between_y := script.row_height * 1.2
+		var between_x := script.indent_pad + script.indent_step * 1.2
+		var between := script._plan(Vector2(between_x, between_y), {"source": "palette", "block": attack})
+		if int(between.x) != 1 or int(between.y) != 1:
+			_fail("drop under the condition was %s" % between)
 	editor.call("_on_slot_button", 3)
 	for _frame in 2:
 		await process_frame
 	if roster[3].get_update_function().lines.size() != 0:
 		_fail("slot 4 was not empty")
-	var name_label := header.get_child(0).get_child(0) as Label
+	var name_label := editor.get_node(^"%NameLabel") as Label
 	if name_label.text != "Minion 4":
 		_fail("header did not switch slot, got '%s'" % name_label.text)
 	editor.call("_on_slot_button", 0)
@@ -290,7 +334,107 @@ func _test_editor_screen() -> void:
 	var alert := ram_label.get_theme_color(&"font_color")
 	if alert.r < 0.6 or alert.g > 0.3:
 		_fail("RAM meter did not flash red, got %s" % alert)
+	await _test_pages_follow_pan(editor, palette, script)
 	editor.queue_free()
+
+
+func _test_translations() -> void:
+	var names := {
+		"enemy_in_attack_range": ["Enemy within reach", "ศัตรูอยู่ในระยะโจมตี"],
+		"enemy_in_detect_range": ["Enemy in sight", "เห็นศัตรู"],
+		"has_remembered_target": ["Remembers someone", "จำใครไว้อยู่"],
+		"no_remembered_target": ["Remembers no one", "ไม่ได้จำใครไว้"],
+		"remembered_target_dead": ["Target is dead", "เป้าหมายตายแล้ว"],
+		"remembered_target_in_attack_range": ["Target within reach", "เป้าหมายอยู่ในระยะโจมตี"],
+		"low_hp": ["Feeling weak", "เลือดเหลือน้อย"],
+		"random_chance": ["Feeling lucky", "ดวงดี"],
+		"attack_target": ["Attack the target", "โจมตีเป้าหมาย"],
+		"move_to_target": ["Walk to the target", "เดินไปหาเป้าหมาย"],
+		"move_away_from_target": ["Run from the target", "หนีจากเป้าหมาย"],
+		"wander": ["Wander around", "เดินเตร็ดเตร่"],
+		"stand_still": ["Stand still", "ยืนนิ่ง ๆ"],
+		"remember_hostile": ["Remember an enemy", "จำศัตรูไว้"],
+		"remember_ally": ["Remember a friend", "จำพวกเดียวกันไว้"],
+		"remember_any": ["Remember anyone", "จำใครก็ได้ไว้"],
+		"forget_first_target": ["Forget the first target", "ลืมเป้าหมายแรก"],
+		"forget_last_target": ["Forget the latest target", "ลืมเป้าหมายล่าสุด"],
+		"forget_all_targets": ["Forget all targets", "ลืมเป้าหมายทั้งหมด"],
+		"forget_first_action": ["Forget the first plan", "ลืมแผนแรก"],
+		"forget_last_action": ["Forget the latest plan", "ลืมแผนล่าสุด"],
+		"forget_all_actions": ["Forget all plans", "ลืมแผนทั้งหมด"],
+		"forget_everything": ["Forget everything", "ลืมทุกอย่าง"],
+	}
+	var previous := TranslationServer.get_locale()
+	for id in names.keys():
+		var pair: Array = names[id]
+		var block := load("res://data/blocks/%s.tres" % str(id)) as CodeBlock
+		if block == null:
+			_fail("missing block %s" % str(id))
+			continue
+		if block.name != str(pair[0]):
+			_fail("tres name for %s was '%s'" % [str(id), block.name])
+		TranslationServer.set_locale("en")
+		if block.get_display_name() != str(pair[0]):
+			_fail("en name for %s was '%s'" % [str(id), block.get_display_name()])
+		TranslationServer.set_locale("th")
+		if block.get_display_name() != str(pair[1]):
+			_fail("th name for %s was '%s'" % [str(id), block.get_display_name()])
+		if LocaleText.translate("code.%s.desc" % str(id), "en").is_empty():
+			_fail("missing english desc for %s" % str(id))
+		if LocaleText.translate("code.%s.desc" % str(id), "th").is_empty():
+			_fail("missing thai desc for %s" % str(id))
+	for key in ["ui.code_editor.tab_conditions", "ui.code_editor.tab_actions", "ui.code_editor.ram_hint", "ui.code_editor.ram", "ui.code_editor.empty"]:
+		if LocaleText.translate(key, "en").is_empty() or LocaleText.translate(key, "th").is_empty():
+			_fail("missing translation %s" % key)
+	TranslationServer.set_locale("en")
+	var chance := load("res://data/blocks/random_chance.tres") as CodeBlock
+	if not chance.get_display_description().contains("0.5"):
+		_fail("chance placeholder was not filled: '%s'" % chance.get_display_description())
+	var weak := load("res://data/blocks/low_hp.tres") as CodeBlock
+	if not weak.get_display_description().contains("0.35"):
+		_fail("threshold placeholder was not filled: '%s'" % weak.get_display_description())
+	TranslationServer.set_locale(previous)
+
+
+func _sprite_world_rect(sprite: Sprite2D) -> Rect2:
+	var tex_size := Vector2(1920, 1080)
+	if sprite.texture:
+		tex_size = sprite.texture.get_size()
+	var xform := sprite.get_global_transform()
+	var shown := tex_size * xform.get_scale()
+	return Rect2(xform.origin - shown * 0.5, shown)
+
+
+func _canvas_origin(item: CanvasItem) -> Vector2:
+	return item.get_global_transform_with_canvas().origin
+
+
+func _test_pages_follow_pan(editor: Node, palette: Control, script: Control) -> void:
+	var pan := editor.get_node(^"Camera2D/MousePan") as Node
+	pan.set_process(false)
+	var camera := editor.get_node(^"Camera2D") as Camera2D
+	var book := editor.get_node(^"BookScreen") as CanvasItem
+	await process_frame
+	var book_before := _canvas_origin(book)
+	var palette_before := _canvas_origin(palette)
+	var script_before := _canvas_origin(script)
+	camera.offset = Vector2(48, 24)
+	await process_frame
+	await process_frame
+	var book_delta := _canvas_origin(book) - book_before
+	var palette_delta := _canvas_origin(palette) - palette_before
+	var script_delta := _canvas_origin(script) - script_before
+	if book_delta.length() < 5.0:
+		_fail("pan did not move the book, delta %s" % book_delta)
+	if palette_delta.distance_to(book_delta) > 1.5:
+		_fail("palette did not follow the book, book %s palette %s" % [book_delta, palette_delta])
+	if script_delta.distance_to(book_delta) > 1.5:
+		_fail("script did not follow the book, book %s script %s" % [book_delta, script_delta])
+	var view := script as ScriptView
+	var plan := view._plan(Vector2(view.indent_pad + 4.0, 2.0), {"source": "palette", "block": _attack()})
+	if int(plan.x) != 0:
+		_fail("drop target changed after pan: %s" % plan)
+	camera.offset = Vector2.ZERO
 
 
 func _attack() -> ActionBlock:

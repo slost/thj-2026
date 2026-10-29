@@ -1,135 +1,99 @@
 ## Code editor. Writes the selected minion's ON_UPDATE script in place.
+## Page controls are children of this node, in the same world space as the book,
+## so mouse pan slides the pages and the cards together.
 extends Node2D
 
-const _INK := Color(0.16, 0.12, 0.08)
-const _HINT := Color(0.38, 0.3, 0.22)
-const _RAM_ALERT := Color(0.78, 0.1, 0.08)
+@export var slot_bar_height: float = 48.0
+@export var header_height: float = 88.0
+@export var page_inset: float = 10.0
+@export var debug_gutter: float = 64.0
+@export var min_body_height: float = 80.0
+@export var drag_pan_scale: float = 0.35
+@export var ram_alert_color: Color = Color(0.78, 0.1, 0.08, 1)
 
-var _palette: BlockPalette
-var _script: ScriptView
-var _header: Control
-var _name_label: Label
-var _ram_label: Label
-var _buttons: Array[Button] = []
-var _group := ButtonGroup.new()
 var _slot := 0
 var _switching := false
 var _layout_texture: Texture2D
 var _ram_tween: Tween
+var _pan_full := Vector2.ZERO
+
+@onready var _book: Sprite2D = $BookScreen
+@onready var _pan: MousePanComponent = $Camera2D/MousePan
+@onready var _palette: BlockPalette = %BlockPalette
+@onready var _script: ScriptView = %ScriptView
+@onready var _name_label: Label = %NameLabel
+@onready var _ram_label: Label = %RamLabel
+@onready var _slots: HBoxContainer = %UnitsContainer
+@onready var _slot_buttons: Array[Button] = [%UnitButton1, %UnitButton2, %UnitButton3, %UnitButton4]
 
 
 func _ready() -> void:
-	_disable_pan()
-	_build_ui()
+	_pan_full = _pan.max_offset
+	_palette.return_line.connect(_on_return_line)
+	_script.place_block.connect(_on_place)
+	_script.move_line.connect(_on_move)
+	_script.remove_line.connect(_on_remove)
+	_script.indent_line.connect(_on_indent)
 	_bind_slots()
 	_show_slot(0)
 	call_deferred("_fit_pages")
 
 
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_TRANSLATION_CHANGED:
+		_refresh_header()
+
+
 func _process(_delta: float) -> void:
-	var sprite := $BookScreen as Sprite2D
-	if sprite == null or sprite.texture == _layout_texture:
+	if _pan:
+		var scale := drag_pan_scale if get_viewport().gui_is_dragging() else 1.0
+		var limit := _pan_full * scale
+		if not _pan.max_offset.is_equal_approx(limit):
+			_pan.max_offset = limit
+	if _book == null or _book.texture == _layout_texture:
 		return
 	_fit_pages()
 
 
-func _disable_pan() -> void:
-	# The page controls sit in screen space. Panning the book would slide it
-	# out from under a drag, so this screen keeps the book still.
-	var pan := $Camera2D/MousePan as MousePanComponent
-	if pan:
-		pan.set_active(false)
-
-
-func _build_ui() -> void:
-	var layer := $CanvasLayer
-	_palette = BlockPalette.new()
-	_palette.name = "BlockPalette"
-	_palette.return_line.connect(_on_return_line)
-	layer.add_child(_palette)
-
-	_header = Control.new()
-	_header.name = "ScriptHeader"
-	_header.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var title_row := HBoxContainer.new()
-	title_row.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	title_row.offset_bottom = 32.0
-	title_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_name_label = _label("", 22, _INK)
-	_name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_ram_label = _label("RAM  0 / 0", 22, _INK)
-	_ram_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_ram_label.custom_minimum_size = Vector2(150, 0)
-	title_row.add_child(_name_label)
-	title_row.add_child(_ram_label)
-	var hint := _label("Targets and queued actions also use RAM at runtime.", 15, _HINT)
-	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	hint.set_anchors_preset(Control.PRESET_FULL_RECT)
-	hint.offset_top = 32.0
-	_header.add_child(title_row)
-	_header.add_child(hint)
-	layer.add_child(_header)
-
-	_script = ScriptView.new()
-	_script.name = "ScriptView"
-	_script.place_block.connect(_on_place)
-	_script.move_line.connect(_on_move)
-	_script.remove_line.connect(_on_remove)
-	_script.indent_line.connect(_on_indent)
-	layer.add_child(_script)
-
-
 func _bind_slots() -> void:
-	var container := $CanvasLayer/UnitsContainer as HBoxContainer
-	container.alignment = BoxContainer.ALIGNMENT_CENTER
-	container.add_theme_constant_override(&"separation", 8)
-	_group.allow_unpress = false
-	for index in Game.roster.size():
-		var node_name := "UnitButton%d" % (index + 1)
-		var button := container.get_node_or_null(node_name) as Button
-		if button == null:
-			button = Button.new()
-			button.name = node_name
-			button.layout_mode = 2
-			container.add_child(button)
-		button.text = str(index + 1)
-		button.toggle_mode = true
-		button.focus_mode = Control.FOCUS_NONE
-		button.button_group = _group
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.add_theme_font_size_override(&"font_size", 22)
-		button.pressed.connect(_on_slot_button.bind(index))
-		_buttons.append(button)
+	for index in _slot_buttons.size():
+		var button := _slot_buttons[index]
+		var shown := index < Game.roster.size()
+		button.visible = shown
+		if not shown:
+			continue
+		if not button.pressed.is_connected(_on_slot_button):
+			button.pressed.connect(_on_slot_button.bind(index))
 
 
 func _fit_pages() -> void:
-	var sprite := $BookScreen as Sprite2D
-	if sprite == null or _palette == null:
+	if _book == null or _palette == null:
 		return
-	var book := _book_rect(sprite)
+	var book := _book_rect(_book)
 	if book.size.x < 100.0 or book.size.y < 100.0:
 		return
-	var pages := BookLayout.page_uvs(sprite.texture)
-	var left := _map_uv(book, pages[0]).grow(-10.0)
-	var right := _map_uv(book, pages[1]).grow(-10.0)
+	var pages := BookLayout.page_uvs(_book.texture)
+	var left := _map_uv(book, pages[0]).grow(-page_inset)
+	var right := _map_uv(book, pages[1]).grow(-page_inset)
 	# Keep the script clear of the debug overlay pinned to the right edge.
-	right = Rect2(right.position, Vector2(maxf(right.size.x - 64.0, 280.0), right.size.y))
+	right = Rect2(right.position, Vector2(maxf(right.size.x - debug_gutter, 280.0), right.size.y))
 	_place(_palette, left)
-	var buttons_h := 48.0
-	var header_h := 88.0
-	var slots := $CanvasLayer/UnitsContainer as Control
-	_place(slots, Rect2(right.position, Vector2(right.size.x, buttons_h)))
-	_place(_header, Rect2(right.position + Vector2(0, buttons_h), Vector2(right.size.x, header_h)))
-	var body := buttons_h + header_h
-	_place(_script, Rect2(right.position + Vector2(0, body), Vector2(right.size.x, maxf(right.size.y - body, 80.0))))
-	_layout_texture = sprite.texture
+	var slots := _slots as Control
+	_place(slots, Rect2(right.position, Vector2(right.size.x, slot_bar_height)))
+	var header := %ScriptHeader as Control
+	_place(header, Rect2(right.position + Vector2(0, slot_bar_height), Vector2(right.size.x, header_height)))
+	var body := slot_bar_height + header_height
+	_place(_script, Rect2(right.position + Vector2(0, body), Vector2(right.size.x, maxf(right.size.y - body, min_body_height))))
+	_layout_texture = _book.texture
 
 
+## World rect of the centered sprite, without the camera. Page controls use this
+## same space, then the camera pans the book and the pages together.
 func _book_rect(sprite: Sprite2D) -> Rect2:
 	var tex_size := Vector2(1920, 1080)
 	if sprite.texture:
 		tex_size = sprite.texture.get_size()
-	var xform := sprite.get_global_transform_with_canvas()
+	var xform := sprite.get_global_transform()
 	var shown := tex_size * xform.get_scale()
 	return Rect2(xform.origin - shown * 0.5, shown)
 
@@ -154,12 +118,19 @@ func _show_slot(index: int) -> void:
 		return
 	_switching = true
 	_slot = clampi(index, 0, Game.roster.size() - 1)
-	if _slot < _buttons.size():
-		_buttons[_slot].button_pressed = true
+	if _slot < _slot_buttons.size():
+		_slot_buttons[_slot].button_pressed = true
 	_switching = false
 	var slot := Game.roster[_slot]
-	_name_label.text = slot.display_name()
 	_script.set_lines(slot.get_update_function().lines)
+	_refresh_header()
+
+
+func _refresh_header() -> void:
+	var slot := _current_slot()
+	if slot == null or _name_label == null:
+		return
+	_name_label.text = slot.display_name()
 	_show_ram()
 
 
@@ -168,14 +139,15 @@ func _show_ram() -> void:
 	if slot == null or _ram_label == null:
 		return
 	var used := slot.get_update_function().get_ram_cost()
-	_ram_label.text = "RAM  %d / %d" % [used, slot.ram_max()]
-	_ram_label.add_theme_color_override(&"font_color", _INK)
+	var pattern := LocaleText.resolve("ui.code_editor.ram", "RAM  {used} / {max}")
+	_ram_label.text = pattern.format({"used": used, "max": slot.ram_max()})
+	_ram_label.remove_theme_color_override(&"font_color")
 
 
 func _flash_ram() -> void:
 	if _ram_label == null:
 		return
-	_ram_label.add_theme_color_override(&"font_color", _RAM_ALERT)
+	_ram_label.add_theme_color_override(&"font_color", ram_alert_color)
 	if _ram_tween:
 		_ram_tween.kill()
 	_ram_tween = create_tween()
@@ -239,14 +211,3 @@ func _current_slot() -> MinionSlot:
 	if _slot < 0 or _slot >= Game.roster.size():
 		return null
 	return Game.roster[_slot]
-
-
-func _label(text: String, font_size: int, color: Color) -> Label:
-	var label := Label.new()
-	label.text = text
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	label.clip_text = true
-	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	label.add_theme_font_size_override(&"font_size", font_size)
-	label.add_theme_color_override(&"font_color", color)
-	return label

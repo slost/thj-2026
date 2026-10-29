@@ -5,6 +5,7 @@
 [resource]
 script = ExtResource("1_block")
 id = &"forget_everything"
-name = "ForgetEverything"
+name = "Forget everything"
+description = "Let go of every person and every plan."
 slot = 2
 which = 2

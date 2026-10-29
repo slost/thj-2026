@@ -5,5 +5,6 @@
 [resource]
 script = ExtResource("1_block")
 id = &"remember_any"
-name = "RememberAny"
+name = "Remember anyone"
+description = "Keep the nearest person you can see in mind."
 seen = 0

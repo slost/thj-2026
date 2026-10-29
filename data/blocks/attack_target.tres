@@ -5,4 +5,5 @@
 [resource]
 script = ExtResource("1_block")
 id = &"attack_target"
-name = "AttackTarget"
+name = "Attack the target"
+description = "Hit the one you remember if they are close enough."

@@ -5,4 +5,5 @@
 [resource]
 script = ExtResource("1_block")
 id = &"move_to_target"
-name = "MoveToTarget"
+name = "Walk to the target"
+description = "Walk up to the one you remember."

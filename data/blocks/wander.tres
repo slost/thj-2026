@@ -5,4 +5,5 @@
 [resource]
 script = ExtResource("1_block")
 id = &"wander"
-name = "Wander"
+name = "Wander around"
+description = "Walk off in a random direction."

@@ -62,7 +62,7 @@ func _render(unit: Unit2D) -> String:
 			var text := "..."
 			if line:
 				indent = maxi(line.indent, 0)
-				text = line.get_label()
+				text = _line_text(line)
 			var shown := "%s%s" % ["    ".repeat(indent), text]
 			if index == current:
 				rows.append("[color=#1a1408][bgcolor=#ffe08a]%s[/bgcolor][/color]" % _escape(shown))
@@ -93,8 +93,14 @@ func _queue_list(unit: Unit2D) -> String:
 		return "-"
 	var names := PackedStringArray()
 	for action in unit.queue_actions:
-		names.append("-" if action == null else action.get_block_label())
+		names.append("-" if action == null else BlockInventory.block_title(action))
 	return ", ".join(names)
+
+
+func _line_text(line: ScriptLine) -> String:
+	if line == null or line.block == null:
+		return "..."
+	return BlockInventory.block_title(line.block)
 
 
 func _escape(text: String) -> String:
