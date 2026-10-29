@@ -9,11 +9,11 @@ var _label: RichTextLabel
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	offset_left = 32.0
-	offset_top = -520.0
-	offset_right = 820.0
-	offset_bottom = -24.0
+	set_anchors_preset(Control.PRESET_TOP_LEFT)
+	offset_left = 24.0
+	offset_top = 24.0
+	offset_right = 480.0
+	offset_bottom = 460.0
 
 	_label = RichTextLabel.new()
 	_label.bbcode_enabled = true
@@ -37,13 +37,11 @@ func _process(_delta: float) -> void:
 
 
 func _inspected_unit() -> Unit2D:
-	var battle := get_parent()
-	if battle:
-		battle = battle.get_parent()
-	if battle == null:
+	var tree := get_tree()
+	if tree == null:
 		return null
-	var director := battle.get_node_or_null("FocusDirector") as FocusDirector
-	if director == null:
+	var director := tree.get_first_node_in_group(FocusDirector.GROUP) as FocusDirector
+	if director == null or director.process_mode == Node.PROCESS_MODE_DISABLED:
 		return null
 	return director.get_inspected_unit()
 

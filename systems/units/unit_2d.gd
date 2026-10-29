@@ -222,6 +222,18 @@ func _tick_corpse(delta: float) -> void:
 		queue_free()
 
 
+## Health, think, and animation bars. Hidden outside camp so they do not cover the map.
+func set_status_bars_visible(show: bool) -> void:
+	if state == State.DEAD:
+		show = false
+	var container := get_node_or_null("ComponentContainer")
+	if container == null:
+		return
+	for child in container.get_children():
+		if child.has_method("set_bar_visible"):
+			child.set_bar_visible(show)
+
+
 ## Health bar, think bar, animation bar, and the per-unit debug label stay off after death.
 func _hide_dead_chrome() -> void:
 	_hide_visuals(get_node_or_null("ComponentContainer/HealthBarComponent"))

@@ -28,10 +28,15 @@ static func blank_program() -> UnitProgram:
 
 func get_costs() -> Array[SummonCost]:
 	if costs.is_empty():
-		var price := SummonCost.new()
-		price.resource_type = 0
-		price.amount = 1
-		costs.append(price)
+		# Resource indexes match Game.ResourceType: corpse, then gore.
+		var corpse := SummonCost.new()
+		corpse.resource_type = 0
+		corpse.amount = 1
+		costs.append(corpse)
+		var gore := SummonCost.new()
+		gore.resource_type = 4
+		gore.amount = 1
+		costs.append(gore)
 	return costs
 
 

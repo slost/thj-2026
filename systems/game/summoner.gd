@@ -162,12 +162,25 @@ static func army_from_data(raw: Variant) -> Array:
 	return loaded
 
 
+## Units share one y-sorted parent so closer bodies draw in front.
+static func unit_container(scene_root: Node) -> Node:
+	var holder := scene_root.get_node_or_null("Units") as Node2D
+	if holder == null:
+		holder = Node2D.new()
+		holder.name = "Units"
+		holder.y_sort_enabled = true
+		scene_root.add_child(holder)
+	holder.y_sort_enabled = true
+	return holder
+
+
 static func spawn_def(def: UnitDef, scene_root: Node, world_pos: Vector2, hp: int) -> Unit2D:
 	var unit := _UNIT_SCENE.instantiate() as Unit2D
 	if unit == null or def == null:
 		return null
 	unit.def = def
-	scene_root.add_child(unit)
+	var holder := unit_container(scene_root)
+	holder.add_child(unit)
 	if scene_root is Node2D:
 		unit.global_position = world_pos
 	if hp >= 0:

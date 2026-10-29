@@ -23,6 +23,11 @@ func _setup() -> void:
 	_create_bar()
 
 
+func set_bar_visible(show: bool) -> void:
+	if _root:
+		_root.visible = show
+
+
 func _process(_delta: float) -> void:
 	if _root == null or _host == null:
 		return

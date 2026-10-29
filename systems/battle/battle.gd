@@ -57,6 +57,31 @@ func _process(_delta: float) -> void:
 		_open_stage_end()
 
 
+func _on_retreat_pressed() -> void:
+	var layer := get_node_or_null("CanvasLayer")
+	if layer == null or layer.get_node_or_null("RetreatConfirm") != null:
+		return
+	var dialog := ConfirmationDialog.new()
+	dialog.name = "RetreatConfirm"
+	dialog.title = LocaleText.resolve("ui.battle.retreat_title", "Retreat?")
+	dialog.dialog_text = LocaleText.resolve("ui.battle.retreat_body", "Abandon every minion and leave the raid?")
+	dialog.ok_button_text = LocaleText.resolve("ui.battle.retreat_confirm", "Retreat")
+	dialog.cancel_button_text = LocaleText.resolve("ui.battle.retreat_cancel", "Stay")
+	dialog.min_size = Vector2i(560, 180)
+	dialog.confirmed.connect(_confirm_retreat)
+	dialog.canceled.connect(dialog.queue_free)
+	dialog.close_requested.connect(dialog.queue_free)
+	layer.add_child(dialog)
+	dialog.popup_centered()
+
+
+func _confirm_retreat() -> void:
+	var game := _game()
+	if game and game.has_method("abandon_army"):
+		game.abandon_army()
+	_on_button_pressed()
+
+
 func _on_button_pressed() -> void:
 	if get_tree().paused:
 		get_tree().paused = false
@@ -220,7 +245,7 @@ func spawn_raid_party() -> void:
 		unit.def = _def_for_slot(slot)
 		unit.name = _party_name(slot, index)
 		unit.position = _cell_position(map, _SPAWN_CELLS[spawned % _SPAWN_CELLS.size()])
-		add_child(unit)
+		_Summoner.unit_container(self).add_child(unit)
 		spawned += 1
 		if first == null:
 			first = unit

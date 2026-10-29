@@ -35,6 +35,10 @@ var _map_tween: Tween
 
 
 const _Summoner := preload("res://systems/game/summoner.gd")
+const _INDICATOR_TEXTURE := preload("res://placeholders/tex_indicator.png")
+
+var _camp_director: FocusDirector
+var _camp_script: Control
 
 
 func _ready() -> void:
@@ -52,6 +56,7 @@ func _ready() -> void:
 	# Test resources
 	Game.change_resource(Game.ResourceType.CORPSE, 10)
 	Game.change_resource(Game.ResourceType.BONE, 5)
+	Game.change_resource(Game.ResourceType.GORE, 10)
 	Game.change_resource(Game.ResourceType.WEAPON, -3)
 	
 
@@ -266,6 +271,8 @@ func _update_state() -> void:
 	set_camp_visible(current_state == State.CAMP)
 	set_book_visible(current_state == State.CODE)
 	_sync_code_editor()
+	_sync_unit_bars()
+	_sync_camp_focus()
 	if current_state == State.CAMP and camp:
 		_Summoner.spawn_army_at(camp)
 
@@ -308,6 +315,60 @@ func _update_buttons() -> void:
 			camp_button.modulate = Color.WHITE
 		State.CODE:
 			code_button.modulate = Color.WHITE
+
+
+func _sync_unit_bars() -> void:
+	var show := current_state == State.CAMP
+	if camp == null:
+		return
+	for node in camp.find_children("*", "Unit2D", true, false):
+		if node.has_method("set_status_bars_visible"):
+			node.call("set_status_bars_visible", show)
+
+
+func _sync_camp_focus() -> void:
+	var active := current_state == State.CAMP
+	if active:
+		_ensure_camp_focus()
+	if _camp_director:
+		_camp_director.process_mode = Node.PROCESS_MODE_INHERIT if active else Node.PROCESS_MODE_DISABLED
+		if not active:
+			_camp_director.clear_selection()
+	if _camp_script:
+		_camp_script.visible = active
+
+
+func _ensure_camp_focus() -> void:
+	if _camp_director != null or camp == null:
+		return
+	var hover := _camp_indicator("CampHover", 20)
+	var pin := _camp_indicator("CampPin", 19)
+	camp.add_child(hover)
+	camp.add_child(pin)
+	var director := FocusDirector.new()
+	director.name = "CampFocus"
+	director.indicator = hover
+	director.pin_indicator = pin
+	add_child(director)
+	_camp_director = director
+	var panel := ScriptDebugPanel.new()
+	panel.name = "CampScript"
+	var ui := get_node_or_null("UI")
+	if ui:
+		ui.add_child(panel)
+	else:
+		add_child(panel)
+	panel.visible = false
+	_camp_script = panel
+
+
+func _camp_indicator(node_name: String, z: int) -> Sprite2D:
+	var sprite := Sprite2D.new()
+	sprite.name = node_name
+	sprite.z_index = z
+	sprite.visible = false
+	sprite.texture = _INDICATOR_TEXTURE
+	return sprite
 
 
 func summon_spot(world_pos: Vector2) -> Dictionary:

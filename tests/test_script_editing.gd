@@ -1007,6 +1007,7 @@ func _test_army_carry() -> void:
 	TranslationServer.set_locale("en")
 	var game := root.get_node(^"Game")
 	game.set("corpse", 2)
+	game.set("gore", 2)
 	var army: Array = game.get("army")
 	army.clear()
 	var spells: Array = game.get("spells")
@@ -1028,8 +1029,8 @@ func _test_army_carry() -> void:
 	if first == null or second == null:
 		_fail("camp summon did not spend a corpse and spawn")
 		return
-	if int(game.get("corpse")) != 0:
-		_fail("two summons did not spend 2 corpses, left %s" % str(game.get("corpse")))
+	if int(game.get("corpse")) != 0 or int(game.get("gore")) != 0:
+		_fail("two summons did not spend a corpse and a gore each, left %s/%s" % [str(game.get("corpse")), str(game.get("gore"))])
 	if army.size() != 2:
 		_fail("army did not record both summons, got %d" % army.size())
 		return
@@ -1123,7 +1124,9 @@ func _test_army_carry() -> void:
 		if from_slot.size() != 1 or int(from_slot[0].hp) != 11:
 			_fail("map slot did not restore the army")
 		saves.call("delete_slot", 9)
-	army.clear()
+	game.call("abandon_army")
+	if game.get("army").size() != 0:
+		_fail("abandon did not drop the army")
 	camp.queue_free()
 	home.queue_free()
 	battle.queue_free()
@@ -1138,13 +1141,18 @@ func _update_lines(program: UnitProgram) -> Array[ScriptLine]:
 	return []
 
 
-func _minions_under(battle: Node) -> Array[Unit2D]:
+func _minions_under(root_node: Node) -> Array[Unit2D]:
 	var found: Array[Unit2D] = []
-	for child in battle.get_children():
+	_collect_minions(root_node, found)
+	return found
+
+
+func _collect_minions(node: Node, found: Array[Unit2D]) -> void:
+	for child in node.get_children():
 		var unit := child as Unit2D
 		if unit and unit.team == Unit2D.Team.MINION:
 			found.append(unit)
-	return found
+		_collect_minions(child, found)
 
 
 func _test_pages_follow_pan(editor: Node, palette: Control, script: Control) -> void:

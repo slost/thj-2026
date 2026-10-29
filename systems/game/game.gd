@@ -85,6 +85,14 @@ func back_to_map() -> void:
 	get_tree().change_scene_to_file(MAP_SCENE)
 
 
+## Retreat throws the whole army away. Survivors are not kept.
+func abandon_army() -> void:
+	for member in army:
+		if member:
+			member.unit = null
+	army.clear()
+
+
 func load_map_state() -> void:
 	if SaveManager.has_slot(MAP_SAVE_SLOT):
 		SaveManager.load_slot(MAP_SAVE_SLOT)
@@ -234,4 +242,8 @@ func _seed_spells_if_empty() -> void:
 		price.resource_type = ResourceType.CORPSE
 		price.amount = 1
 		spell.costs.append(price)
+		var gore := SummonCost.new()
+		gore.resource_type = ResourceType.GORE
+		gore.amount = 1
+		spell.costs.append(gore)
 		spells.append(spell)

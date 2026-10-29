@@ -65,6 +65,11 @@ func _ready() -> void:
 #endregion
 
 #region PROCESS
+func set_bar_visible(show: bool) -> void:
+	if _root:
+		_root.visible = show
+
+
 func _process(_delta: float) -> void:
 	if not _root or not _host:
 		return
