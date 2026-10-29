@@ -1,6 +1,13 @@
 extends Node2D
 
 const _INDICATOR_TEXTURE := preload("res://placeholders/tex_indicator.png")
+const _UNIT_SCENE := preload("res://systems/units/unit.tscn")
+const _SPAWN_CELLS: Array[Vector2i] = [
+	Vector2i(-4, -3),
+	Vector2i(-4, -1),
+	Vector2i(-4, 1),
+	Vector2i(-4, 3),
+]
 
 @onready var _camera: Camera2D = $Camera2D
 @onready var _stage_end: Control = $CanvasLayer/StageEndScreen
@@ -9,6 +16,7 @@ const _INDICATOR_TEXTURE := preload("res://placeholders/tex_indicator.png")
 ## Max HP of every villager that has entered this battle, kept after the body is gone.
 var _villager_max: Dictionary = {}
 var _stage_ended := false
+var _party_spawned := false
 
 
 func _ready() -> void:
@@ -21,6 +29,9 @@ func _ready() -> void:
 	var hover := _ensure_indicator("IndicatorSprite", 20)
 	var pin := _ensure_indicator("PinIndicator", 19)
 	_wire_focus(hover, pin)
+	if _is_raid_scene():
+		mount_raid_tools()
+		spawn_raid_party()
 	if _stage_end:
 		_stage_end.visible = false
 	_refresh_city_progress()
@@ -139,3 +150,112 @@ func _wire_focus(hover: Sprite2D, pin: Sprite2D) -> void:
 		return
 	director.indicator = hover
 	director.pin_indicator = pin
+
+
+func _is_raid_scene() -> bool:
+	var tree := get_tree()
+	return tree != null and tree.current_scene == self
+
+
+## Focus and the script panel for a raid started from the map.
+## The debug battle keeps its own director and panel, so this stays off there.
+func mount_raid_tools() -> void:
+	var hover := _ensure_indicator("IndicatorSprite", 20)
+	var pin := _ensure_indicator("PinIndicator", 19)
+	var director := get_node_or_null("FocusDirector") as FocusDirector
+	if director == null:
+		director = FocusDirector.new()
+		director.name = "FocusDirector"
+		add_child(director)
+	director.indicator = hover
+	director.pin_indicator = pin
+	var layer := get_node_or_null("CanvasLayer")
+	if layer == null or layer.get_node_or_null("ScriptDebugPanel") != null:
+		return
+	var panel := ScriptDebugPanel.new()
+	panel.name = "ScriptDebugPanel"
+	layer.add_child(panel)
+
+
+## Spawns one minion per raid slot. The unit gets a copy of the slot program.
+func spawn_raid_party() -> void:
+	if _party_spawned:
+		return
+	_party_spawned = true
+	var game := _game()
+	if game == null:
+		return
+	var roster: Array = game.get("roster")
+	var indexes: Array = game.get("raid_slots")
+	if indexes.is_empty():
+		indexes = []
+		for index in roster.size():
+			indexes.append(index)
+	var map := get_node_or_null("TileMaps/Map") as TileMapLayer
+	var director := get_node_or_null("FocusDirector") as FocusDirector
+	var first: Unit2D = null
+	var spawned := 0
+	var used: Array[int] = []
+	for raw in indexes:
+		var index := int(raw)
+		if index < 0 or index >= roster.size() or used.has(index):
+			continue
+		used.append(index)
+		var slot := roster[index] as MinionSlot
+		if slot == null:
+			continue
+		var unit := _UNIT_SCENE.instantiate() as Unit2D
+		if unit == null:
+			continue
+		unit.def = _def_for_slot(slot)
+		unit.name = _party_name(slot, index)
+		unit.position = _cell_position(map, _SPAWN_CELLS[spawned % _SPAWN_CELLS.size()])
+		add_child(unit)
+		spawned += 1
+		if first == null:
+			first = unit
+	if first == null or director == null:
+		return
+	var target := first.get_node_or_null("ComponentContainer/UnitFocusComponent") as FocusTargetComponent
+	if target:
+		director.select_target(target)
+
+
+func _cell_position(map: TileMapLayer, cell: Vector2i) -> Vector2:
+	if map == null:
+		return Vector2.ZERO
+	return to_local(map.to_global(map.map_to_local(cell)))
+
+
+func _party_name(slot: MinionSlot, index: int) -> String:
+	var title := slot.display_name().replace("/", " ").replace(":", " ")
+	if title.is_empty():
+		title = "Minion"
+	return "%s %d" % [title, index + 1]
+
+
+func _def_for_slot(slot: MinionSlot) -> UnitDef:
+	var def := UnitDef.new()
+	var source := slot.def
+	if source != null:
+		def.id = source.id
+		def.name = source.name
+		def.team = source.team
+		def.max_hp = source.max_hp
+		def.speed = source.speed
+		def.damage = source.damage
+		def.detect_range = source.detect_range
+		def.attack_range = source.attack_range
+		def.attack_cooldown = source.attack_cooldown
+		def.cpu = source.cpu
+		def.gpu = source.gpu
+		def.ram = source.ram
+		def.mb = source.mb
+		var events: Array[EventGraph.Event] = []
+		for event in source.allowed_events:
+			events.append(event)
+		def.allowed_events = events
+	else:
+		def.team = Unit2D.Team.MINION
+	def.starting_program = slot.get_program()
+	return def

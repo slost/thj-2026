@@ -15,6 +15,7 @@ func _run() -> void:
 	_test_translations()
 	await _test_editor_screen()
 	await _test_world_map_book()
+	await _test_raid_spawns_roster()
 	var game := root.get_node_or_null(^"Game")
 	if game == null:
 		_fail("Game autoload is missing")
@@ -671,11 +672,19 @@ func _test_world_map_book() -> void:
 		await process_frame
 	if world.get_node_or_null(^"BookBackground/Label") != null:
 		_fail("book placeholder is still mounted")
-	var editor := world.get_node_or_null(^"BookBackground/Editor")
+	var pages := world.get_node_or_null(^"CodeLayer") as CanvasLayer
+	var editor := world.get_node_or_null(^"CodeLayer/Editor")
 	if editor == null:
 		_fail("world map has no code editor")
 		world.queue_free()
 		return
+	if pages == null or not pages.follow_viewport_enabled or pages.layer <= 1 or pages.layer >= 10:
+		_fail("code pages are not on a layer between the portrait and the map buttons")
+	var gui := root.get_node_or_null(^"GUI") as CanvasLayer
+	if gui and pages.layer <= gui.layer:
+		_fail("code pages are still under the portrait layer")
+	if world.get_node_or_null(^"BookBackground/Editor") != null:
+		_fail("code pages are still parented under the book")
 	if editor.get_node_or_null(^"Camera2D") != null:
 		_fail("editor still owns a camera")
 	var screen := world.get_node(^"BookBackground/BookScreen") as Sprite2D
@@ -688,6 +697,8 @@ func _test_world_map_book() -> void:
 		_fail("world map editor starts active")
 	if _editor_is_open(editor):
 		_fail("editor was open on the map")
+	if editor.visible:
+		_fail("closed editor is still drawn over the map")
 	var pan := world.get_node(^"Camera2D/MousePan") as MousePanComponent
 	pan.max_offset = Vector2(21, 13)
 	await process_frame
@@ -704,6 +715,8 @@ func _test_world_map_book() -> void:
 		await process_frame
 	if not _editor_is_open(editor):
 		_fail("Code state did not open the editor")
+	if not editor.visible:
+		_fail("Code state left the pages hidden")
 	var roster: Array = game.get("roster")
 	var slot := roster[0] as MinionSlot
 	var count := slot.get_update_function().lines.size()
@@ -753,6 +766,20 @@ func _test_world_map_book() -> void:
 	var camera := world.get_node(^"Camera2D") as Camera2D
 	camera.offset = Vector2.ZERO
 	pan.set_process(true)
+	for _frame in 2:
+		await process_frame
+	var book_before_pan := _canvas_origin(screen)
+	var palette_before_pan := _canvas_origin(palette)
+	camera.offset = Vector2(36, -18)
+	await process_frame
+	await process_frame
+	var book_pan := _canvas_origin(screen) - book_before_pan
+	var palette_pan := _canvas_origin(palette) - palette_before_pan
+	if book_pan.length() < 5.0:
+		_fail("camera did not move the book, delta %s" % book_pan)
+	if palette_pan.distance_to(book_pan) > 1.5:
+		_fail("pages slipped off the book when the camera moved, book %s pages %s" % [book_pan, palette_pan])
+	camera.offset = Vector2.ZERO
 	var rows := editor.get_node(^"%ScriptRows") as Node
 	if rows.get_child_count() != count:
 		_fail("open editor did not show the roster script, rows %d lines %d" % [rows.get_child_count(), count])
@@ -760,6 +787,8 @@ func _test_world_map_book() -> void:
 	_set_map_state(world, "MAP")
 	if _editor_is_open(editor):
 		_fail("map state left the editor open")
+	if editor.visible:
+		_fail("map state left the pages drawn")
 	if closes[0] != 1:
 		_fail("leaving the book did not emit closed once, got %d" % closes[0])
 	if script.is_processing_input():
@@ -796,6 +825,68 @@ func _test_world_map_book() -> void:
 	game.set("world_map", null)
 	game.set("current_stage", null)
 	world.queue_free()
+
+
+func _test_raid_spawns_roster() -> void:
+	await process_frame
+	var game := root.get_node(^"Game")
+	var roster: Array = game.get("roster")
+	var slot := roster[0] as MinionSlot
+	var expected_lines := slot.get_update_function().lines
+	if expected_lines.is_empty():
+		_fail("raid test needs a script on slot 0")
+		return
+	var slots: Array[int] = [0, 0, 99]
+	game.set("raid_slots", slots)
+	var battle := (load("res://systems/battle/battle.tscn") as PackedScene).instantiate() as Node2D
+	if battle == null:
+		_fail("battle scene did not instantiate")
+		return
+	root.add_child(battle)
+	await process_frame
+	if not _minions_under(battle).is_empty():
+		_fail("battle spawned a party before it was the raid")
+	battle.call("mount_raid_tools")
+	battle.call("spawn_raid_party")
+	await process_frame
+	var minions := _minions_under(battle)
+	if minions.size() != 1:
+		_fail("raid spawned %d minions for one slot" % minions.size())
+	else:
+		var unit := minions[0]
+		if unit.program == slot.get_program():
+			_fail("raid unit is running the live roster program")
+		var function := unit.runner.get_update_script() if unit.runner else null
+		var got := function.lines.size() if function else -1
+		if got != expected_lines.size():
+			_fail("raid script has %d lines, roster has %d" % [got, expected_lines.size()])
+		elif function.lines[0] and expected_lines[0] and function.lines[0].block and expected_lines[0].block:
+			if str(function.lines[0].block.id) != str(expected_lines[0].block.id):
+				_fail("raid script does not start with the roster block")
+		if unit.stats and slot.def and unit.stats.ram != slot.ram_max():
+			_fail("raid unit ram is %d, slot ram is %d" % [unit.stats.ram, slot.ram_max()])
+	if battle.get_node_or_null(^"CanvasLayer/ScriptDebugPanel") == null:
+		_fail("raid battle has no script panel")
+	var director := battle.get_node_or_null(^"FocusDirector") as FocusDirector
+	if director == null or director.get_inspected_unit() == null:
+		_fail("raid script panel has no minion pinned")
+	elif minions.size() == 1 and director.get_inspected_unit() != minions[0]:
+		_fail("raid script panel is showing a different unit")
+	battle.call("spawn_raid_party")
+	if _minions_under(battle).size() != 1:
+		_fail("raid spawned the party twice")
+	game.set("raid_slots", [])
+	game.set("current_stage", null)
+	battle.queue_free()
+
+
+func _minions_under(battle: Node) -> Array[Unit2D]:
+	var found: Array[Unit2D] = []
+	for child in battle.get_children():
+		var unit := child as Unit2D
+		if unit and unit.team == Unit2D.Team.MINION:
+			found.append(unit)
+	return found
 
 
 func _test_pages_follow_pan(editor: Node, palette: Control, script: Control) -> void:

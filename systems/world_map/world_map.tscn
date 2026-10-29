@@ -59,7 +59,7 @@ debug_label = NodePath("UI/DebugLabel")
 map = NodePath("FarBackground/Map")
 camp = NodePath("Camp")
 book = NodePath("BookBackground")
-code_editor = NodePath("BookBackground/Editor")
+code_editor = NodePath("CodeLayer/Editor")
 town_info = NodePath("UI/TownInfo")
 map_marker = NodePath("UI/Marker2D")
 map_button = NodePath("UI/StateContainer/MapButton")
@@ -158,6 +158,12 @@ rotation = -0.7853982
 scale = Vector2(0.99999994, 0.99999994)
 
 [node name="CodeLayer" type="CanvasLayer" parent="." unique_id=1508585818]
+layer = 5
+follow_viewport_enabled = true
+
+[node name="Editor" parent="CodeLayer" instance=ExtResource("11_editor") node_paths=PackedStringArray("book")]
+book = NodePath("../../BookBackground/BookScreen")
+active_on_ready = false
 
 [node name="FarBackground" type="Node2D" parent="." unique_id=1554592198]
 
@@ -210,9 +216,5 @@ texture = ExtResource("6_5rc7b")
 script = ExtResource("2_fe0ic")
 asset_id = "tex_book_screen"
 metadata/_custom_type_script = "uid://bgit4iapmj1bm"
-
-[node name="Editor" parent="BookBackground" instance=ExtResource("11_editor") node_paths=PackedStringArray("book")]
-book = NodePath("../BookScreen")
-active_on_ready = false
 
 [connection signal="pressed" from="UI/TownInfo/VBoxContainer/RaidButton" to="." method="_on_raid_button_pressed"]

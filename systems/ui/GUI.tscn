@@ -32,6 +32,10 @@ theme_override_constants/separation = 32
 [node name="HBoxContainer" parent="PanelContainer/VBoxContainer2" unique_id=638644848 instance=ExtResource("1_juocw")]
 layout_mode = 2
 
+[node name="HBoxContainer5" parent="PanelContainer/VBoxContainer2" unique_id=1068203364 instance=ExtResource("1_juocw")]
+layout_mode = 2
+resource_type = 4
+
 [node name="HBoxContainer2" parent="PanelContainer/VBoxContainer2" unique_id=598295944 instance=ExtResource("1_juocw")]
 layout_mode = 2
 resource_type = 1

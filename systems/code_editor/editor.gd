@@ -1,6 +1,7 @@
 ## Code editor. Writes the selected minion's ON_UPDATE script in place.
-## Page controls live in this node's space, next to the book sprite, so a shared
-## camera pan and a shared parent (including parallax) move the pages with the book.
+## Page controls live in this node's space, next to the book sprite. A shared
+## camera pan moves both, including when this node sits on a CanvasLayer that
+## follows the viewport. That layer is what keeps the pages above the portrait.
 ## This node does not own a camera. Standalone play uses editor_standalone.tscn.
 ## No class_name: this script reads the Game autoload, and a global class would
 ## be compiled before that autoload exists.
@@ -53,6 +54,8 @@ var _stored_mouse: Dictionary = {}
 
 
 func _ready() -> void:
+	# After ParallaxOffset (priority 10), so a moved book is fitted the same frame.
+	process_priority = 20
 	_resolve_book()
 	_palette.return_line.connect(_on_return_line)
 	_palette.return_group.connect(_on_remove_group)
@@ -68,6 +71,7 @@ func _ready() -> void:
 		open()
 	else:
 		_set_input_enabled(false)
+		visible = false
 	call_deferred("_fit_pages_if_needed")
 
 
@@ -90,6 +94,7 @@ func is_open() -> bool:
 func open() -> void:
 	var was_open := _active
 	_active = true
+	visible = true
 	_set_input_enabled(true)
 	if not was_open:
 		_pan = null
@@ -104,6 +109,7 @@ func open() -> void:
 func close() -> void:
 	var was_open := _active
 	_active = false
+	visible = false
 	_set_input_enabled(false)
 	_release_drag_pan()
 	if was_open:

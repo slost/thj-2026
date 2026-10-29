@@ -51,12 +51,12 @@ enabled=PackedStringArray("res://addons/lost_framework/plugin.cfg")
 [file_customization]
 
 folder_colors={
+"res://contents/": "yellow",
 "res://systems/": "red"
 }
 
 [internationalization]
 
-locale/fallback="en"
 locale/translations=PackedStringArray("res://contents/translations/blocks.en.translation", "res://contents/translations/blocks.th.translation")
 
 [lost_framework]
