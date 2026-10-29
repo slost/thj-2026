@@ -20,8 +20,8 @@ var _sort := SortMode.CONDITIONS
 var _rebuild_queued := false
 var _laying_out := false
 
-@onready var _conditions_tab: Button = %SortConditions
-@onready var _actions_tab: Button = %SortActions
+@onready var _conditions_tab: Button = %SortConditionsFirst
+@onready var _actions_tab: Button = %SortActionsFirst
 @onready var _list: Control = %PaletteList
 
 

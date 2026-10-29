@@ -251,7 +251,7 @@ func _test_editor_screen() -> void:
 		_fail("palette did not show conditions and actions together")
 	if not _kind_order(palette_list, true):
 		_fail("conditions were not listed first")
-	var actions_tab := editor.get_node(^"%SortActions") as Button
+	var actions_tab := editor.get_node(^"%SortActionsFirst") as Button
 	actions_tab.pressed.emit()
 	for _frame in 2:
 		await process_frame
@@ -618,7 +618,7 @@ func _test_translations() -> void:
 			_fail("missing english desc for %s" % str(id))
 		if LocaleText.translate("code.%s.desc" % str(id), "th").is_empty():
 			_fail("missing thai desc for %s" % str(id))
-	for key in ["ui.code_editor.tab_conditions", "ui.code_editor.tab_actions", "ui.code_editor.ram_hint", "ui.code_editor.ram", "ui.code_editor.empty", "ui.code_editor.drop_mb", "ui.code_editor.drop_indent"]:
+	for key in ["ui.code_editor.sort_conditions_first", "ui.code_editor.sort_actions_first", "ui.code_editor.ram_hint", "ui.code_editor.ram", "ui.code_editor.empty", "ui.code_editor.drop_mb", "ui.code_editor.drop_indent"]:
 		if LocaleText.translate(key, "en").is_empty() or LocaleText.translate(key, "th").is_empty():
 			_fail("missing translation %s" % key)
 	TranslationServer.set_locale("en")

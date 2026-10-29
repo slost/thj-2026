@@ -45,8 +45,8 @@ code.forget_all_actions.name,Forget all plans,ลืมแผนทั้งห�
 code.forget_all_actions.desc,Drop every plan you were going to do.,ลืมทุกแผนที่ตั้งใจจะทำ
 code.forget_everything.name,Forget everything,ลืมทุกอย่าง
 code.forget_everything.desc,Let go of every person and every plan.,ลืมทั้งคนที่จำไว้และทุกแผน
-ui.code_editor.tab_conditions,Conditions,เงื่อนไข
-ui.code_editor.tab_actions,Actions,คำสั่ง
+ui.code_editor.sort_conditions_first,Conditions first,เงื่อนไขขึ้นก่อน
+ui.code_editor.sort_actions_first,Actions first,คำสั่งขึ้นก่อน
 ui.code_editor.sort_name,Name,ชื่อ
 ui.code_editor.sort_kind,Kind,ชนิด
 ui.code_editor.sort_ram,RAM,แรม
