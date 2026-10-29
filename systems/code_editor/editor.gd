@@ -3,9 +3,11 @@
 ## so mouse pan slides the pages and the cards together.
 extends Node2D
 
-@export var slot_bar_height: float = 48.0
-@export var header_height: float = 88.0
+@export var slot_bar_height: float = 44.0
+@export var header_height: float = 70.0
 @export var page_inset: float = 10.0
+@export var menu_lift: float = 42.0
+@export var palette_extra: float = 84.0
 @export var debug_gutter: float = 64.0
 @export var min_body_height: float = 80.0
 @export var drag_pan_scale: float = 0.35
@@ -30,9 +32,12 @@ var _pan_full := Vector2.ZERO
 func _ready() -> void:
 	_pan_full = _pan.max_offset
 	_palette.return_line.connect(_on_return_line)
+	_palette.return_group.connect(_on_remove_group)
+	_palette.quick_add.connect(_on_quick_add)
 	_script.place_block.connect(_on_place)
 	_script.move_line.connect(_on_move)
 	_script.remove_line.connect(_on_remove)
+	_script.remove_group.connect(_on_remove_group)
 	_script.indent_line.connect(_on_indent)
 	_bind_slots()
 	_show_slot(0)
@@ -74,16 +79,19 @@ func _fit_pages() -> void:
 		return
 	var pages := BookLayout.page_uvs(_book.texture)
 	var left := _map_uv(book, pages[0]).grow(-page_inset)
+	left.position.y -= palette_extra * 0.4
+	left.size.y += palette_extra
 	var right := _map_uv(book, pages[1]).grow(-page_inset)
 	# Keep the script clear of the debug overlay pinned to the right edge.
 	right = Rect2(right.position, Vector2(maxf(right.size.x - debug_gutter, 280.0), right.size.y))
 	_place(_palette, left)
 	var slots := _slots as Control
-	_place(slots, Rect2(right.position, Vector2(right.size.x, slot_bar_height)))
+	var menu_y := right.position.y - menu_lift
+	_place(slots, Rect2(Vector2(right.position.x, menu_y), Vector2(right.size.x, slot_bar_height)))
 	var header := %ScriptHeader as Control
-	_place(header, Rect2(right.position + Vector2(0, slot_bar_height), Vector2(right.size.x, header_height)))
-	var body := slot_bar_height + header_height
-	_place(_script, Rect2(right.position + Vector2(0, body), Vector2(right.size.x, maxf(right.size.y - body, min_body_height))))
+	_place(header, Rect2(Vector2(right.position.x, menu_y + slot_bar_height), Vector2(right.size.x, header_height)))
+	var script_top := menu_y + slot_bar_height + header_height
+	_place(_script, Rect2(Vector2(right.position.x, script_top), Vector2(right.size.x, maxf(right.end.y - script_top, min_body_height))))
 	_layout_texture = _book.texture
 
 
@@ -197,6 +205,30 @@ func _on_remove(index: int) -> void:
 
 func _on_return_line(index: int) -> void:
 	_on_remove(index)
+
+
+func _on_remove_group(index: int) -> void:
+	var slot := _current_slot()
+	if slot == null:
+		return
+	var lines: Array[ScriptLine] = slot.get_update_function().lines
+	var end := ScriptEditing.subtree_end(lines, index)
+	for cursor in range(end - 1, index - 1, -1):
+		var block := ScriptEditing.remove_line(lines, cursor)
+		if block and Game.block_inventory:
+			Game.block_inventory.add(block, 1)
+	_script.refresh()
+	_show_ram()
+
+
+func _on_quick_add(block: CodeBlock) -> void:
+	var slot := _current_slot()
+	if slot == null or block == null:
+		return
+	var lines: Array[ScriptLine] = slot.get_update_function().lines
+	var index := lines.size()
+	var indent := ScriptEditing.clamped_indent(lines, index, 0)
+	_on_place(block, index, indent)
 
 
 func _on_indent(index: int, delta: int) -> void:

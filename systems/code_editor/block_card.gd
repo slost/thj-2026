@@ -5,15 +5,20 @@ extends Control
 
 signal line_pressed(index: int)
 signal line_remove_requested(index: int)
-signal script_drop_returned(index: int)
+signal group_remove_requested(index: int)
+signal script_drop_returned(index: int, group: bool)
+signal quick_add_requested(block: CodeBlock)
+## Script rows forward a drop so it inserts below or into the block under the pointer.
+signal block_drop_requested(at_position: Vector2, data: Variant)
 
 ## Palette cards take a script block dropped on them and send it back.
 var accept_script_return := false
 
 const _THEME := preload("res://systems/code_editor/editor_theme.tres")
 
-@export var bob_pixels: float = 2.5
-@export var tilt_degrees: float = 1.3
+@export var bob_pixels: float = 6.0
+@export var drift_pixels: float = 5.0
+@export var tilt_degrees: float = 2.2
 @export var hover_lift: float = 3.0
 @export var hover_scale: float = 1.045
 @export var visual_inset_y: float = 2.0
@@ -21,6 +26,9 @@ const _THEME := preload("res://systems/code_editor/editor_theme.tres")
 @export var indent_step: float = 32.0
 @export var max_width: float = 440.0
 @export var block_height: float = 40.0
+## Extra chip width past the words. Zero keeps the script block as wide as its text.
+@export var display_extra: float = 0.0
+const _GROUP_HOLD_MSEC := 420
 
 var drag_data: Variant = null
 var allow_drag := true
@@ -36,9 +44,18 @@ var _hovered := false
 var _ready_done := false
 var _phase := 0.0
 var _speed := 1.0
-var _bob := 2.5
+var _bob := 6.0
+var _drift := 5.0
 var _tilt := 0.02
 var _wave_time := 0.0
+## 1 while drifting, easing toward 0 while the pointer rests on the card.
+var _motion := 1.0
+var _press_button := MOUSE_BUTTON_LEFT
+## Right-button drags delete the block and the lines nested under it.
+var _drag_removes := false
+var _right_armed := false
+var _right_pressed_at := 0
+var _active_drag: Dictionary = {}
 
 @onready var _visual: PanelContainer = %Visual
 @onready var _title: Label = %Title
@@ -101,8 +118,9 @@ func _ready() -> void:
 	if theme == null:
 		theme = _THEME
 	_phase = randf() * TAU
-	_speed = randf_range(0.65, 1.35)
+	_speed = randf_range(0.55, 1.05)
 	_bob = bob_pixels * randf_range(0.75, 1.15)
+	_drift = drift_pixels * randf_range(0.7, 1.15)
 	_tilt = deg_to_rad(tilt_degrees) * randf_range(0.65, 1.25)
 	_visual.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	_visual.layout_mode = 0
@@ -119,57 +137,83 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_TRANSLATION_CHANGED:
 		_apply()
 	elif what == NOTIFICATION_DRAG_END:
-		_on_drag_end()
+		_finish_remove_drag()
 
 
 func _process(delta: float) -> void:
-	_wave_time += delta * _speed
+	var target := 0.0 if _hovered else 1.0
+	_motion = lerpf(_motion, target, 1.0 - exp(-2.4 * delta))
+	_wave_time += delta * _speed * _motion
 	var wave := sin(_wave_time + _phase)
+	var sway := cos(_wave_time * 0.7 + _phase)
 	var lift := hover_lift if _hovered else 0.0
 	var shown := hover_scale if _hovered else 1.0
-	_place_visual(wave * _bob + lift, wave * _tilt, shown)
+	_place_visual(wave * _bob + lift, wave * _tilt, shown, sway * _drift)
 
 
 func _gui_input(event: InputEvent) -> void:
 	if not event is InputEventMouseButton:
 		return
 	var mouse := event as InputEventMouseButton
-	if not mouse.pressed or line_index < 0:
+	if mouse.button_index == MOUSE_BUTTON_RIGHT and line_index >= 0:
+		if mouse.pressed:
+			_press_button = mouse.button_index
+			_right_armed = true
+			_right_pressed_at = Time.get_ticks_msec()
+		elif _right_armed:
+			_right_armed = false
+			_release_right_click()
 		return
-	if mouse.button_index == MOUSE_BUTTON_LEFT:
-		line_pressed.emit(line_index)
-	elif mouse.button_index == MOUSE_BUTTON_RIGHT:
-		line_pressed.emit(line_index)
-		line_remove_requested.emit(line_index)
-		accept_event()
+	if not mouse.pressed:
+		return
+	_press_button = mouse.button_index
+	if mouse.button_index == MOUSE_BUTTON_LEFT and mouse.double_click and line_index < 0:
+		if _block != null and (not _show_count or _count > 0):
+			quick_add_requested.emit(_block)
+			accept_event()
+		return
+	if line_index < 0 or mouse.button_index != MOUSE_BUTTON_LEFT:
+		return
+	line_pressed.emit(line_index)
 
 
 func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
-	return accept_script_return and _script_drag_index(data) >= 0
+	if accept_script_return and _script_drag_index(data) >= 0:
+		return true
+	return line_index >= 0 and _is_script_edit(data)
 
 
-func _drop_data(_at_position: Vector2, data: Variant) -> void:
-	var index := _script_drag_index(data)
-	if index >= 0:
-		script_drop_returned.emit(index)
+func _drop_data(at_position: Vector2, data: Variant) -> void:
+	_mark_handled(data)
+	var returned := _script_drag_index(data)
+	if accept_script_return and returned >= 0:
+		var grouped := data is Dictionary and bool(data.get("group", false))
+		script_drop_returned.emit(returned, grouped)
+		return
+	if line_index >= 0 and _is_script_edit(data):
+		block_drop_requested.emit(at_position, data)
 
 
 func _get_drag_data(_at_position: Vector2) -> Variant:
 	if not allow_drag or drag_data == null:
 		return null
+	var payload: Dictionary = drag_data.duplicate() if drag_data is Dictionary else {}
+	_drag_removes = line_index >= 0 and _press_button == MOUSE_BUTTON_RIGHT
+	if _drag_removes:
+		_right_armed = false
+		payload["remove"] = true
+		payload["group"] = true
+	_active_drag = payload
 	if line_index >= 0:
 		line_pressed.emit(line_index)
-	set_drag_preview(_make_preview())
-	return drag_data
-
-
-func _draw() -> void:
-	if _indent <= 0:
-		return
-	var color := get_theme_color(&"guide_color", &"BlockCard")
-	for level in _indent:
-		var x := indent_pad + float(level) * indent_step + 5.0
-		draw_line(Vector2(x, 4.0), Vector2(x, maxf(size.y - 4.0, 8.0)), color, 1.0)
+	var preview := _make_preview()
+	if _drag_removes:
+		preview.modulate = Color(1.0, 0.72, 0.68)
+	if get_viewport().gui_is_dragging():
+		set_drag_preview(preview)
+	else:
+		preview.queue_free()
+	return _active_drag
 
 
 func _apply() -> void:
@@ -234,19 +278,22 @@ func _label_width(label: Label) -> float:
 func _chip_rect() -> Rect2:
 	if _compact:
 		return Rect2(2.0, 1.0, maxf(size.x - 4.0, 24.0), maxf(size.y - 2.0, 12.0))
+	var chip_height := block_height
+	var y := maxf((size.y - chip_height) * 0.5, 0.0)
 	var x := indent_pad + float(_indent) * indent_step
-	var available := maxf(size.x - x - 6.0, 72.0)
-	return Rect2(x, 1.0, minf(_text_width(), available), maxf(size.y - 2.0, 12.0))
+	var available := maxf(size.x - x - 8.0, 72.0)
+	var width := minf(_text_width() + display_extra, available)
+	return Rect2(x, y, maxf(width, 72.0), chip_height)
 
 
-func _place_visual(y_offset: float, rotation_radians: float, shown_scale: float) -> void:
+func _place_visual(y_offset: float, rotation_radians: float, shown_scale: float, x_offset: float = 0.0) -> void:
 	if _visual == null:
 		return
 	var chip := _chip_rect()
 	if _highlight:
 		_highlight.position = chip.position
 		_highlight.size = chip.size
-	_visual.position = chip.position + Vector2(0.0, y_offset)
+	_visual.position = chip.position + Vector2(x_offset, y_offset)
 	_visual.size = chip.size
 	_visual.pivot_offset = _visual.size * 0.5
 	_visual.rotation = rotation_radians
@@ -267,13 +314,13 @@ func _make_preview() -> Control:
 	return preview
 
 
-func _on_drag_end() -> void:
-	if line_index < 0 or not is_inside_tree():
-		return
-	var viewport := get_viewport()
-	if viewport == null or viewport.gui_is_drag_successful():
-		return
-	line_remove_requested.emit(line_index)
+func _is_script_edit(data: Variant) -> bool:
+	if not data is Dictionary:
+		return false
+	var source := str(data.get("source", ""))
+	if source == "palette":
+		return data.get("block") != null
+	return source == "script" and int(data.get("index", -1)) >= 0
 
 
 func _script_drag_index(data: Variant) -> int:
@@ -282,6 +329,37 @@ func _script_drag_index(data: Variant) -> int:
 	if str(data.get("source", "")) != "script":
 		return -1
 	return int(data.get("index", -1))
+
+
+func _release_right_click() -> void:
+	if line_index < 0:
+		return
+	if Time.get_ticks_msec() - _right_pressed_at >= _GROUP_HOLD_MSEC:
+		group_remove_requested.emit(line_index)
+	else:
+		line_remove_requested.emit(line_index)
+
+
+func _finish_remove_drag() -> void:
+	if not _drag_removes:
+		return
+	_drag_removes = false
+	_right_armed = false
+	var handled := bool(_active_drag.get("handled", false))
+	var grouped := bool(_active_drag.get("group", false))
+	var index := int(_active_drag.get("index", line_index))
+	_active_drag = {}
+	if handled or index < 0:
+		return
+	if grouped:
+		group_remove_requested.emit(index)
+	else:
+		line_remove_requested.emit(index)
+
+
+func _mark_handled(data: Variant) -> void:
+	if data is Dictionary:
+		data["handled"] = true
 
 
 func _on_mouse_entered() -> void:

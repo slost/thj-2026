@@ -235,6 +235,8 @@ func _test_editor_screen() -> void:
 		_fail("palette overlaps the script page")
 	if slots.get_global_rect().position.y > script_rect.position.y:
 		_fail("unit buttons are not above the script")
+	if palette_rect.size.y < script_rect.size.y + 36.0:
+		_fail("block page is not longer than the script: palette %s script %s" % [palette_rect.size.y, script_rect.size.y])
 	var book := editor.get_node(^"BookScreen") as Sprite2D
 	var book_rect := _sprite_world_rect(book)
 	if not book_rect.has_point(palette_rect.get_center()):
@@ -242,6 +244,16 @@ func _test_editor_screen() -> void:
 	if not book_rect.has_point(script_rect.get_center()):
 		_fail("script is not on the book: %s book %s" % [script_rect, book_rect])
 	var palette_list := editor.get_node(^"%PaletteList") as Control
+	if not _palette_has_both(palette_list):
+		_fail("palette did not show conditions and actions together")
+	if not _kind_order(palette_list, true):
+		_fail("conditions were not listed first")
+	var actions_tab := editor.get_node(^"%SortActions") as Button
+	actions_tab.pressed.emit()
+	for _frame in 2:
+		await process_frame
+	if not _kind_order(palette_list, false):
+		_fail("actions were not listed first")
 	if palette_list.get_child_count() < 2:
 		_fail("palette did not build cards")
 	else:
@@ -273,6 +285,13 @@ func _test_editor_screen() -> void:
 				_fail("floating moved the palette card slot")
 			if is_equal_approx(first_palette.visual_position().y, visual_before.y):
 				_fail("palette card visual did not float")
+			first_palette.mouse_entered.emit()
+			first_palette._process(0.6)
+			first_palette._process(0.6)
+			var settled := first_palette.visual_position()
+			first_palette._process(0.6)
+			if first_palette.visual_position().distance_to(settled) > 1.5:
+				_fail("hover did not slow the card to a rest")
 	var owned: int = inventory.get_count(detect)
 	editor.call("_on_place", detect, 0, 0)
 	editor.call("_on_place", attack, 1, 5)
@@ -300,6 +319,14 @@ func _test_editor_screen() -> void:
 			_fail("condition card title was '%s'" % (first_card.displayed_title() if first_card else ""))
 		elif first_card.get_node(^"Visual").size.x > script.size.x * 0.85:
 			_fail("script block is still too long: %s" % first_card.get_node(^"Visual").size)
+		elif absf(first_card.get_node(^"Visual").size.x - first_card._text_width()) > 8.0:
+			_fail("script block does not fit its text: %s words %s" % [first_card.get_node(^"Visual").size, first_card._text_width()])
+		elif second_card.position.y - first_card.position.y > 76.0:
+			_fail("script rows are still far apart: %s" % (second_card.position.y - first_card.position.y))
+		elif second_card.position.y - first_card.position.y < 52.0:
+			_fail("script rows overlap: %s" % (second_card.position.y - first_card.position.y))
+		elif first_card.get_node(^"Visual").size.y > first_card.size.y - 8.0:
+			_fail("script chip still fills its row")
 		elif first_card.tooltip_text != "You can see an enemy.":
 			_fail("condition tooltip was '%s'" % first_card.tooltip_text)
 		elif first_card.get_node(^"Visual").theme_type_variation != &"ConditionCard":
@@ -314,6 +341,23 @@ func _test_editor_screen() -> void:
 			_fail("script card showed a count badge")
 		elif is_equal_approx(first_card.motion_phase(), second_card.motion_phase()):
 			_fail("script cards share a float phase")
+		var links := editor.get_node(^"%ScriptLinks") as ScriptLinks
+		if links == null or links.segment_count() < 2:
+			_fail("nested blocks drew no elbow, segments %s" % (links.segment_count() if links else -1))
+		var kept: int = slot.get_update_function().lines.size()
+		first_card.notification(Node.NOTIFICATION_DRAG_END)
+		if slot.get_update_function().lines.size() != kept:
+			_fail("letting go of a block cleared the script")
+		second_card._drop_data(Vector2(12.0, 8.0), {"source": "palette", "block": attack})
+		for _frame in 2:
+			await process_frame
+		if slot.get_update_function().lines.size() != kept + 1:
+			_fail("dropping onto a block removed lines, got %d" % slot.get_update_function().lines.size())
+		elif slot.get_update_function().lines[0].block != detect:
+			_fail("dropping onto a block replaced the one underneath")
+		editor.call("_on_remove", slot.get_update_function().lines.size() - 1)
+		for _frame in 2:
+			await process_frame
 		var palette_card := palette_list.get_child(0) as BlockCard
 		if palette_card == null or not palette_card._can_drop_data(Vector2.ZERO, {"source": "script", "index": 1}):
 			_fail("palette card did not accept a script block")
@@ -337,18 +381,100 @@ func _test_editor_screen() -> void:
 			_fail("empty script label was Thai")
 		if inventory.get_count(detect) != owned:
 			_fail("clearing the script did not return the condition")
+		var stocked: BlockCard = null
+		for child in palette_list.get_children():
+			var palette_block := child as BlockCard
+			if palette_block and palette_block.block_id() == str(attack.id):
+				stocked = palette_block
+				break
+		if stocked == null:
+			_fail("quick add could not find the attack card")
+		else:
+			var click := InputEventMouseButton.new()
+			click.button_index = MOUSE_BUTTON_LEFT
+			click.pressed = true
+			click.double_click = true
+			stocked._gui_input(click)
+			for _frame in 2:
+				await process_frame
+			if slot.get_update_function().lines.size() != 1:
+				_fail("double click did not add a block")
+			elif slot.get_update_function().lines[0].indent != 0:
+				_fail("quick add did not append at the root")
+			editor.call("_on_remove", 0)
+			for _frame in 2:
+				await process_frame
+		editor.call("_on_place", attack, 0, 0)
+		for _frame in 2:
+			await process_frame
+		var held := row_box.get_child(0) as BlockCard
+		if held:
+			var right := InputEventMouseButton.new()
+			right.button_index = MOUSE_BUTTON_RIGHT
+			right.pressed = true
+			held._gui_input(right)
+			if slot.get_update_function().lines.size() != 1:
+				_fail("pressing right click removed a block before release")
+			right.pressed = false
+			held._gui_input(right)
+			for _frame in 2:
+				await process_frame
+			if slot.get_update_function().lines.size() != 0:
+				_fail("a short right click did not remove the block")
+		editor.call("_on_place", detect, 0, 0)
+		editor.call("_on_place", attack, 1, 1)
+		editor.call("_on_place", attack, 2, 1)
+		for _frame in 2:
+			await process_frame
+		var group_card := row_box.get_child(0) as BlockCard
+		if group_card:
+			var hold := InputEventMouseButton.new()
+			hold.button_index = MOUSE_BUTTON_RIGHT
+			hold.pressed = true
+			group_card._gui_input(hold)
+			group_card._right_pressed_at = Time.get_ticks_msec() - 800
+			hold.pressed = false
+			group_card._gui_input(hold)
+			for _frame in 2:
+				await process_frame
+			if slot.get_update_function().lines.size() != 0:
+				_fail("holding right click kept nested blocks, got %d" % slot.get_update_function().lines.size())
+		editor.call("_on_place", attack, 0, 0)
+		for _frame in 2:
+			await process_frame
+		held = row_box.get_child(0) as BlockCard
+		if held:
+			var drag_click := InputEventMouseButton.new()
+			drag_click.button_index = MOUSE_BUTTON_RIGHT
+			drag_click.pressed = true
+			held._gui_input(drag_click)
+			var payload: Dictionary = held._get_drag_data(Vector2(8.0, 8.0))
+			if not bool(payload.get("group", false)):
+				_fail("a right-button drag was not a group remove")
+			payload["handled"] = true
+			held.notification(Node.NOTIFICATION_DRAG_END)
+			if slot.get_update_function().lines.size() != 1:
+				_fail("a finished remove drag deleted the block twice")
+			held._gui_input(drag_click)
+			held._get_drag_data(Vector2(8.0, 8.0))
+			held.notification(Node.NOTIFICATION_DRAG_END)
+			for _frame in 2:
+				await process_frame
+			if slot.get_update_function().lines.size() != 0:
+				_fail("releasing a right-button drag did not remove the block")
 		editor.call("_on_place", detect, 0, 0)
 		editor.call("_on_place", attack, 1, 1)
 		for _frame in 2:
 			await process_frame
-		var top := script._plan(Vector2(script.indent_pad + 4.0, 2.0), {"source": "palette", "block": attack})
-		if int(top.x) != 0:
-			_fail("drop at the top row was gap %s" % top)
-		var between_y := script.row_height * 1.2
-		var between_x := script.indent_pad + script.indent_step * 1.2
-		var between := script._plan(Vector2(between_x, between_y), {"source": "palette", "block": attack})
-		if int(between.x) != 1 or int(between.y) != 1:
-			_fail("drop under the condition was %s" % between)
+		var on_condition := script._plan(Vector2(script.indent_pad + 4.0, script.row_height * 0.5), {"source": "palette", "block": attack})
+		if int(on_condition.x) != 1 or int(on_condition.y) != 0:
+			_fail("drop on a block replaced it: %s" % on_condition)
+		var into := script._plan(Vector2(script.indent_pad + script.indent_step * 1.2, script.row_height * 0.5), {"source": "palette", "block": attack})
+		if int(into.x) != 1 or int(into.y) != 1:
+			_fail("drop inside a condition was %s" % into)
+		var below_action := script._plan(Vector2(script.indent_pad + script.indent_step * 1.2, script.row_height * 1.5), {"source": "palette", "block": attack})
+		if int(below_action.x) != 2 or int(below_action.y) != 1:
+			_fail("drop on the nested block was %s" % below_action)
 	editor.call("_on_slot_button", 3)
 	for _frame in 2:
 		await process_frame
@@ -369,6 +495,15 @@ func _test_editor_screen() -> void:
 		guard += 1
 	if slot.get_update_function().lines.size() != 8:
 		_fail("RAM cap did not stop at 8 lines, got %d" % slot.get_update_function().lines.size())
+	var script_scroll := editor.get_node(^"%ScriptScroll") as ScrollContainer
+	script_scroll.scroll_vertical = 100000
+	for _frame in 2:
+		await process_frame
+	var filled: int = slot.get_update_function().lines.size()
+	var tail_y := float(filled) * script.row_height + 6.0 - float(script_scroll.scroll_vertical)
+	var tail := script._plan(Vector2(script.indent_pad + 4.0, tail_y), {"source": "palette", "block": attack})
+	if int(tail.x) != filled:
+		_fail("a long script could not take a block at the end, plan %s scroll %s" % [tail, script_scroll.scroll_vertical])
 	var at_cap: int = slot.get_update_function().lines.size()
 	editor.call("_on_place", attack, at_cap, 0)
 	if slot.get_update_function().lines.size() != at_cap:
@@ -437,6 +572,40 @@ func _test_translations() -> void:
 	TranslationServer.set_locale("en")
 
 
+func _palette_has_both(board: Control) -> bool:
+	var saw_condition := false
+	var saw_action := false
+	for child in board.get_children():
+		var card := child as BlockCard
+		if card == null:
+			continue
+		var shape := str(card.get_node(^"Visual").theme_type_variation)
+		if shape.begins_with("Condition"):
+			saw_condition = true
+		elif shape.begins_with("Action"):
+			saw_action = true
+	return saw_condition and saw_action
+
+
+func _kind_order(board: Control, conditions_first: bool) -> bool:
+	var saw_second := false
+	var saw_first := false
+	for child in board.get_children():
+		var card := child as BlockCard
+		if card == null:
+			continue
+		var shape := str(card.get_node(^"Visual").theme_type_variation)
+		var is_condition := shape.begins_with("Condition")
+		var is_first := is_condition == conditions_first
+		if is_first:
+			saw_first = true
+			if saw_second:
+				return false
+		elif shape.begins_with("Condition") or shape.begins_with("Action"):
+			saw_second = true
+	return saw_first and saw_second
+
+
 func _has_thai(text: String) -> bool:
 	for index in text.length():
 		var code := text.unicode_at(index)
@@ -496,8 +665,8 @@ func _test_pages_follow_pan(editor: Node, palette: Control, script: Control) -> 
 	if script_delta.distance_to(book_delta) > 1.5:
 		_fail("script did not follow the book, book %s script %s" % [book_delta, script_delta])
 	var view := script as ScriptView
-	var plan := view._plan(Vector2(view.indent_pad + 4.0, 2.0), {"source": "palette", "block": _attack()})
-	if int(plan.x) != 0:
+	var plan := view._plan(Vector2(view.indent_pad + 4.0, view.row_height * 0.5), {"source": "palette", "block": _attack()})
+	if int(plan.x) != 1:
 		_fail("drop target changed after pan: %s" % plan)
 	camera.offset = Vector2.ZERO
 

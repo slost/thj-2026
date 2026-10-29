@@ -1,5 +1,5 @@
 ## Right page script. One card per ScriptLine, indented like a nested list.
-## The horizontal mouse position chooses the indent column while dragging.
+## Dropping on a block inserts below it, or into it when the pointer sits further right.
 ## Row slots stay still; only the card visual inside them floats.
 class_name ScriptView
 extends Control
@@ -7,9 +7,10 @@ extends Control
 signal place_block(block: CodeBlock, index: int, indent: int)
 signal move_line(from_index: int, to_index: int, indent: int)
 signal remove_line(index: int)
+signal remove_group(index: int)
 signal indent_line(index: int, delta: int)
 
-@export var row_height: float = 44.0
+@export var row_height: float = 64.0
 @export var indent_step: float = 32.0
 @export var indent_pad: float = 8.0
 
@@ -18,6 +19,8 @@ var _selected := -1
 var _rebuild_queued := false
 
 @onready var _scroll: ScrollContainer = %ScriptScroll
+@onready var _body: Control = %ScriptBody
+@onready var _links: ScriptLinks = %ScriptLinks
 @onready var _rows: VBoxContainer = %ScriptRows
 @onready var _empty: Label = %EmptyLabel
 @onready var _indicator: ColorRect = %DropIndicator
@@ -67,6 +70,7 @@ func _rebuild() -> void:
 		_empty.visible = empty
 		_empty.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 		_empty.text = LocaleText.resolve("ui.code_editor.empty", "(empty)", "en")
+	_sync_body()
 	if empty:
 		return
 	for index in _lines.size():
@@ -88,21 +92,52 @@ func _rebuild() -> void:
 		card.drag_data = {"source": "script", "index": index}
 		card.line_pressed.connect(select_line)
 		card.line_remove_requested.connect(_on_card_remove)
+		card.group_remove_requested.connect(_on_card_remove_group)
+		card.block_drop_requested.connect(_on_card_drop.bind(card))
 		card.set_selected(index == _selected)
 		_rows.add_child(card)
+	_sync_body()
+
+
+func _sync_body() -> void:
+	var height := float(_lines.size()) * row_height
+	if not _lines.is_empty():
+		height += row_height
+	if _body:
+		_body.custom_minimum_size = Vector2(0, height)
+	if _rows:
+		_rows.custom_minimum_size = Vector2(0, height)
+		_rows.size = Vector2(maxf(_body.size.x if _body else 0.0, _rows.size.x), height)
+	if _links:
+		_links.show_script(_lines, row_height, indent_step, indent_pad)
 
 
 func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
+	if _is_remove_drag(data):
+		if _indicator:
+			_indicator.visible = false
+		return true
 	var plan := _plan(at_position, data)
 	_show_plan(plan)
 	return plan.x >= 0.0
 
 
 func _drop_data(at_position: Vector2, data: Variant) -> void:
+	if _is_remove_drag(data):
+		if data is Dictionary:
+			data["handled"] = true
+		_indicator.visible = false
+		var index := int(data.get("index", -1))
+		if bool(data.get("group", false)):
+			remove_group.emit(index)
+		else:
+			remove_line.emit(index)
+		return
 	var plan := _plan(at_position, data)
 	_indicator.visible = false
 	if plan.x < 0.0 or not data is Dictionary:
 		return
+	data["handled"] = true
 	var source := str(data.get("source", ""))
 	if source == "palette":
 		var block := data.get("block") as CodeBlock
@@ -112,7 +147,8 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 		move_line.emit(int(data.get("index", -1)), int(plan.x), int(plan.y))
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_autoscroll(delta)
 	if _indicator == null or not _indicator.visible:
 		return
 	if not get_viewport().gui_is_dragging():
@@ -121,6 +157,31 @@ func _process(_delta: float) -> void:
 	var local := get_local_mouse_position()
 	if not Rect2(Vector2.ZERO, size).has_point(local):
 		_indicator.visible = false
+		return
+	var drag: Variant = get_viewport().gui_get_drag_data()
+	if _is_remove_drag(drag):
+		_indicator.visible = false
+		return
+	_show_plan(_plan(local, drag))
+
+
+func _autoscroll(delta: float) -> void:
+	if _scroll == null or delta <= 0.0:
+		return
+	var viewport := get_viewport()
+	if viewport == null or not viewport.gui_is_dragging():
+		return
+	var local := get_local_mouse_position()
+	if local.x < -8.0 or local.x > size.x + 8.0:
+		return
+	if local.y < -8.0 or local.y > size.y + 8.0:
+		return
+	var edge := clampf(size.y * 0.18, 28.0, 72.0)
+	var speed := 640.0
+	if local.y < edge:
+		_scroll.scroll_vertical = maxi(_scroll.scroll_vertical - int(speed * delta), 0)
+	elif local.y > size.y - edge:
+		_scroll.scroll_vertical += int(speed * delta)
 
 
 func _input(event: InputEvent) -> void:
@@ -167,9 +228,15 @@ func _gap_at(local_y: float) -> int:
 	var scrolled := local_y
 	if _scroll:
 		scrolled += float(_scroll.scroll_vertical)
-	if row_height <= 0.0:
+	if row_height <= 0.0 or _lines.is_empty():
 		return 0
-	return clampi(int(round(scrolled / row_height)), 0, _lines.size())
+	var row := int(floor(scrolled / row_height))
+	if row < 0:
+		return 0
+	if row >= _lines.size():
+		return _lines.size()
+	# The pointer is on this block. Insert after it instead of taking its slot.
+	return row + 1
 
 
 func _show_plan(plan: Vector2) -> void:
@@ -186,5 +253,19 @@ func _show_plan(plan: Vector2) -> void:
 	_indicator.visible = true
 
 
+func _on_card_drop(at_position: Vector2, data: Variant, card: BlockCard) -> void:
+	var global_point := card.get_global_transform_with_canvas() * at_position
+	var local := get_global_transform_with_canvas().affine_inverse() * global_point
+	_drop_data(local, data)
+
+
 func _on_card_remove(index: int) -> void:
 	remove_line.emit(index)
+
+
+func _on_card_remove_group(index: int) -> void:
+	remove_group.emit(index)
+
+
+func _is_remove_drag(data: Variant) -> bool:
+	return data is Dictionary and str(data.get("source", "")) == "script" and bool(data.get("remove", false))

@@ -12,8 +12,9 @@ mouse_filter = 0
 theme = ExtResource("2_theme")
 theme_type_variation = &"BlockCard"
 script = ExtResource("1_card")
-bob_pixels = 2.5
-tilt_degrees = 1.3
+bob_pixels = 6.0
+tilt_degrees = 2.2
+drift_pixels = 5.0
 hover_lift = 3.0
 hover_scale = 1.045
 visual_inset_y = 2.0
@@ -21,6 +22,7 @@ indent_pad = 8.0
 indent_step = 32.0
 max_width = 440.0
 block_height = 40.0
+display_extra = 0.0
 
 [node name="Highlight" type="ColorRect" parent="."]
 unique_name_in_owner = true

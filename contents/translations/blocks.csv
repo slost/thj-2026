@@ -47,6 +47,9 @@ code.forget_everything.name,Forget everything,ลืมทุกอย่าง
 code.forget_everything.desc,Let go of every person and every plan.,ลืมทั้งคนที่จำไว้และทุกแผน
 ui.code_editor.tab_conditions,Conditions,เงื่อนไข
 ui.code_editor.tab_actions,Actions,คำสั่ง
+ui.code_editor.sort_name,Name,ชื่อ
+ui.code_editor.sort_kind,Kind,ชนิด
+ui.code_editor.sort_ram,RAM,แรม
 ui.code_editor.ram_hint,Remembered people and plans also use RAM.,คนที่จำไว้กับแผนก็ใช้แรมด้วย
 ui.code_editor.ram,RAM  {used} / {max},แรม  {used} / {max}
 ui.code_editor.ram_badge,{cost} RAM,{cost} แรม

@@ -6,16 +6,22 @@
 [ext_resource type="Script" path="res://systems/code_editor/editor.gd" id="4_editor"]
 [ext_resource type="Script" path="res://systems/code_editor/block_palette.gd" id="5_palette"]
 [ext_resource type="Script" path="res://systems/code_editor/script_view.gd" id="6_script"]
+[ext_resource type="Script" path="res://systems/code_editor/script_links.gd" id="8_links"]
 [ext_resource type="Theme" path="res://systems/code_editor/editor_theme.tres" id="7_theme"]
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_units"]
 allow_unpress = false
 
+[sub_resource type="ButtonGroup" id="ButtonGroup_sort"]
+allow_unpress = false
+
 [node name="Editor" type="Node2D" unique_id=849782930]
 script = ExtResource("4_editor")
-slot_bar_height = 48.0
-header_height = 88.0
+slot_bar_height = 44.0
+header_height = 70.0
 page_inset = 10.0
+menu_lift = 42.0
+palette_extra = 84.0
 debug_gutter = 64.0
 min_body_height = 80.0
 drag_pan_scale = 0.35
@@ -153,21 +159,23 @@ offset_bottom = 44.0
 grow_horizontal = 2
 theme_override_constants/separation = 8
 
-[node name="ConditionsTab" type="Button" parent="BlockPalette/Tabs"]
+[node name="SortConditions" type="Button" parent="BlockPalette/Tabs"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
 toggle_mode = true
 button_pressed = true
+button_group = SubResource("ButtonGroup_sort")
 text = "ui.code_editor.tab_conditions"
 
-[node name="ActionsTab" type="Button" parent="BlockPalette/Tabs"]
+[node name="SortActions" type="Button" parent="BlockPalette/Tabs"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
 toggle_mode = true
+button_group = SubResource("ButtonGroup_sort")
 text = "ui.code_editor.tab_actions"
 
 [node name="PaletteScroll" type="ScrollContainer" parent="BlockPalette"]
@@ -195,7 +203,7 @@ offset_right = 420.0
 offset_bottom = 480.0
 theme = ExtResource("7_theme")
 script = ExtResource("6_script")
-row_height = 44.0
+row_height = 64.0
 indent_step = 32.0
 indent_pad = 8.0
 
@@ -209,10 +217,28 @@ grow_horizontal = 2
 grow_vertical = 2
 horizontal_scroll_mode = 0
 
-[node name="ScriptRows" type="VBoxContainer" parent="ScriptView/ScriptScroll"]
+[node name="ScriptBody" type="Control" parent="ScriptView/ScriptScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="ScriptLinks" type="Control" parent="ScriptView/ScriptScroll/ScriptBody"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("8_links")
+
+[node name="ScriptRows" type="VBoxContainer" parent="ScriptView/ScriptScroll/ScriptBody"]
+unique_name_in_owner = true
+layout_mode = 0
+size_flags_horizontal = 3
+mouse_filter = 2
 theme_override_constants/separation = 0
 
 [node name="EmptyLabel" type="Label" parent="ScriptView"]
