@@ -1,0 +1,250 @@
+[gd_scene format=3 uid="uid://bj53ne3c8l3uu"]
+
+[ext_resource type="Texture2D" uid="uid://cleaedx2qgdaa" path="res://placeholders/tex_zombie.png" id="1_0deoq"]
+
+[sub_resource type="Animation" id="anim_RESET"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="anim_attack"]
+resource_name = "attack"
+length = 1.05
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:region_rect")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.25, 0.45, 0.55, 0.8, 0.9),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Rect2(129, 810, 129, 258), Rect2(274, 810, 129, 258), Rect2(418, 810, 129, 258), Rect2(555, 810, 136, 258), Rect2(703, 810, 131, 258), Rect2(850, 810, 129, 258), Rect2(996, 810, 129, 258)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:offset")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.25, 0.45, 0.55, 0.8, 0.9),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Vector2(-64, -258), Vector2(-64, -258), Vector2(-64, -258), Vector2(-68, -258), Vector2(-65, -258), Vector2(-64, -258), Vector2(-64, -258)]
+}
+
+[sub_resource type="Animation" id="anim_dead"]
+resource_name = "dead"
+length = 0.9375
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:region_rect")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.125, 0.3125, 0.4375, 0.5625),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 1,
+"values": [Rect2(129, 1357, 129, 251), Rect2(275, 1357, 158, 251), Rect2(449, 1357, 338, 251), Rect2(801, 1357, 338, 251), Rect2(1153, 1357, 337, 251)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:offset")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.125, 0.3125, 0.4375, 0.5625),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 1,
+"values": [Vector2(-64, -251), Vector2(-93, -250), Vector2(-168, -251), Vector2(-168, -251), Vector2(-168, -251)]
+}
+
+[sub_resource type="Animation" id="anim_hurt"]
+resource_name = "hurt"
+length = 0.65
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:region_rect")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.25, 0.4, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [Rect2(130, 1093, 129, 245), Rect2(274, 1093, 129, 245), Rect2(418, 1093, 129, 245), Rect2(563, 1093, 129, 245)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:offset")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.25, 0.4, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [Vector2(-64, -244), Vector2(-64, -244), Vector2(-64, -244), Vector2(-64, -245)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.06, 0.2),
+"transitions": PackedFloat32Array(1, 0.5, 1),
+"update": 0,
+"values": [Vector2(1.08, 0.92), Vector2(1.08, 0.92), Vector2(1, 1)]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:modulate")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.06, 0.2),
+"transitions": PackedFloat32Array(1, 0.5, 1),
+"update": 0,
+"values": [Color(1, 0.45, 0.45, 1), Color(1, 0.45, 0.45, 1), Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="anim_idle"]
+resource_name = "idle"
+length = 1.08
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:region_rect")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.24, 0.44, 0.64, 0.84),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 1,
+"values": [Rect2(131, 284, 128, 244), Rect2(274, 284, 129, 244), Rect2(416, 284, 133, 244), Rect2(560, 284, 129, 244), Rect2(700, 284, 129, 244)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:offset")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.24, 0.44, 0.64, 0.84),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 1,
+"values": [Vector2(-64, -244), Vector2(-64, -244), Vector2(-66, -244), Vector2(-64, -244), Vector2(-64, -244)]
+}
+
+[sub_resource type="Animation" id="anim_spawn"]
+resource_name = "spawn"
+length = 0.5625
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:region_rect")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.125, 0.25, 0.375),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [Rect2(129, 5, 128, 253), Rect2(275, 5, 129, 253), Rect2(419, 5, 129, 253), Rect2(560, 5, 129, 253)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:offset")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.125, 0.25, 0.375),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [Vector2(-64, -252), Vector2(-64, -252), Vector2(-64, -252), Vector2(-64, -252)]
+}
+
+[sub_resource type="Animation" id="anim_walk"]
+resource_name = "walk"
+length = 0.625
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:region_rect")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.125, 0.25, 0.375, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 1,
+"values": [Rect2(131, 554, 129, 244), Rect2(274, 554, 129, 244), Rect2(416, 554, 129, 244), Rect2(558, 554, 129, 244), Rect2(700, 554, 129, 244)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:offset")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.125, 0.25, 0.375, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 1,
+"values": [Vector2(-64, -243), Vector2(-64, -243), Vector2(-64, -243), Vector2(-64, -243), Vector2(-64, -243)]
+}
+
+[sub_resource type="AnimationLibrary" id="lib"]
+_data = {
+&"RESET": SubResource("anim_RESET"),
+&"attack": SubResource("anim_attack"),
+&"dead": SubResource("anim_dead"),
+&"hurt": SubResource("anim_hurt"),
+&"idle": SubResource("anim_idle"),
+&"spawn": SubResource("anim_spawn"),
+&"walk": SubResource("anim_walk")
+}
+
+[node name="Main" type="Node2D" unique_id=1632750384]
+
+[node name="Zombie" type="Node2D" parent="." unique_id=2031203556]
+
+[node name="Sprite2D" type="Sprite2D" parent="Zombie" unique_id=1332503709]
+texture = ExtResource("1_0deoq")
+centered = false
+offset = Vector2(-64, -258)
+flip_h = true
+region_enabled = true
+region_rect = Rect2(996, 810, 129, 258)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Zombie" unique_id=274531755]
+libraries/ = SubResource("lib")

@@ -8,6 +8,7 @@ signal died(unit: Unit2D)
 
 enum State { SPAWNING, IDLE, MOVING, ATTACKING, DEAD }
 enum Team { NONE, MINION, VILLAGER } ## None is neutral, Minions are hostile to Villagers, Villagers are hostile to Minions
+enum Race { ZOMBIE, SKELETON_MELEE, SKELETON_RANGED, DIRE_WOLF, VILLAGER_MELEE, VILLAGER_RANGED, WARDOG } ## Race is used to determine the unit's abilities and animations.
 
 const GROUP := &"units"
 const ARRIVE_RADIUS := 8.0
@@ -21,11 +22,34 @@ const AVOID_NEIGHBOR_DISTANCE := 320.0
 ## NavigationServer publishes the path a moment after target_position changes.
 const PATH_SETTLE_TIME := 0.35
 
+const _VILLAGER_CLOTHES: Array[Texture2D] = [
+	preload("res://contents/assets/tex_villager_clothes_1.png"),
+	preload("res://contents/assets/tex_villager_clothes_2.png"),
+	preload("res://contents/assets/tex_villager_clothes_3.png"),
+]
+const _VILLAGER_HAIR: Array[Texture2D] = [
+	preload("res://contents/assets/tex_villager_hair_1.png"),
+	preload("res://contents/assets/tex_villager_hair_2.png"),
+	preload("res://contents/assets/tex_villager_hair_3.png"),
+]
+const _VILLAGER_HEADS: Array[Texture2D] = [
+	preload("res://contents/assets/tex_villager_head_1.png"),
+	preload("res://contents/assets/tex_villager_head_2.png"),
+	preload("res://contents/assets/tex_villager_head_3.png"),
+]
+const _VILLAGER_WEAPONS: Array[Texture2D] = [
+	preload("res://contents/assets/tex_villager_weapons_1.png"),
+	preload("res://contents/assets/tex_villager_weapons_2.png"),
+]
+
 @export var def: UnitDef
+## Visual clips: spawn, idle, walk, attack, hurt, dead.
 @export var anim_player: AnimationPlayer
 ## Runtime team. When def is set, _ready copies def.team over this export.
 ## The export is only the fallback used by a unit placed without a definition.
 @export var team: Team = Team.MINION
+## Runtime race. When def is set, _ready copies def.race and mounts that animation scene.
+@export var race: Race = Race.ZOMBIE
 
 @onready var runner: ProgramRunner = $ProgramRunner
 @onready var health: HealthComponent = $ComponentContainer/HealthComponent
@@ -71,6 +95,7 @@ func _ready() -> void:
 	_ensure_agent()
 	_apply_definition()
 	_wire_health()
+	_bind_animation_player()
 	_begin_spawn()
 
 
@@ -110,17 +135,20 @@ func set_state(new_state: State) -> void:
 		_no_route = false
 		collision_layer = 0
 		collision_mask = 0
+	_play_for_state(new_state)
 
 
 #region Setup
 func _apply_definition() -> void:
 	if def:
 		team = def.team
+		race = def.race
 		stats = UnitStats.from_def(def)
 		program = def.starting_program.clone() if def.starting_program else _empty_program()
 	else:
 		stats = UnitStats.new()
 		program = _empty_program()
+	_mount_race_visual()
 	_apply_gpu_animation()
 
 
@@ -142,11 +170,82 @@ func _wire_health() -> void:
 		health.died.connect(_on_health_died)
 
 
+func _race_scene_path(which: Race) -> String:
+	match which:
+		Race.ZOMBIE:
+			return "res://contents/animations/zombie.tscn"
+		Race.SKELETON_MELEE:
+			return "res://contents/animations/skeleton_melee.tscn"
+		Race.SKELETON_RANGED:
+			return "res://contents/animations/skeleton_range.tscn"
+		Race.DIRE_WOLF:
+			return "res://contents/animations/dire_wolf.tscn"
+		Race.VILLAGER_MELEE, Race.VILLAGER_RANGED:
+			return "res://contents/animations/villager.tscn"
+		Race.WARDOG:
+			return "res://contents/animations/wardog.tscn"
+	return ""
+
+
+func _is_villager_race(which: Race) -> bool:
+	return which == Race.VILLAGER_MELEE or which == Race.VILLAGER_RANGED
+
+
+## The scene ships with the zombie visual. Other races replace that child.
+func _mount_race_visual() -> void:
+	var path := _race_scene_path(race)
+	var scene: PackedScene = null
+	if path != "":
+		scene = load(path) as PackedScene
+	var existing := get_node_or_null("Visual") as Node2D
+	if scene == null:
+		push_error("Unit2D has no animation scene for race %s." % Race.keys()[race])
+		return
+	if existing != null and existing.scene_file_path == scene.resource_path:
+		anim_player = existing.get_node_or_null("AnimationPlayer") as AnimationPlayer
+		if _is_villager_race(race):
+			_randomize_villager_sprites(existing)
+		return
+	if existing:
+		if anim_player and anim_player.animation_finished.is_connected(_on_animation_finished):
+			anim_player.animation_finished.disconnect(_on_animation_finished)
+		anim_player = null
+		existing.free()
+	var visual := scene.instantiate() as Node2D
+	if visual == null:
+		push_error("Unit2D animation scene for race %s is not a Node2D." % Race.keys()[race])
+		return
+	visual.name = "Visual"
+	add_child(visual)
+	move_child(visual, 0)
+	anim_player = visual.get_node_or_null("AnimationPlayer") as AnimationPlayer
+	if _is_villager_race(race):
+		_randomize_villager_sprites(visual)
+
+
+func _randomize_villager_sprites(visual: Node) -> void:
+	_assign_sprite_texture(visual, &"Body", _VILLAGER_CLOTHES)
+	_assign_sprite_texture(visual, &"Hair", _VILLAGER_HAIR)
+	_assign_sprite_texture(visual, &"Face", _VILLAGER_HEADS)
+	_assign_sprite_texture(visual, &"Tool", _VILLAGER_WEAPONS)
+
+
+func _assign_sprite_texture(visual: Node, node_name: StringName, choices: Array[Texture2D]) -> void:
+	var sprite := visual.get_node_or_null(NodePath(node_name)) as Sprite2D
+	if sprite == null or choices.is_empty():
+		return
+	sprite.texture = choices[randi_range(0, choices.size() - 1)]
+
+
+func _bind_animation_player() -> void:
+	if anim_player == null:
+		return
+	if not anim_player.animation_finished.is_connected(_on_animation_finished):
+		anim_player.animation_finished.connect(_on_animation_finished)
+
+
 func _begin_spawn() -> void:
-	if anim_player and anim_player.has_animation(&"spawn"):
-		if not anim_player.animation_finished.is_connected(_on_animation_finished):
-			anim_player.animation_finished.connect(_on_animation_finished)
-		anim_player.play(&"spawn")
+	if _play_clip(&"spawn"):
 		return
 	_on_spawn_finished()
 
@@ -156,6 +255,8 @@ func _on_animation_finished(anim_name: StringName) -> void:
 		_on_spawn_finished()
 	elif anim_name == &"attack":
 		_finish_attack()
+	elif anim_name == &"hurt":
+		_resume_after_hurt()
 
 
 func _on_spawn_finished() -> void:
@@ -165,6 +266,69 @@ func _on_spawn_finished() -> void:
 	if runner:
 		runner.fire(EventGraph.Event.ON_SPAWN)
 	spawned.emit(self)
+
+
+func _play_for_state(current: State) -> void:
+	if current != State.DEAD and _is_hurt_playing():
+		return
+	match current:
+		State.IDLE:
+			_play_clip(&"idle")
+		State.MOVING:
+			_play_clip(&"walk")
+		State.DEAD:
+			_play_clip(&"dead")
+		_:
+			pass
+
+
+func _is_hurt_playing() -> bool:
+	return (
+		anim_player != null
+		and anim_player.current_animation == &"hurt"
+		and anim_player.is_playing()
+	)
+
+
+func _resume_after_hurt() -> void:
+	match state:
+		State.MOVING:
+			_play_clip(&"walk")
+		State.IDLE:
+			_play_clip(&"idle")
+		_:
+			pass
+
+
+func _play_hurt() -> void:
+	if state == State.DEAD or state == State.SPAWNING or state == State.ATTACKING or _dying:
+		return
+	_play_clip(&"hurt", true)
+
+
+func _play_clip(clip: StringName, restart: bool = false) -> bool:
+	if anim_player == null or not anim_player.has_animation(clip):
+		return false
+	if not restart and anim_player.current_animation == clip and anim_player.is_playing():
+		return true
+	_restore_sprite_pose()
+	anim_player.play(clip)
+	return true
+
+
+## Hurt writes scale onto the body sprites and modulate onto the visual root.
+func _restore_sprite_pose() -> void:
+	if anim_player == null:
+		return
+	var root := anim_player.get_parent() as CanvasItem
+	if root == null or root == self:
+		return
+	root.modulate = Color.WHITE
+	for child in root.get_children():
+		var sprite := child as Sprite2D
+		if sprite == null:
+			continue
+		sprite.scale = Vector2.ONE
 
 #endregion
 
@@ -183,6 +347,8 @@ func take_damage(amount: int, attacker: Node = null) -> void:
 		runner.fire(EventGraph.Event.ON_HIT, attacker)
 	if stats.hp <= 0:
 		die()
+	else:
+		_play_hurt()
 
 
 func _on_health_damaged(_amount: float, current_health: float) -> void:
@@ -192,6 +358,8 @@ func _on_health_damaged(_amount: float, current_health: float) -> void:
 	damaged.emit(self, attacker)
 	if state != State.DEAD and not _dying and runner:
 		runner.fire(EventGraph.Event.ON_HIT, attacker)
+	if current_health > 0.0:
+		_play_hurt()
 
 
 func _on_health_died() -> void:
@@ -506,11 +674,10 @@ func attack(target: Unit2D) -> void:
 
 ## Stay in ATTACKING for the attack animation, or for Formular.calculate_attack_duration.
 func _begin_attack_hold() -> void:
-	if anim_player and anim_player.has_animation(&"attack"):
+	if _play_clip(&"attack"):
 		_attack_waits_for_animation = true
 		_attack_duration = 0.0
 		_attack_time_left = 0.0
-		anim_player.play(&"attack")
 		return
 	_attack_waits_for_animation = false
 	_attack_duration = Formular.calculate_attack_duration(get_gpu())
@@ -816,14 +983,23 @@ func _face_velocity() -> void:
 		_face_toward(global_position + velocity)
 
 
+## Flip the animated body. Clips write the sprite's own scale, so facing stays on its parent.
 func _face_toward(world_pos: Vector2) -> void:
-	var sprite := get_node_or_null("HotSwapSprite") as Node2D
-	if sprite == null:
+	var visual := _facing_node()
+	if visual == null:
 		return
 	var dx := world_pos.x - global_position.x
 	if dx < -1.0:
-		sprite.scale.x = -absf(sprite.scale.x)
+		visual.scale.x = -absf(visual.scale.x)
 	elif dx > 1.0:
-		sprite.scale.x = absf(sprite.scale.x)
+		visual.scale.x = absf(visual.scale.x)
+
+
+func _facing_node() -> Node2D:
+	if anim_player != null:
+		var parent := anim_player.get_parent() as Node2D
+		if parent != null and parent != self:
+			return parent
+	return get_node_or_null("HotSwapSprite") as Node2D
 
 #endregion

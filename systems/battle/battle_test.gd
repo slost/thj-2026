@@ -66,10 +66,10 @@ func _enter_tree() -> void:
 		if minions[index] != template:
 			add_child.call_deferred(minions[index])
 	for index in villagers.size():
-		_setup_unit(villagers[index], "Villager %d" % (index + 1), Unit2D.Team.VILLAGER, dummy, 1, 1, map.map_to_local(_VILLAGER_CELLS[index]), Color(1.0, 0.82, 0.65))
+		_setup_unit(villagers[index], "Villager %d" % (index + 1), Unit2D.Team.VILLAGER, dummy, 1, 1, map.map_to_local(_VILLAGER_CELLS[index]), Color(1.0, 0.82, 0.65), Unit2D.Race.VILLAGER_MELEE)
 		add_child.call_deferred(villagers[index])
 	for index in fleers.size():
-		_setup_unit(fleers[index], "Villager Flee %d" % (index + 1), Unit2D.Team.VILLAGER, _flee_program, 1, 1, map.map_to_local(_FLEE_CELLS[index]), Color(0.7, 0.85, 1.0))
+		_setup_unit(fleers[index], "Villager Flee %d" % (index + 1), Unit2D.Team.VILLAGER, _flee_program, 1, 1, map.map_to_local(_FLEE_CELLS[index]), Color(0.7, 0.85, 1.0), Unit2D.Race.VILLAGER_MELEE)
 		add_child.call_deferred(fleers[index])
 
 
@@ -82,9 +82,9 @@ func _ready() -> void:
 	$UI.add_child(script_panel)
 
 
-func _setup_unit(unit: Unit2D, unit_name: String, team: Unit2D.Team, program: UnitProgram, cpu: int, gpu: int, pos: Vector2, tint: Color) -> void:
+func _setup_unit(unit: Unit2D, unit_name: String, team: Unit2D.Team, program: UnitProgram, cpu: int, gpu: int, pos: Vector2, tint: Color, race: Unit2D.Race = Unit2D.Race.ZOMBIE) -> void:
 	unit.name = unit_name
-	unit.def = _build_def(team, program, cpu, gpu)
+	unit.def = _build_def(team, program, cpu, gpu, race)
 	unit.position = pos
 	unit.modulate = tint
 	var overlay := _Overlay.new()
@@ -132,7 +132,7 @@ func spawn_minion() -> Unit2D:
 
 func spawn_villager() -> Unit2D:
 	_spawn_serial += 1
-	return _spawn_unit("Villager Flee %d" % (3 + _spawn_serial), Unit2D.Team.VILLAGER, _flee_program, 1, 1, Color(0.7, 0.85, 1.0))
+	return _spawn_unit("Villager Flee %d" % (3 + _spawn_serial), Unit2D.Team.VILLAGER, _flee_program, 1, 1, Color(0.7, 0.85, 1.0), Unit2D.Race.VILLAGER_MELEE)
 
 
 func toggle_pause() -> bool:
@@ -238,9 +238,9 @@ func _grid() -> GridNav:
 	return null
 
 
-func _spawn_unit(unit_name: String, team: Unit2D.Team, program: UnitProgram, cpu: int, gpu: int, tint: Color) -> Unit2D:
+func _spawn_unit(unit_name: String, team: Unit2D.Team, program: UnitProgram, cpu: int, gpu: int, tint: Color, race: Unit2D.Race = Unit2D.Race.ZOMBIE) -> Unit2D:
 	var unit := _UNIT_SCENE.instantiate() as Unit2D
-	_setup_unit(unit, unit_name, team, program, cpu, gpu, _random_walkable_position(), tint)
+	_setup_unit(unit, unit_name, team, program, cpu, gpu, _random_walkable_position(), tint, race)
 	add_child(unit)
 	return unit
 
@@ -255,9 +255,10 @@ func _random_walkable_position() -> Vector2:
 	return map.map_to_local(cell)
 
 
-func _build_def(team: Unit2D.Team, program: UnitProgram, cpu: int, gpu: int) -> UnitDef:
+func _build_def(team: Unit2D.Team, program: UnitProgram, cpu: int, gpu: int, race: Unit2D.Race = Unit2D.Race.ZOMBIE) -> UnitDef:
 	var def := UnitDef.new()
 	def.team = team
+	def.race = race
 	def.speed = 160.0
 	def.detect_range = 8
 	def.cpu = cpu

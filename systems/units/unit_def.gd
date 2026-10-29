@@ -3,6 +3,7 @@ class_name UnitDef
 
 
 @export var team: Unit2D.Team
+@export var race: Unit2D.Race
 @export var max_hp: int = 30
 @export var speed: float = 60.0
 @export var damage: int = 5

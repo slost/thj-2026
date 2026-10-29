@@ -10,8 +10,9 @@
 [ext_resource type="Script" uid="uid://dgfcfexheyfng" path="res://addons/lost_framework/modules/composition/components/health_bar_component.gd" id="7_cgeqx"]
 [ext_resource type="Script" uid="uid://hwspds5p73t4" path="res://systems/program/program_runner.gd" id="8_runner"]
 [ext_resource type="Script" uid="uid://b8hsaob2md2d5" path="res://systems/units/unit_focus_component.gd" id="9_focus"]
-[ext_resource type="Script" path="res://systems/units/think_bar_component.gd" id="10_think"]
-[ext_resource type="Script" path="res://systems/units/animation_bar_component.gd" id="11_anim"]
+[ext_resource type="Script" uid="uid://dggj6njf3ybfj" path="res://systems/units/think_bar_component.gd" id="10_think"]
+[ext_resource type="Script" uid="uid://bu2m75mlu2hmu" path="res://systems/units/animation_bar_component.gd" id="11_anim"]
+[ext_resource type="PackedScene" uid="uid://fjfcl4ws5mom" path="res://contents/animations/zombie.tscn" id="12_zombie"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_qb6br"]
 shader = ExtResource("2_0e6tn")
@@ -19,43 +20,6 @@ shader_parameter/clr = Color(0, 0, 0, 1)
 shader_parameter/type = 2
 shader_parameter/thickness = 1.0
 shader_parameter/outline_only = false
-
-[sub_resource type="Animation" id="Animation_0e6tn"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("HotSwapSprite:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 1,
-"values": [0]
-}
-
-[sub_resource type="Animation" id="Animation_qb6br"]
-resource_name = "spawn"
-length = 4.0
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("HotSwapSprite:frame")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.47396374, 0.9, 1.2666667, 1.8333334, 2.2666667, 2.7, 3.1333334, 3.7260363),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1),
-"update": 1,
-"values": [1, 2, 1, 2, 1, 3, 4, 3, 4]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_q1n42"]
-_data = {
-&"RESET": SubResource("Animation_0e6tn"),
-&"spawn": SubResource("Animation_qb6br")
-}
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_3p6ee"]
 atlas = ExtResource("5_eqkan")
@@ -103,9 +67,10 @@ radius = 64.0
 
 [node name="Unit" type="CharacterBody2D" unique_id=895876733 node_paths=PackedStringArray("anim_player")]
 script = ExtResource("1_5cw0r")
-anim_player = NodePath("AnimationPlayer")
+anim_player = NodePath("Visual/AnimationPlayer")
 
 [node name="HotSwapSprite" type="Sprite2D" parent="." unique_id=24050226]
+visible = false
 material = SubResource("ShaderMaterial_qb6br")
 position = Vector2(0, -64)
 texture = ExtResource("1_rul5k")
@@ -115,16 +80,14 @@ vframes = 6
 script = ExtResource("2_5cw0r")
 metadata/_custom_type_script = "uid://bgit4iapmj1bm"
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1509840275]
-libraries/ = SubResource("AnimationLibrary_q1n42")
-speed_scale = 2.0
-
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=928843504]
 visible = false
 use_parent_material = true
 sprite_frames = SubResource("SpriteFrames_51ode")
 frame = 1
 frame_progress = 0.981323
+
+[node name="Visual" parent="." instance=ExtResource("12_zombie")]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1653890286]
 shape = SubResource("CircleShape2D_eqkan")
@@ -146,15 +109,11 @@ offset = Vector2(0, -256)
 size = Vector2(128, 6)
 metadata/_custom_type_script = "uid://dgfcfexheyfng"
 
-[node name="ThinkBarComponent" type="Node" parent="ComponentContainer"]
+[node name="ThinkBarComponent" type="Node" parent="ComponentContainer" unique_id=1277441677]
 script = ExtResource("10_think")
-offset = Vector2(0, -242)
-size = Vector2(128, 6)
 
-[node name="AnimationBarComponent" type="Node" parent="ComponentContainer"]
+[node name="AnimationBarComponent" type="Node" parent="ComponentContainer" unique_id=998918903]
 script = ExtResource("11_anim")
-offset = Vector2(0, -228)
-size = Vector2(128, 6)
 
 [node name="ProgramRunner" type="Node" parent="." unique_id=569437827]
 script = ExtResource("8_runner")
