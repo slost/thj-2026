@@ -1,0 +1,103 @@
+[gd_scene format=3 uid="uid://fd3gr00o2nel"]
+
+[ext_resource type="Script" path="res://systems/debug/animation_debug.gd" id="1_script"]
+
+[node name="AnimationDebug" type="Node2D" unique_id=529635382]
+script = ExtResource("1_script")
+
+[node name="Preview" type="Node2D" parent="." unique_id=184220611]
+position = Vector2(1180, 860)
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=902114338]
+
+[node name="Panel" type="PanelContainer" parent="UI" unique_id=611203884]
+offset_left = 48.0
+offset_top = 48.0
+offset_right = 560.0
+offset_bottom = 1040.0
+
+[node name="Margin" type="MarginContainer" parent="UI/Panel" unique_id=440918225]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="Column" type="VBoxContainer" parent="UI/Panel/Margin" unique_id=773190441]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="UI/Panel/Margin/Column" unique_id=318440192]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Animation"
+
+[node name="RaceLabel" type="Label" parent="UI/Panel/Margin/Column" unique_id=552810334]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Unit Race"
+
+[node name="RaceOption" type="OptionButton" parent="UI/Panel/Margin/Column" unique_id=129440187]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+
+[node name="ClipLabel" type="Label" parent="UI/Panel/Margin/Column" unique_id=880124553]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Animation"
+
+[node name="ClipOption" type="OptionButton" parent="UI/Panel/Margin/Column" unique_id=670228411]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+
+[node name="SequenceButton" type="Button" parent="UI/Panel/Margin/Column" unique_id=418220671]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "Play all"
+
+[node name="LoopCheck" type="CheckBox" parent="UI/Panel/Margin/Column" unique_id=902441128]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Loop"
+
+[node name="GpuLabel" type="Label" parent="UI/Panel/Margin/Column" unique_id=214908773]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "GPU"
+
+[node name="GpuSpin" type="SpinBox" parent="UI/Panel/Margin/Column" unique_id=509331276]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+min_value = 1.0
+max_value = 99.0
+value = 1.0
+rounded = true
+
+[node name="CpuLabel" type="Label" parent="UI/Panel/Margin/Column" unique_id=773441902]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "CPU"
+
+[node name="CpuSpin" type="SpinBox" parent="UI/Panel/Margin/Column" unique_id=550218334]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+min_value = 1.0
+max_value = 99.0
+value = 1.0
+rounded = true
+
+[node name="SpeedLabel" type="Label" parent="UI/Panel/Margin/Column" unique_id=773009184]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "speed_scale 0.50"
+
+[node name="StatusLabel" type="Label" parent="UI/Panel/Margin/Column" unique_id=661002845]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+
+[node name="Back" type="Button" parent="UI/Panel/Margin/Column" unique_id=338120994]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "Back to Test Rooms"
+
+[connection signal="pressed" from="UI/Panel/Margin/Column/Back" to="." method="_on_back_pressed"]

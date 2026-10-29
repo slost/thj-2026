@@ -13,9 +13,8 @@ static func calculate_move_speed(gpu: int, cpu: int) -> float:
 
 
 ## AnimationPlayer speed_scale. 1.0 plays a clip for its authored length.
-static func calculate_animation_speed(gpu: int) -> float:
-	return float(maxi(gpu, 1)) * 0.5
-
+static func calculate_animation_speed(gpu: int, cpu: int = 1) -> float:
+	return 0.3 + (float(maxi(gpu, 1)) * 0.2)
 
 
 ## Seconds spent in ATTACKING when the unit has no attack clip.

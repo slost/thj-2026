@@ -170,7 +170,7 @@ func _wire_health() -> void:
 		health.died.connect(_on_health_died)
 
 
-func _race_scene_path(which: Race) -> String:
+static func scene_path_for_race(which: Race) -> String:
 	match which:
 		Race.ZOMBIE:
 			return "res://contents/animations/zombie.tscn"
@@ -187,13 +187,13 @@ func _race_scene_path(which: Race) -> String:
 	return ""
 
 
-func _is_villager_race(which: Race) -> bool:
+static func is_villager_race(which: Race) -> bool:
 	return which == Race.VILLAGER_MELEE or which == Race.VILLAGER_RANGED
 
 
 ## The scene ships with the zombie visual. Other races replace that child.
 func _mount_race_visual() -> void:
-	var path := _race_scene_path(race)
+	var path := scene_path_for_race(race)
 	var scene: PackedScene = null
 	if path != "":
 		scene = load(path) as PackedScene
@@ -203,8 +203,8 @@ func _mount_race_visual() -> void:
 		return
 	if existing != null and existing.scene_file_path == scene.resource_path:
 		anim_player = existing.get_node_or_null("AnimationPlayer") as AnimationPlayer
-		if _is_villager_race(race):
-			_randomize_villager_sprites(existing)
+		if is_villager_race(race):
+			randomize_villager_sprites(existing)
 		return
 	if existing:
 		if anim_player and anim_player.animation_finished.is_connected(_on_animation_finished):
@@ -219,18 +219,18 @@ func _mount_race_visual() -> void:
 	add_child(visual)
 	move_child(visual, 0)
 	anim_player = visual.get_node_or_null("AnimationPlayer") as AnimationPlayer
-	if _is_villager_race(race):
-		_randomize_villager_sprites(visual)
+	if is_villager_race(race):
+		randomize_villager_sprites(visual)
 
 
-func _randomize_villager_sprites(visual: Node) -> void:
+static func randomize_villager_sprites(visual: Node) -> void:
 	_assign_sprite_texture(visual, &"Body", _VILLAGER_CLOTHES)
 	_assign_sprite_texture(visual, &"Hair", _VILLAGER_HAIR)
 	_assign_sprite_texture(visual, &"Face", _VILLAGER_HEADS)
 	_assign_sprite_texture(visual, &"Tool", _VILLAGER_WEAPONS)
 
 
-func _assign_sprite_texture(visual: Node, node_name: StringName, choices: Array[Texture2D]) -> void:
+static func _assign_sprite_texture(visual: Node, node_name: StringName, choices: Array[Texture2D]) -> void:
 	var sprite := visual.get_node_or_null(NodePath(node_name)) as Sprite2D
 	if sprite == null or choices.is_empty():
 		return

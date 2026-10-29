@@ -13,5 +13,9 @@ func _on_battle_button_2_pressed() -> void:
 	pass # Replace with function body.
 
 
+func _on_animation_button_pressed() -> void:
+	get_tree().change_scene_to_file("res://systems/debug/animation_debug.tscn")
+
+
 func _on_code_button_pressed() -> void:
 	get_tree().change_scene_to_file("res://systems/code_editor/editor_standalone.tscn")
