@@ -339,8 +339,8 @@ func _show_ram() -> void:
 	var slot := _current_slot()
 	if slot == null or _ram_label == null:
 		return
-	var used := slot.get_update_function().get_ram_cost()
-	var pattern := LocaleText.resolve("ui.code_editor.ram", "RAM  {used} / {max}")
+	var used := slot.get_update_function().get_mb_cost()
+	var pattern := LocaleText.resolve("ui.code_editor.ram", "RAM: {used}/{max} MB")
 	_ram_label.text = pattern.format({"used": used, "max": slot.ram_max()})
 	_ram_label.remove_theme_color_override(&"font_color")
 
@@ -367,7 +367,7 @@ func _on_place(block: CodeBlock, index: int, indent: int) -> void:
 	if slot == null or block == null or Game.block_inventory == null:
 		return
 	var function := slot.get_update_function()
-	if not ScriptEditing.fits_ram(function.get_ram_cost(), block, slot.ram_max()):
+	if not ScriptEditing.fits_ram(function.get_mb_cost(), block, slot.ram_max()):
 		_flash_ram()
 		return
 	if not Game.block_inventory.remove(block, 1):

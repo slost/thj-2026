@@ -9,3 +9,4 @@ name = "Forget the latest plan"
 description = "Drop the last plan you were going to do."
 slot = 1
 which = 1
+mb_cost = 1

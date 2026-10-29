@@ -7,3 +7,4 @@ script = ExtResource("1_block")
 id = &"attack_target"
 name = "Attack the target"
 description = "Hit the one you remember if they are close enough."
+mb_cost = 1

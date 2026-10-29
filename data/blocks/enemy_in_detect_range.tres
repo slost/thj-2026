@@ -7,3 +7,4 @@ script = ExtResource("1_block")
 id = &"enemy_in_detect_range"
 name = "Enemy in sight"
 description = "You can see an enemy."
+mb_cost = 1

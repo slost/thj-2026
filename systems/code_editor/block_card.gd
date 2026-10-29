@@ -236,8 +236,8 @@ func _apply() -> void:
 	_count_badge.visible = _show_count and _count > 0
 	var count_pattern := LocaleText.resolve("ui.code_editor.count", "x{count}", "en")
 	_count_label.text = count_pattern.format({"count": _count})
-	var cost := _block.get_ram_cost() if _block else 0
-	var ram_pattern := LocaleText.resolve("ui.code_editor.ram_badge", "{cost} RAM", "en")
+	var cost := _block.get_mb_cost() if _block else 0
+	var ram_pattern := LocaleText.resolve("ui.code_editor.ram_badge", "{cost} MB", "en")
 	_ram_label.text = ram_pattern.format({"cost": cost})
 	var condition := _block is ConditionBlock
 	if _selected:

@@ -50,8 +50,8 @@ ui.code_editor.tab_actions,Actions,คำสั่ง
 ui.code_editor.sort_name,Name,ชื่อ
 ui.code_editor.sort_kind,Kind,ชนิด
 ui.code_editor.sort_ram,RAM,แรม
-ui.code_editor.ram_hint,Remembered people and plans also use RAM.,คนที่จำไว้กับแผนก็ใช้แรมด้วย
-ui.code_editor.ram,RAM  {used} / {max},แรม  {used} / {max}
-ui.code_editor.ram_badge,{cost} RAM,{cost} แรม
+ui.code_editor.ram_hint,Remembered people and plans also use MB.,คนที่จำไว้กับแผนก็ใช้ MB ด้วย
+ui.code_editor.ram,RAM: {used}/{max} MB,แรม: {used}/{max} MB
+ui.code_editor.ram_badge,{cost} MB,{cost} MB
 ui.code_editor.count,x{count},x{count}
 ui.code_editor.empty,(empty),(ว่าง)

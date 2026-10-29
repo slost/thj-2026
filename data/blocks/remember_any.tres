@@ -8,3 +8,4 @@ id = &"remember_any"
 name = "Remember anyone"
 description = "Keep the nearest person you can see in mind."
 seen = 0
+mb_cost = 1

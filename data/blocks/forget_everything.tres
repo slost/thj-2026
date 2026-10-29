@@ -9,3 +9,4 @@ name = "Forget everything"
 description = "Let go of every person and every plan."
 slot = 2
 which = 2
+mb_cost = 1

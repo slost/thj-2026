@@ -6,12 +6,12 @@ extends Resource
 @export var event_graph: EventGraph = EventGraph.new()
 
 
-## Total RAM spent by every block in the program.
-func get_ram_cost() -> int:
+## Total MB spent by every block in the program.
+func get_mb_cost() -> int:
 	var total := 0
 	for fn in functions:
 		if fn:
-			total += fn.get_ram_cost()
+			total += fn.get_mb_cost()
 	return total
 
 

@@ -72,7 +72,9 @@ func _render(unit: Unit2D) -> String:
 	rows.append("[color=#9aa4b2]Targets[/color]  %s" % _escape(_target_list(unit)))
 	rows.append("[color=#9aa4b2]Queue[/color]  %s" % _escape(_queue_list(unit)))
 	if unit.stats:
-		rows.append("[color=#9aa4b2]RAM[/color]  %d / %d" % [unit.get_ram_used(), unit.stats.ram])
+		var pattern := LocaleText.resolve("ui.code_editor.ram", "RAM: {used}/{max} MB", "en")
+		var usage := pattern.format({"used": unit.get_ram_used(), "max": unit.stats.ram})
+		rows.append("[color=#9aa4b2]%s[/color]" % usage)
 	return "\n".join(rows)
 
 

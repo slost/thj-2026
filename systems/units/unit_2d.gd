@@ -444,7 +444,7 @@ func _freeze_overloaded() -> void:
 func get_ram_used() -> int:
 	var program_cost := 0
 	if program:
-		program_cost = program.get_ram_cost()
+		program_cost = program.get_mb_cost()
 	var slots := targets.size() + queue_actions.size()
 	return program_cost + slots * Formular.memory_slot_cost()
 

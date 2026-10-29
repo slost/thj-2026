@@ -69,9 +69,9 @@ func _test_slot_clone_keeps_shared_blocks() -> void:
 	ScriptEditing.insert_line(function_a.lines, 1, 0, block)
 	if function_b.lines.size() != 1 or source.functions[0].lines.size() != 1:
 		_fail("an edit leaked into another program")
-	var cost := block.ram_cost
+	var cost := block.mb_cost
 	function_a.lines[0].indent = 4
-	if block.ram_cost != cost or source.functions[0].lines[0].indent != 0:
+	if block.mb_cost != cost or source.functions[0].lines[0].indent != 0:
 		_fail("editing a line changed the shared block or the source line")
 
 
@@ -312,7 +312,7 @@ func _test_editor_screen() -> void:
 	if inventory.get_count(detect) != owned - 1:
 		_fail("placing did not consume a condition")
 	var ram_label := editor.get_node(^"%RamLabel") as Label
-	if not str(ram_label.text).contains("2 / 8"):
+	if not str(ram_label.text).contains("2/8") or not str(ram_label.text).contains("MB"):
 		_fail("RAM meter was '%s'" % ram_label.text)
 	var row_box := editor.get_node(^"%ScriptRows") as Node
 	if row_box.get_child_count() < 2:
@@ -765,7 +765,6 @@ func _test_world_map_book() -> void:
 	pan.offset = Vector2.ZERO
 	var camera := world.get_node(^"Camera2D") as Camera2D
 	camera.offset = Vector2.ZERO
-	pan.set_process(true)
 	for _frame in 2:
 		await process_frame
 	var book_before_pan := _canvas_origin(screen)
@@ -780,6 +779,7 @@ func _test_world_map_book() -> void:
 	if palette_pan.distance_to(book_pan) > 1.5:
 		_fail("pages slipped off the book when the camera moved, book %s pages %s" % [book_pan, palette_pan])
 	camera.offset = Vector2.ZERO
+	pan.set_process(true)
 	var rows := editor.get_node(^"%ScriptRows") as Node
 	if rows.get_child_count() != count:
 		_fail("open editor did not show the roster script, rows %d lines %d" % [rows.get_child_count(), count])

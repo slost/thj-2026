@@ -8,3 +8,4 @@ id = &"random_chance"
 name = "Feeling lucky"
 description = "You feel lucky {chance} of the time."
 chance = 0.5
+mb_cost = 1

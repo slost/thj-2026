@@ -8,3 +8,4 @@ id = &"remember_hostile"
 name = "Remember an enemy"
 description = "Keep the nearest enemy you can see in mind."
 seen = 1
+mb_cost = 1

@@ -9,3 +9,4 @@ name = "Forget all targets"
 description = "Let go of everyone you remember."
 slot = 0
 which = 2
+mb_cost = 1
