@@ -5,6 +5,8 @@ extends RefCounted
 
 var def: UnitDef
 var program: UnitProgram
+## What the player spends to summon this spell. Empty means one corpse.
+var costs: Array[SummonCost] = []
 
 
 static func blank_program() -> UnitProgram:
@@ -22,6 +24,15 @@ static func blank_program() -> UnitProgram:
 	created.functions = functions
 	created.event_graph = graph
 	return created
+
+
+func get_costs() -> Array[SummonCost]:
+	if costs.is_empty():
+		var price := SummonCost.new()
+		price.resource_type = 0
+		price.amount = 1
+		costs.append(price)
+	return costs
 
 
 func display_name() -> String:

@@ -17,6 +17,7 @@ func _run() -> void:
 	await _test_world_map_book()
 	await _test_raid_spawns_roster()
 	await _test_stop_thinking()
+	await _test_army_carry()
 	var game := root.get_node_or_null(^"Game")
 	if game == null:
 		_fail("Game autoload is missing")
@@ -1000,6 +1001,141 @@ func _test_stop_thinking() -> void:
 	if unit.targets.size() != remembered:
 		_fail("a stopped think cleared remembered targets")
 	unit.queue_free()
+
+
+func _test_army_carry() -> void:
+	TranslationServer.set_locale("en")
+	var game := root.get_node(^"Game")
+	game.set("corpse", 2)
+	var army: Array = game.get("army")
+	army.clear()
+	var spells: Array = game.get("spells")
+	var spell := spells[7] as SummonSpell
+	var stand := load("res://data/blocks/stand_still.tres") as CodeBlock
+	var stop := load("res://data/blocks/stop_thinking.tres") as CodeBlock
+	var fn := spell.get_update_function()
+	fn.lines.clear()
+	var line := ScriptLine.new()
+	line.block = stand
+	fn.lines.append(line)
+	var summoner: Script = load("res://systems/game/summoner.gd")
+	if str(summoner.deny_reason(spell)) != "Not enough corpses" and int(game.get("corpse")) == 0:
+		_fail("broke summon gave no reason")
+	var camp := Node2D.new()
+	root.add_child(camp)
+	var first: Unit2D = summoner.summon(spell, camp, Vector2(48, 48))
+	var second: Unit2D = summoner.summon(spell, camp, Vector2(160, 48))
+	if first == null or second == null:
+		_fail("camp summon did not spend a corpse and spawn")
+		return
+	if int(game.get("corpse")) != 0:
+		_fail("two summons did not spend 2 corpses, left %s" % str(game.get("corpse")))
+	if army.size() != 2:
+		_fail("army did not record both summons, got %d" % army.size())
+		return
+	if summoner.summon(spell, camp, Vector2(240, 48)) != null:
+		_fail("summoned with no corpses left")
+	if str(summoner.deny_reason(spell)) != "Not enough corpses":
+		_fail("missing corpse flash was '%s'" % str(summoner.deny_reason(spell)))
+	var spell_block: CodeBlock = fn.lines[0].block
+	var unit_block: CodeBlock = _update_lines(first.program)[0].block
+	if unit_block == spell_block:
+		_fail("summoned unit shares the spell's block")
+	var extra := ScriptLine.new()
+	extra.block = stop
+	fn.lines.append(extra)
+	if _update_lines(first.program).size() != 1 or _update_lines(second.program).size() != 1:
+		_fail("editing the spell changed a summoned unit")
+	var member_a: ArmyMember = army[0]
+	var member_b: ArmyMember = army[1]
+	if _update_lines(member_a.def.starting_program).size() != 1:
+		_fail("editing the spell changed the army snapshot")
+	first.health.current_health = 11
+	first.stats.hp = 11
+	second.health.current_health = 4
+	second.stats.hp = 4
+	summoner.stash_army()
+	army = game.get("army")
+	if army.size() != 2 or int(army[0].hp) != 11 or int(army[1].hp) != 4:
+		_fail("stash did not keep both survivors' hp")
+		return
+	var battle := (load("res://systems/battle/battle.tscn") as PackedScene).instantiate() as Node2D
+	root.add_child(battle)
+	await process_frame
+	battle.call("spawn_army")
+	await process_frame
+	var brought := _minions_under(battle)
+	if brought.size() != 2:
+		_fail("raid did not bring the camp army, got %d" % brought.size())
+		return
+	var wounded: Unit2D = null
+	for unit in brought:
+		if _update_lines(unit.program).size() != 1:
+			_fail("battle unit did not keep the snapshot script")
+		if unit.program.functions[0].lines[0].block == spell_block:
+			_fail("battle unit shares the edited spell block")
+		if int(round(unit.health.get_health())) == 11:
+			wounded = unit
+	if wounded == null:
+		_fail("survivor hp was not carried into battle")
+		return
+	for unit in brought:
+		if unit == wounded:
+			continue
+		unit.health.current_health = 0
+		unit.set_state(Unit2D.State.DEAD)
+	summoner.stash_army()
+	army = game.get("army")
+	if army.size() != 1 or int(army[0].hp) != 11:
+		_fail("the dead unit stayed in the army, size %d" % army.size())
+		return
+	var home := Node2D.new()
+	root.add_child(home)
+	summoner.spawn_army_at(home)
+	await process_frame
+	var returned := _minions_under(home)
+	if returned.size() != 1:
+		_fail("the survivor did not return to camp, got %d" % returned.size())
+		return
+	if int(round(returned[0].health.get_health())) != 11:
+		_fail("returned survivor lost hp, got %s" % str(returned[0].health.get_health()))
+	if _update_lines(returned[0].program).size() != 1:
+		_fail("returned survivor followed the edited spell")
+	fn.lines.append(extra)
+	if _update_lines(returned[0].program).size() != 1:
+		_fail("a later spell edit changed the camp army")
+	var encoded: Variant = JSON.parse_string(JSON.stringify(summoner.army_to_data(army)))
+	var restored: Array = summoner.army_from_data(encoded)
+	if restored.size() != 1 or int(restored[0].hp) != 11:
+		_fail("army save did not keep the survivor")
+		return
+	if _update_lines(restored[0].def.starting_program).size() != 1:
+		_fail("army save lost the script")
+	if str(_update_lines(restored[0].def.starting_program)[0].block.id) != "stand_still":
+		_fail("army save lost the block")
+	var saves := root.get_node(^"SaveManager")
+	saves.call("set_metadata_value", "army", summoner.army_to_data(army))
+	if not bool(saves.call("save_slot", 9)):
+		_fail("army metadata did not save")
+	else:
+		var meta: Dictionary = saves.call("get_slot_metadata", 9)
+		var from_slot: Array = summoner.army_from_data(meta.get("army", []))
+		if from_slot.size() != 1 or int(from_slot[0].hp) != 11:
+			_fail("map slot did not restore the army")
+		saves.call("delete_slot", 9)
+	army.clear()
+	camp.queue_free()
+	home.queue_free()
+	battle.queue_free()
+
+
+func _update_lines(program: UnitProgram) -> Array[ScriptLine]:
+	if program == null:
+		return []
+	for fn in program.functions:
+		if fn and fn.function_name == "ON_UPDATE":
+			return fn.lines
+	return []
 
 
 func _minions_under(battle: Node) -> Array[Unit2D]:

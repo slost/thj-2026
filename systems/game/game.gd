@@ -38,6 +38,12 @@ var world_map: WorldMap
 var block_inventory: BlockInventory
 ## Summon spells. Each keeps its own program, cloned from the def on first use.
 var spells: Array[SummonSpell] = []
+## Minions summoned in camp or battle. Snapshots, not the live spells.
+var army: Array[ArmyMember] = []
+## False until the map save has been read once this session.
+var _army_loaded := false
+
+const _Summoner := preload("res://systems/game/summoner.gd")
 
 const _SPELL_COUNT := 8
 const _SEED_RAM: Array[int] = [8, 12, 16, 10, 8, 14, 12, 9]
@@ -50,6 +56,7 @@ func change_stage(stage: Node) -> void:
 func raid_to(location: TownLocation, slots: Array[int] = []) -> void:
 	raid_target_id = location.get_save_key()
 	raid_slots = _normalize_raid_slots(slots)
+	_Summoner.stash_army()
 	save_map_state()
 	get_tree().change_scene_to_file(BATTLE_SCENE)
 
@@ -73,6 +80,7 @@ func _normalize_raid_slots(slots: Array[int]) -> Array[int]:
 
 
 func back_to_map() -> void:
+	_Summoner.stash_army()
 	pending_raid_damage = 50.0 # test only, remove this later
 	get_tree().change_scene_to_file(MAP_SCENE)
 
@@ -84,11 +92,31 @@ func load_map_state() -> void:
 	if world_map != null:
 		world_map.refresh_locations()
 
+	if not _army_loaded:
+		var meta := SaveManager.get_slot_metadata(MAP_SAVE_SLOT)
+		_replace_army(_Summoner.army_from_data(meta.get("army", [])))
+		_army_loaded = true
+	else:
+		_write_army()
+
 	_apply_pending_raid_damage()
 
 
 func save_map_state() -> void:
+	_write_army()
 	SaveManager.save_slot(MAP_SAVE_SLOT)
+
+
+func _write_army() -> void:
+	SaveManager.set_metadata_value("army", _Summoner.army_to_data(army))
+
+
+func _replace_army(loaded: Array) -> void:
+	army.clear()
+	for entry in loaded:
+		var member := entry as ArmyMember
+		if member:
+			army.append(member)
 
 
 func _apply_pending_raid_damage() -> void:
@@ -111,6 +139,8 @@ func _apply_pending_raid_damage() -> void:
 
 func restart() -> void:
 	_clear_raid_request()
+	army.clear()
+	_army_loaded = true
 	SaveManager.delete_slot(MAP_SAVE_SLOT)
 	get_tree().reload_current_scene()
 	# get_tree().change_scene_to_file(MAP_SCENE)
@@ -118,6 +148,8 @@ func restart() -> void:
 
 func delete_save() -> void:
 	_clear_raid_request()
+	army.clear()
+	_army_loaded = true
 	SaveManager.delete_slot(MAP_SAVE_SLOT)
 	if world_map != null:
 		world_map.reset_locations()
@@ -198,4 +230,8 @@ func _seed_spells_if_empty() -> void:
 		def.starting_program = SummonSpell.blank_program()
 		var spell := SummonSpell.new()
 		spell.def = def
+		var price := SummonCost.new()
+		price.resource_type = ResourceType.CORPSE
+		price.amount = 1
+		spell.costs.append(price)
 		spells.append(spell)

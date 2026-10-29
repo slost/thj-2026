@@ -34,6 +34,9 @@ var _map_rest_scale: Vector2 = Vector2.ONE
 var _map_tween: Tween
 
 
+const _Summoner := preload("res://systems/game/summoner.gd")
+
+
 func _ready() -> void:
 	Game.change_stage(self)
 	Game.world_map = self
@@ -41,7 +44,10 @@ func _ready() -> void:
 		_map_rest_position = map.position
 		_map_rest_scale = map.scale
 	unfocus_location()
+	Game.load_map_state()
 	set_state()
+	if camp:
+		_Summoner.spawn_army_at(camp)
 
 	# Test resources
 	Game.change_resource(Game.ResourceType.CORPSE, 10)
@@ -260,6 +266,8 @@ func _update_state() -> void:
 	set_camp_visible(current_state == State.CAMP)
 	set_book_visible(current_state == State.CODE)
 	_sync_code_editor()
+	if current_state == State.CAMP and camp:
+		_Summoner.spawn_army_at(camp)
 
 
 func _sync_code_editor() -> void:

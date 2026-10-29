@@ -1,6 +1,7 @@
 extends Node2D
 
 const _INDICATOR_TEXTURE := preload("res://placeholders/tex_indicator.png")
+const _Summoner := preload("res://systems/game/summoner.gd")
 const _UNIT_SCENE := preload("res://systems/units/unit.tscn")
 const _SPAWN_CELLS: Array[Vector2i] = [
 	Vector2i(-4, -3),
@@ -22,6 +23,7 @@ const _SPAWN_CELLS: Array[Vector2i] = [
 var _villager_max: Dictionary = {}
 var _stage_ended := false
 var _party_spawned := false
+var _army_spawned := false
 
 
 func _ready() -> void:
@@ -38,6 +40,8 @@ func _ready() -> void:
 		mount_raid_tools()
 		if spawn_raid_party_on_ready:
 			spawn_raid_party()
+		else:
+			spawn_army()
 	if _stage_end:
 		_stage_end.visible = false
 	_refresh_city_progress()
@@ -243,6 +247,12 @@ func _cell_position(map: TileMapLayer, cell: Vector2i) -> Vector2:
 	return to_local(map.to_global(map.map_to_local(cell)))
 
 
+func _cell_global(map: TileMapLayer, cell: Vector2i) -> Vector2:
+	if map == null:
+		return global_position
+	return map.to_global(map.map_to_local(cell))
+
+
 func _party_name(slot: SummonSpell, index: int) -> String:
 	var title := slot.display_name().replace("/", " ").replace(":", " ")
 	if title.is_empty():
@@ -251,27 +261,55 @@ func _party_name(slot: SummonSpell, index: int) -> String:
 
 
 func _def_for_slot(slot: SummonSpell) -> UnitDef:
-	var def := UnitDef.new()
-	var source := slot.def
-	if source != null:
-		def.id = source.id
-		def.name = source.name
-		def.team = source.team
-		def.max_hp = source.max_hp
-		def.speed = source.speed
-		def.damage = source.damage
-		def.detect_range = source.detect_range
-		def.attack_range = source.attack_range
-		def.attack_cooldown = source.attack_cooldown
-		def.cpu = source.cpu
-		def.gpu = source.gpu
-		def.ram = source.ram
-		def.mb = source.mb
-		var events: Array[EventGraph.Event] = []
-		for event in source.allowed_events:
-			events.append(event)
-		def.allowed_events = events
-	else:
-		def.team = Unit2D.Team.MINION
-	def.starting_program = slot.get_program()
-	return def
+	return _Summoner.copy_def(slot)
+
+
+## Spawns the camp army from each member's snapshot, inside the summon area.
+func spawn_army() -> void:
+	if _army_spawned:
+		return
+	_army_spawned = true
+	var game := _game()
+	if game == null:
+		return
+	var members: Array = game.get("army")
+	var map := get_node_or_null("TileMaps/Map") as TileMapLayer
+	var director := get_node_or_null("FocusDirector") as FocusDirector
+	var cells := _summon_cells()
+	var first: Unit2D = null
+	var spawned := 0
+	for entry in members:
+		var member := entry as ArmyMember
+		if member == null:
+			continue
+		var cell := cells[spawned % cells.size()] if not cells.is_empty() else Vector2i.ZERO
+		var unit := _Summoner.spawn_member(member, self, _cell_global(map, cell))
+		if unit == null:
+			continue
+		spawned += 1
+		if first == null:
+			first = unit
+	if first == null or director == null:
+		return
+	var target := first.get_node_or_null("ComponentContainer/UnitFocusComponent") as FocusTargetComponent
+	if target:
+		director.select_target(target)
+
+
+func _summon_cells() -> Array[Vector2i]:
+	var cells: Array[Vector2i] = []
+	for cell in _SPAWN_CELLS:
+		if summon_area.has_point(cell):
+			cells.append(cell)
+	var grid := get_node_or_null("GridNav") as GridNav
+	for y in range(summon_area.position.y, summon_area.position.y + summon_area.size.y):
+		for x in range(summon_area.position.x, summon_area.position.x + summon_area.size.x):
+			var cell := Vector2i(x, y)
+			if cells.has(cell):
+				continue
+			if grid != null and not grid.is_walkable_cell(cell):
+				continue
+			cells.append(cell)
+	if cells.is_empty():
+		cells.append_array(_SPAWN_CELLS)
+	return cells
