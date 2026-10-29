@@ -30,7 +30,6 @@ tile_size = Vector2i(128, 128)
 sources/1 = SubResource("TileSetAtlasSource_fl75l")
 
 [sub_resource type="LabelSettings" id="LabelSettings_debug"]
-font_size = 16
 outline_size = 4
 outline_color = Color(0, 0, 0, 1)
 
@@ -56,10 +55,10 @@ position = Vector2(283, 132)
 layer = 10
 
 [node name="DebugLabel" type="Label" parent="UI" unique_id=2065205759]
-offset_left = 32.0
-offset_top = 24.0
-offset_right = 720.0
-offset_bottom = 280.0
+offset_left = 990.0
+offset_top = 128.0
+offset_right = 1980.0
+offset_bottom = 384.0
 text = "Nothing focused"
 label_settings = SubResource("LabelSettings_debug")
 
