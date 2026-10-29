@@ -57,6 +57,7 @@ data.spell_7.name,Spell 7,เวท 7
 data.spell_8.name,Spell 8,เวท 8
 ui.code_editor.sort_conditions_first,Conditions first,เงื่อนไขขึ้นก่อน
 ui.code_editor.sort_actions_first,Actions first,คำสั่งขึ้นก่อน
+ui.summon.not_enough_corpses,Not enough corpses,ศพไม่พอ
 ui.code_editor.sort_name,Name,ชื่อ
 ui.code_editor.sort_kind,Kind,ชนิด
 ui.code_editor.sort_ram,RAM,แรม

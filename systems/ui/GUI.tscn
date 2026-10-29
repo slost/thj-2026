@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://cospigsfyasoa" path="res://placeholders/tex_portrait_focus.png" id="3_ck3vr"]
 [ext_resource type="Script" uid="uid://bgit4iapmj1bm" path="res://addons/lost_framework/modules/asset_manager/hot_swap_sprite.gd" id="4_fc8et"]
 [ext_resource type="Texture2D" uid="uid://cr2lb1v5v0igi" path="res://systems/ui/tex_portrait_idle_book.png" id="6_ck3vr"]
+[ext_resource type="PackedScene" path="res://systems/ui/summon_hotbar.tscn" id="7_hotbar"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_a8e4d"]
 
@@ -15,6 +16,8 @@ portrait = NodePath("NearBackground/HotSwapSprite")
 book = NodePath("BookBackground/BookSprite")
 far = NodePath("FarBackground/FarSprite")
 hand = NodePath("BookBackground/HandSprite")
+
+[node name="SummonHotbar" parent="." instance=ExtResource("7_hotbar")]
 
 [node name="PanelContainer" type="PanelContainer" parent="." unique_id=782532032]
 anchors_preset = 5

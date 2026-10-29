@@ -13,6 +13,11 @@ const _SPAWN_CELLS: Array[Vector2i] = [
 @onready var _stage_end: Control = $CanvasLayer/StageEndScreen
 @onready var _city_progress: ProgressBar = $CanvasLayer/CityProgress
 
+## Cells the player may summon into. Covers the old left-edge spawn column.
+@export var summon_area: Rect2i = Rect2i(-6, -4, 3, 8)
+## The raid used to drop every spell on the field. The hotbar summons instead.
+@export var spawn_raid_party_on_ready: bool = false
+
 ## Max HP of every villager that has entered this battle, kept after the body is gone.
 var _villager_max: Dictionary = {}
 var _stage_ended := false
@@ -31,7 +36,8 @@ func _ready() -> void:
 	_wire_focus(hover, pin)
 	if _is_raid_scene():
 		mount_raid_tools()
-		spawn_raid_party()
+		if spawn_raid_party_on_ready:
+			spawn_raid_party()
 	if _stage_end:
 		_stage_end.visible = false
 	_refresh_city_progress()
@@ -219,6 +225,16 @@ func spawn_raid_party() -> void:
 	var target := first.get_node_or_null("ComponentContainer/UnitFocusComponent") as FocusTargetComponent
 	if target:
 		director.select_target(target)
+
+
+func summon_spot(world_pos: Vector2) -> Dictionary:
+	var grid := get_node_or_null("GridNav") as GridNav
+	if grid == null:
+		return {"ok": false, "pos": world_pos}
+	var cell := grid.world_to_cell(world_pos)
+	var pos := grid.cell_to_world(cell)
+	var ok := summon_area.has_point(cell) and grid.is_walkable_cell(cell)
+	return {"ok": ok, "pos": pos}
 
 
 func _cell_position(map: TileMapLayer, cell: Vector2i) -> Vector2:

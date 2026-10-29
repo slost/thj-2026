@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" uid="uid://caqqo21gm7uu2" path="res://systems/world_map/map.tscn" id="8_5xdch"]
 [ext_resource type="Script" uid="uid://bo1xnktwb64sr" path="res://systems/world_map/map_state_button.gd" id="10_5rc7b"]
 [ext_resource type="PackedScene" uid="uid://b7gl0em3a23l" path="res://systems/code_editor/editor.tscn" id="11_editor"]
+[ext_resource type="Script" path="res://systems/world_map/camp_ground.gd" id="12_camp"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_6ji8r"]
 font_size = 32
@@ -187,6 +188,7 @@ script = ExtResource("6_pan")
 max_offset = Vector2(76.8, 48)
 
 [node name="Camp" type="Node2D" parent="." unique_id=2094654453]
+script = ExtResource("12_camp")
 
 [node name="TextureRect" type="TextureRect" parent="Camp" unique_id=250820297]
 visible = false

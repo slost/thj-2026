@@ -278,6 +278,7 @@ func set_camp_visible(value: bool = true) -> void:
 			if child.has_method("set_visible"):
 				child.set_visible(value)
 		camp.visible = value
+		camp.process_mode = Node.PROCESS_MODE_INHERIT if value else Node.PROCESS_MODE_DISABLED
 
 
 func set_book_visible(value: bool = true) -> void:
@@ -299,6 +300,14 @@ func _update_buttons() -> void:
 			camp_button.modulate = Color.WHITE
 		State.CODE:
 			code_button.modulate = Color.WHITE
+
+
+func summon_spot(world_pos: Vector2) -> Dictionary:
+	if current_state != State.CAMP or camp == null or not camp.has_method("contains_world"):
+		return {"ok": false, "pos": world_pos}
+	if not bool(camp.call("contains_world", world_pos)):
+		return {"ok": false, "pos": world_pos}
+	return {"ok": true, "pos": world_pos}
 
 
 func _on_raid_button_pressed() -> void:
