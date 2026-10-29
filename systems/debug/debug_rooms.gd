@@ -14,4 +14,4 @@ func _on_battle_button_2_pressed() -> void:
 
 
 func _on_code_button_pressed() -> void:
-	get_tree().change_scene_to_file("res://systems/code_editor/editor.tscn")
+	get_tree().change_scene_to_file("res://systems/code_editor/editor_standalone.tscn")

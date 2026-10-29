@@ -21,6 +21,8 @@ var _rebuild_queued := false
 var _stroke_open := false
 var _stroke_started_msec := 0
 var _stroke: Array[int] = []
+## False while the editor is closed, so shortcuts and drag scrolling stay off the map.
+var _input_enabled := true
 const _GROUP_HOLD_MSEC := 420
 
 @onready var _scroll: ScrollContainer = %ScriptScroll
@@ -156,7 +158,23 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 		move_line.emit(int(data.get("index", -1)), int(plan.x), int(plan.y))
 
 
+## Keyboard shortcuts, drag scrolling, and the delete stroke. Closed editors must not see them.
+func set_input_enabled(enabled: bool) -> void:
+	_input_enabled = enabled
+	set_process(enabled)
+	set_process_input(enabled)
+	if enabled:
+		return
+	_stroke_open = false
+	_stroke.clear()
+	if _indicator:
+		_indicator.visible = false
+	_paint_stroke()
+
+
 func _process(delta: float) -> void:
+	if not _input_enabled:
+		return
 	_autoscroll(delta)
 	if _stroke_open:
 		if not Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
@@ -199,6 +217,8 @@ func _autoscroll(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if not _input_enabled:
+		return
 	if not event is InputEventKey:
 		return
 	var key := event as InputEventKey

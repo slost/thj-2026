@@ -9,6 +9,8 @@ enum State {MAP, PINNED, CAMP, CODE, FOCUS}
 @export var map: Node2D
 @export var camp: Node2D
 @export var book: Node2D
+## Node, not CodeEditor: that script reads Game, and Game references WorldMap.
+@export var code_editor: Node
 @export var town_info: Control
 @export var map_marker: Marker2D
 
@@ -49,6 +51,15 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if current_state == State.CODE and event is InputEventKey:
+		var key := event as InputEventKey
+		if key.pressed and not key.echo and key.keycode == KEY_ESCAPE:
+			set_state(State.MAP)
+			get_viewport().set_input_as_handled()
+			return
+	# Card drags and the open book must not select or clear a town.
+	if get_viewport().gui_is_dragging():
+		return
 	if current_state != State.MAP and current_state != State.FOCUS and current_state != State.PINNED:
 		return
 	if event is not InputEventMouseButton or not event.pressed:
@@ -248,6 +259,16 @@ func _town_at_mouse() -> TownLocation:
 func _update_state() -> void:
 	set_camp_visible(current_state == State.CAMP)
 	set_book_visible(current_state == State.CODE)
+	_sync_code_editor()
+
+
+func _sync_code_editor() -> void:
+	if code_editor == null:
+		return
+	if current_state == State.CODE:
+		code_editor.call(&"open")
+	else:
+		code_editor.call(&"close")
 
 
 func set_camp_visible(value: bool = true) -> void:

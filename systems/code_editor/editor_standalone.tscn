@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" uid="uid://dw84jg68x20tf" path="res://addons/lost_framework/modules/camera_controler/mouse_pan_component.gd" id="1_pan"]
+[ext_resource type="PackedScene" uid="uid://b7gl0em3a23l" path="res://systems/code_editor/editor.tscn" id="2_editor"]
+
+[node name="EditorStandalone" type="Node2D"]
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="MousePan" type="Node" parent="Camera2D"]
+script = ExtResource("1_pan")
+max_offset = Vector2(76.8, 48)
+
+[node name="Editor" parent="." instance=ExtResource("2_editor")]

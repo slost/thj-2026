@@ -53,6 +53,10 @@ func _drop_data(_at_position: Vector2, data: Variant) -> void:
 		return_line.emit(index)
 
 
+func refresh() -> void:
+	_queue_rebuild()
+
+
 func _queue_rebuild() -> void:
 	if _rebuild_queued:
 		return

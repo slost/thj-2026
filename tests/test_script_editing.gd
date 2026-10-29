@@ -14,6 +14,7 @@ func _run() -> void:
 	_test_inventory()
 	_test_translations()
 	await _test_editor_screen()
+	await _test_world_map_book()
 	var game := root.get_node_or_null(^"Game")
 	if game == null:
 		_fail("Game autoload is missing")
@@ -218,8 +219,9 @@ func _test_editor_screen() -> void:
 	var attack := load("res://data/blocks/attack_target.tres") as CodeBlock
 	var detect := load("res://data/blocks/enemy_in_detect_range.tres") as ConditionBlock
 	inventory.add(attack, 20)
-	var editor := (load("res://systems/code_editor/editor.tscn") as PackedScene).instantiate()
-	root.add_child(editor)
+	var host := (load("res://systems/code_editor/editor_standalone.tscn") as PackedScene).instantiate()
+	root.add_child(host)
+	var editor := host.get_node(^"Editor")
 	for _frame in 10:
 		await process_frame
 	var palette := editor.get_node(^"%BlockPalette") as Control
@@ -510,7 +512,7 @@ func _test_editor_screen() -> void:
 	if alert.r < 0.6 or alert.g > 0.3:
 		_fail("RAM meter did not flash red, got %s" % alert)
 	await _test_pages_follow_pan(editor, palette, script)
-	editor.queue_free()
+	host.queue_free()
 
 
 func _test_translations() -> void:
@@ -644,10 +646,163 @@ func _canvas_origin(item: CanvasItem) -> Vector2:
 	return item.get_global_transform_with_canvas().origin
 
 
-func _test_pages_follow_pan(editor: Node, palette: Control, script: Control) -> void:
-	var pan := editor.get_node(^"Camera2D/MousePan") as Node
+func _map_state(world: Node, state_name: String) -> int:
+	var states: Dictionary = world.get_script().get_script_constant_map()["State"]
+	return int(states[state_name])
+
+
+func _set_map_state(world: Node, state_name: String) -> void:
+	world.call(&"set_state", _map_state(world, state_name))
+
+
+func _editor_is_open(editor: Node) -> bool:
+	return bool(editor.call(&"is_open"))
+
+
+func _test_world_map_book() -> void:
+	await process_frame
+	var game := root.get_node(^"Game")
+	var world := (load("res://systems/world_map/world_map.tscn") as PackedScene).instantiate() as Node2D
+	if world == null:
+		_fail("world map scene did not instantiate")
+		return
+	root.add_child(world)
+	for _frame in 8:
+		await process_frame
+	if world.get_node_or_null(^"BookBackground/Label") != null:
+		_fail("book placeholder is still mounted")
+	var editor := world.get_node_or_null(^"BookBackground/Editor")
+	if editor == null:
+		_fail("world map has no code editor")
+		world.queue_free()
+		return
+	if editor.get_node_or_null(^"Camera2D") != null:
+		_fail("editor still owns a camera")
+	var screen := world.get_node(^"BookBackground/BookScreen") as Sprite2D
+	if editor.get("book") != screen:
+		_fail("editor is not laid out on the world map book")
+	var owned := editor.get_node(^"BookScreen") as CanvasItem
+	if owned.visible:
+		_fail("editor drew a second book sprite")
+	if bool(editor.get("active_on_ready")):
+		_fail("world map editor starts active")
+	if _editor_is_open(editor):
+		_fail("editor was open on the map")
+	var pan := world.get_node(^"Camera2D/MousePan") as MousePanComponent
+	pan.max_offset = Vector2(21, 13)
+	await process_frame
+	if not pan.max_offset.is_equal_approx(Vector2(21, 13)):
+		_fail("closed editor changed the map pan, got %s" % pan.max_offset)
+	pan.max_offset = Vector2(76.8, 48)
+	var closes: Array[int] = [0]
+	editor.connect(&"closed", func() -> void: closes[0] += 1)
+	_set_map_state(world, "MAP")
+	if closes[0] != 0:
+		_fail("closing an already closed editor emitted closed")
+	_set_map_state(world, "CODE")
+	for _frame in 8:
+		await process_frame
+	if not _editor_is_open(editor):
+		_fail("Code state did not open the editor")
+	var roster: Array = game.get("roster")
+	var slot := roster[0] as MinionSlot
+	var count := slot.get_update_function().lines.size()
+	if count <= 0:
+		_fail("roster slot 0 was empty before the map round-trip")
+	var palette := editor.get_node(^"%BlockPalette") as Control
+	var script := editor.get_node(^"%ScriptView") as ScriptView
+	var book_rect := _sprite_world_rect(screen)
+	if not book_rect.has_point(palette.get_global_rect().get_center()):
+		_fail("palette is not on the world map book: %s book %s" % [palette.get_global_rect(), book_rect])
+	if not book_rect.has_point(script.get_global_rect().get_center()):
+		_fail("script is not on the world map book: %s book %s" % [script.get_global_rect(), book_rect])
+	var button := editor.get_node(^"%UnitButton1") as Button
+	if button.mouse_filter != Control.MOUSE_FILTER_STOP:
+		_fail("open editor blocked its own buttons")
+	var background := world.get_node(^"BookBackground") as Node2D
+	background.position = Vector2(80, -40)
+	screen.position = Vector2(30, -20)
+	for _frame in 3:
+		await process_frame
+	book_rect = _sprite_world_rect(screen)
+	if not book_rect.has_point(palette.get_global_rect().get_center()):
+		_fail("pages did not follow the book after it moved: palette %s book %s" % [palette.get_global_rect(), book_rect])
+	if not book_rect.has_point(script.get_global_rect().get_center()):
+		_fail("script did not follow the book after it moved: script %s book %s" % [script.get_global_rect(), book_rect])
+	background.position = Vector2.ZERO
+	screen.position = Vector2.ZERO
+	for _frame in 2:
+		await process_frame
+	var parallax := background.get_node(^"ParallaxOffset") as ParallaxOffsetComponent
+	parallax.enabled = true
 	pan.set_process(false)
-	var camera := editor.get_node(^"Camera2D") as Camera2D
+	var book_before := _canvas_origin(screen)
+	var palette_before := _canvas_origin(palette)
+	pan.offset = Vector2(50, 20)
+	await process_frame
+	await process_frame
+	var book_delta := _canvas_origin(screen) - book_before
+	var palette_delta := _canvas_origin(palette) - palette_before
+	if book_delta.length() < 5.0:
+		_fail("parallax did not move the book, delta %s" % book_delta)
+	if palette_delta.distance_to(book_delta) > 1.5:
+		_fail("pages did not stay on the parallaxed book, book %s pages %s" % [book_delta, palette_delta])
+	parallax.enabled = false
+	background.position = Vector2.ZERO
+	pan.offset = Vector2.ZERO
+	var camera := world.get_node(^"Camera2D") as Camera2D
+	camera.offset = Vector2.ZERO
+	pan.set_process(true)
+	var rows := editor.get_node(^"%ScriptRows") as Node
+	if rows.get_child_count() != count:
+		_fail("open editor did not show the roster script, rows %d lines %d" % [rows.get_child_count(), count])
+	script.select_line(0)
+	_set_map_state(world, "MAP")
+	if _editor_is_open(editor):
+		_fail("map state left the editor open")
+	if closes[0] != 1:
+		_fail("leaving the book did not emit closed once, got %d" % closes[0])
+	if script.is_processing_input():
+		_fail("closed editor still reads the keyboard")
+	if button.mouse_filter != Control.MOUSE_FILTER_IGNORE:
+		_fail("closed editor still takes clicks")
+	var key := InputEventKey.new()
+	key.keycode = KEY_DELETE
+	key.pressed = true
+	script._input(key)
+	if slot.get_update_function().lines.size() != count:
+		_fail("closed editor deleted a line")
+	_set_map_state(world, "CODE")
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = true
+	world._unhandled_input(click)
+	if int(world.get("current_state")) != _map_state(world, "CODE"):
+		_fail("a click left the book")
+	var escape := InputEventKey.new()
+	escape.keycode = KEY_ESCAPE
+	escape.pressed = true
+	world.get_viewport().push_input(escape)
+	if int(world.get("current_state")) != _map_state(world, "MAP"):
+		_fail("escape did not return to the map")
+	if _editor_is_open(editor):
+		_fail("escape left the editor open")
+	_set_map_state(world, "CODE")
+	for _frame in 3:
+		await process_frame
+	rows = editor.get_node(^"%ScriptRows") as Node
+	if rows.get_child_count() != slot.get_update_function().lines.size():
+		_fail("reopening the book did not keep the roster script")
+	game.set("world_map", null)
+	game.set("current_stage", null)
+	world.queue_free()
+
+
+func _test_pages_follow_pan(editor: Node, palette: Control, script: Control) -> void:
+	var host := editor.get_parent()
+	var pan := host.get_node(^"Camera2D/MousePan") as Node
+	pan.set_process(false)
+	var camera := host.get_node(^"Camera2D") as Camera2D
 	var book := editor.get_node(^"BookScreen") as CanvasItem
 	await process_frame
 	var book_before := _canvas_origin(book)

@@ -2,7 +2,6 @@
 
 [ext_resource type="Texture2D" uid="uid://dqmg8d3tr3fsm" path="res://placeholders/text_pages.png" id="1_j75jk"]
 [ext_resource type="Script" uid="uid://bgit4iapmj1bm" path="res://addons/lost_framework/modules/asset_manager/hot_swap_sprite.gd" id="2_73kyq"]
-[ext_resource type="Script" uid="uid://dw84jg68x20tf" path="res://addons/lost_framework/modules/camera_controler/mouse_pan_component.gd" id="3_fhbsv"]
 [ext_resource type="Script" path="res://systems/code_editor/editor.gd" id="4_editor"]
 [ext_resource type="Script" path="res://systems/code_editor/block_palette.gd" id="5_palette"]
 [ext_resource type="Script" path="res://systems/code_editor/script_view.gd" id="6_script"]
@@ -33,12 +32,6 @@ texture = ExtResource("1_j75jk")
 script = ExtResource("2_73kyq")
 asset_id = "tex_book_screen"
 metadata/_custom_type_script = "uid://bgit4iapmj1bm"
-
-[node name="Camera2D" type="Camera2D" parent="." unique_id=712336434]
-
-[node name="MousePan" type="Node" parent="Camera2D" unique_id=2089436963]
-script = ExtResource("3_fhbsv")
-max_offset = Vector2(76.8, 48)
 
 [node name="UnitsContainer" type="HBoxContainer" parent="." unique_id=14003093]
 unique_name_in_owner = true

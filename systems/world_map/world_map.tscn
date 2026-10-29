@@ -10,6 +10,7 @@
 [ext_resource type="Script" uid="uid://dr6gpm73wngym" path="res://addons/lost_framework/modules/camera_controler/parallax_offset_component.gd" id="7_parallax"]
 [ext_resource type="PackedScene" uid="uid://caqqo21gm7uu2" path="res://systems/world_map/map.tscn" id="8_5xdch"]
 [ext_resource type="Script" uid="uid://bo1xnktwb64sr" path="res://systems/world_map/map_state_button.gd" id="10_5rc7b"]
+[ext_resource type="PackedScene" uid="uid://b7gl0em3a23l" path="res://systems/code_editor/editor.tscn" id="11_editor"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_6ji8r"]
 font_size = 32
@@ -51,19 +52,14 @@ expand_margin_right = 16.0
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_26kkc"]
 
-[sub_resource type="LabelSettings" id="LabelSettings_lq8d4"]
-font_size = 64
-font_color = Color(0, 0, 0, 1)
-
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_vjbm6"]
-
-[node name="WorldMap" type="Node2D" unique_id=1345538956 node_paths=PackedStringArray("indicator", "debug_label", "map", "camp", "book", "town_info", "map_marker", "map_button", "camp_button", "code_button")]
+[node name="WorldMap" type="Node2D" unique_id=1345538956 node_paths=PackedStringArray("indicator", "debug_label", "map", "camp", "book", "code_editor", "town_info", "map_marker", "map_button", "camp_button", "code_button")]
 script = ExtResource("1_k73hb")
 indicator = NodePath("FarBackground/Map/IndicatorSprite")
 debug_label = NodePath("UI/DebugLabel")
 map = NodePath("FarBackground/Map")
 camp = NodePath("Camp")
 book = NodePath("BookBackground")
+code_editor = NodePath("BookBackground/Editor")
 town_info = NodePath("UI/TownInfo")
 map_marker = NodePath("UI/Marker2D")
 map_button = NodePath("UI/StateContainer/MapButton")
@@ -215,44 +211,8 @@ script = ExtResource("2_fe0ic")
 asset_id = "tex_book_screen"
 metadata/_custom_type_script = "uid://bgit4iapmj1bm"
 
-[node name="Label" type="Label" parent="BookBackground" unique_id=903882784]
-offset_left = -688.0
-offset_top = -292.0
-offset_right = -50.0
-offset_bottom = -113.0
-text = "Code blocks
-that the player have"
-label_settings = SubResource("LabelSettings_lq8d4")
-
-[node name="Label2" type="Label" parent="BookBackground" unique_id=791570193]
-offset_left = 237.0
-offset_top = -245.0
-offset_right = 608.0
-offset_bottom = -149.0
-text = "Script"
-label_settings = SubResource("LabelSettings_lq8d4")
-
-[node name="Label3" type="Label" parent="BookBackground" unique_id=228503504]
-offset_left = 612.0
-offset_top = 124.0
-offset_right = 983.0
-offset_bottom = 220.0
-rotation = -1.5707964
-text = "Book Mark"
-label_settings = SubResource("LabelSettings_lq8d4")
-
-[node name="TextureRect" type="TextureRect" parent="BookBackground" unique_id=1379880202]
-offset_left = 1427.0
-offset_top = -532.0
-offset_right = 1595.0
-offset_bottom = -478.0
-texture = SubResource("PlaceholderTexture2D_vjbm6")
-
-[node name="TextureRect2" type="TextureRect" parent="BookBackground" unique_id=2088899733]
-offset_left = 1420.0
-offset_top = -435.0
-offset_right = 1588.0
-offset_bottom = -381.0
-texture = SubResource("PlaceholderTexture2D_vjbm6")
+[node name="Editor" parent="BookBackground" instance=ExtResource("11_editor") node_paths=PackedStringArray("book")]
+book = NodePath("../BookScreen")
+active_on_ready = false
 
 [connection signal="pressed" from="UI/TownInfo/VBoxContainer/RaidButton" to="." method="_on_raid_button_pressed"]

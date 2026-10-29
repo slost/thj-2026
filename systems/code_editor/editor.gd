@@ -1,7 +1,18 @@
 ## Code editor. Writes the selected minion's ON_UPDATE script in place.
-## Page controls are children of this node, in the same world space as the book,
-## so mouse pan slides the pages and the cards together.
+## Page controls live in this node's space, next to the book sprite, so a shared
+## camera pan and a shared parent (including parallax) move the pages with the book.
+## This node does not own a camera. Standalone play uses editor_standalone.tscn.
+## No class_name: this script reads the Game autoload, and a global class would
+## be compiled before that autoload exists.
 extends Node2D
+
+signal closed
+
+## Book the pages are laid onto. Empty uses the child BookScreen, for the standalone wrapper.
+@export var book: Sprite2D
+
+## Standalone play opens immediately. The world map leaves this off and calls open().
+@export var active_on_ready: bool = true
 
 @export var slot_bar_height: float = 44.0
 @export var header_height: float = 70.0
@@ -10,17 +21,29 @@ extends Node2D
 @export var palette_extra: float = 84.0
 @export var debug_gutter: float = 64.0
 @export var min_body_height: float = 80.0
+## While a card is dragging, the current MousePan limit is multiplied by this
+## so the book does not slide out from under the pointer.
 @export var drag_pan_scale: float = 0.35
 @export var ram_alert_color: Color = Color(0.78, 0.1, 0.08, 1)
 
+var _active := false
 var _slot := 0
 var _switching := false
-var _layout_texture: Texture2D
+var _book: Sprite2D
+var _page_uvs: Array[Rect2] = []
+var _uv_texture: Texture2D
+var _fit_origin := Vector2.ZERO
+var _fit_scale := Vector2.ZERO
+var _fit_visible := false
+var _has_fit := false
 var _ram_tween: Tween
+var _pan: MousePanComponent
 var _pan_full := Vector2.ZERO
+var _pan_captured := false
+## Original mouse filters, keyed by instance id, so close() can ignore clicks
+## and open() can put them back. Freed controls drop out in _forget_control.
+var _stored_mouse: Dictionary = {}
 
-@onready var _book: Sprite2D = $BookScreen
-@onready var _pan: MousePanComponent = $Camera2D/MousePan
 @onready var _palette: BlockPalette = %BlockPalette
 @onready var _script: ScriptView = %ScriptView
 @onready var _name_label: Label = %NameLabel
@@ -30,7 +53,7 @@ var _pan_full := Vector2.ZERO
 
 
 func _ready() -> void:
-	_pan_full = _pan.max_offset
+	_resolve_book()
 	_palette.return_line.connect(_on_return_line)
 	_palette.return_group.connect(_on_remove_group)
 	_palette.quick_add.connect(_on_quick_add)
@@ -40,9 +63,12 @@ func _ready() -> void:
 	_script.remove_group.connect(_on_remove_group)
 	_script.remove_rows.connect(_on_remove_rows)
 	_script.indent_line.connect(_on_indent)
-	_bind_slots()
-	_show_slot(0)
-	call_deferred("_fit_pages")
+	_watch_input_tree(self)
+	if active_on_ready:
+		open()
+	else:
+		_set_input_enabled(false)
+	call_deferred("_fit_pages_if_needed")
 
 
 func _notification(what: int) -> void:
@@ -51,14 +77,169 @@ func _notification(what: int) -> void:
 
 
 func _process(_delta: float) -> void:
-	if _pan:
-		var scale := drag_pan_scale if get_viewport().gui_is_dragging() else 1.0
-		var limit := _pan_full * scale
-		if not _pan.max_offset.is_equal_approx(limit):
-			_pan.max_offset = limit
-	if _book == null or _book.texture == _layout_texture:
+	if _active:
+		_update_drag_pan()
+	_fit_pages_if_needed()
+
+
+func is_open() -> bool:
+	return _active
+
+
+## Shows the editor and re-reads Game.roster and the block inventory.
+func open() -> void:
+	var was_open := _active
+	_active = true
+	_set_input_enabled(true)
+	if not was_open:
+		_pan = null
+		_pan_captured = false
+		_capture_pan()
+	refresh()
+	_has_fit = false
+	_fit_pages_if_needed()
+
+
+## Ignores pointer, drag, and editor shortcuts until open().
+func close() -> void:
+	var was_open := _active
+	_active = false
+	_set_input_enabled(false)
+	_release_drag_pan()
+	if was_open:
+		closed.emit()
+
+
+func set_active(active: bool) -> void:
+	if active:
+		open()
+	else:
+		close()
+
+
+## Re-reads Game.roster and Game.block_inventory into the pages.
+func refresh() -> void:
+	_bind_slots()
+	if _palette:
+		_palette.refresh()
+	_show_slot(_slot)
+
+
+func _set_input_enabled(enabled: bool) -> void:
+	if _script:
+		_script.set_input_enabled(enabled)
+	_apply_input_gate()
+
+
+func _watch_input_tree(node: Node) -> void:
+	if not node.child_entered_tree.is_connected(_on_input_child_entered):
+		node.child_entered_tree.connect(_on_input_child_entered)
+	for child in node.get_children():
+		_claim_control(child)
+		_watch_input_tree(child)
+
+
+func _on_input_child_entered(child: Node) -> void:
+	_claim_control(child)
+	_watch_input_tree(child)
+
+
+func _apply_input_gate() -> void:
+	_apply_input_gate_from(self)
+
+
+func _apply_input_gate_from(node: Node) -> void:
+	_claim_control(node)
+	for child in node.get_children():
+		_apply_input_gate_from(child)
+
+
+func _claim_control(node: Node) -> void:
+	var control := node as Control
+	if control == null:
 		return
-	_fit_pages()
+	var id := control.get_instance_id()
+	if not _stored_mouse.has(id):
+		_stored_mouse[id] = control.mouse_filter
+		control.tree_exiting.connect(_forget_control.bind(id), CONNECT_ONE_SHOT)
+	var stored: Control.MouseFilter = _stored_mouse[id] as Control.MouseFilter
+	control.mouse_filter = stored if _active else Control.MOUSE_FILTER_IGNORE
+
+
+func _forget_control(id: int) -> void:
+	_stored_mouse.erase(id)
+
+
+func _resolve_book() -> void:
+	var owned := get_node_or_null(^"BookScreen") as Sprite2D
+	if is_instance_valid(book):
+		_book = book
+	else:
+		_book = owned
+	if owned != null and owned != _book:
+		owned.visible = false
+	elif owned != null:
+		owned.visible = true
+	_uv_texture = null
+	_page_uvs.clear()
+	_has_fit = false
+
+
+func _capture_pan() -> void:
+	var pan := _resolve_pan()
+	if pan == null:
+		return
+	_pan_full = pan.max_offset
+	_pan_captured = true
+
+
+func _resolve_pan() -> MousePanComponent:
+	if is_instance_valid(_pan):
+		return _pan
+	if not is_inside_tree():
+		return null
+	_pan = get_tree().get_first_node_in_group(&"mouse_pan") as MousePanComponent
+	return _pan
+
+
+func _update_drag_pan() -> void:
+	var pan := _resolve_pan()
+	if pan == null:
+		return
+	if not _pan_captured:
+		_pan_full = pan.max_offset
+		_pan_captured = true
+	var viewport := get_viewport()
+	var dragging := viewport != null and viewport.gui_is_dragging()
+	var limit := _pan_full * (drag_pan_scale if dragging else 1.0)
+	if not pan.max_offset.is_equal_approx(limit):
+		pan.max_offset = limit
+
+
+func _release_drag_pan() -> void:
+	if _pan_captured and is_instance_valid(_pan):
+		_pan.max_offset = _pan_full
+	_pan_captured = false
+	_pan = null
+
+
+func _fit_pages_if_needed() -> void:
+	if _book == null or not is_instance_valid(_book):
+		return
+	var relative := get_global_transform().affine_inverse() * _book.get_global_transform()
+	var origin := relative.origin
+	var scale := relative.get_scale()
+	var shown := _book.is_visible_in_tree()
+	var same_texture := _book.texture == _uv_texture
+	var same_place := origin.is_equal_approx(_fit_origin) and scale.is_equal_approx(_fit_scale)
+	if _has_fit and same_texture and same_place and shown == _fit_visible:
+		return
+	if not _fit_pages():
+		return
+	_fit_origin = origin
+	_fit_scale = scale
+	_fit_visible = shown
+	_has_fit = true
 
 
 func _bind_slots() -> void:
@@ -72,17 +253,21 @@ func _bind_slots() -> void:
 			button.pressed.connect(_on_slot_button.bind(index))
 
 
-func _fit_pages() -> void:
-	if _book == null or _palette == null:
-		return
-	var book := _book_rect(_book)
-	if book.size.x < 100.0 or book.size.y < 100.0:
-		return
-	var pages := BookLayout.page_uvs(_book.texture)
-	var left := _map_uv(book, pages[0]).grow(-page_inset)
+func _fit_pages() -> bool:
+	if _book == null or not is_instance_valid(_book) or _palette == null:
+		return false
+	var book_rect := _book_rect(_book)
+	if book_rect.size.x < 100.0 or book_rect.size.y < 100.0:
+		return false
+	if _page_uvs.size() < 2 or _book.texture != _uv_texture:
+		_page_uvs = BookLayout.page_uvs(_book.texture)
+		_uv_texture = _book.texture
+	if _page_uvs.size() < 2:
+		return false
+	var left := _map_uv(book_rect, _page_uvs[0]).grow(-page_inset)
 	left.position.y -= palette_extra * 0.4
 	left.size.y += palette_extra
-	var right := _map_uv(book, pages[1]).grow(-page_inset)
+	var right := _map_uv(book_rect, _page_uvs[1]).grow(-page_inset)
 	# Keep the script clear of the debug overlay pinned to the right edge.
 	right = Rect2(right.position, Vector2(maxf(right.size.x - debug_gutter, 280.0), right.size.y))
 	_place(_palette, left)
@@ -93,24 +278,25 @@ func _fit_pages() -> void:
 	_place(header, Rect2(Vector2(right.position.x, menu_y + slot_bar_height), Vector2(right.size.x, header_height)))
 	var script_top := menu_y + slot_bar_height + header_height
 	_place(_script, Rect2(Vector2(right.position.x, script_top), Vector2(right.size.x, maxf(right.end.y - script_top, min_body_height))))
-	_layout_texture = _book.texture
+	return true
 
 
-## World rect of the centered sprite, without the camera. Page controls use this
-## same space, then the camera pans the book and the pages together.
+## Rect of the centered sprite in this node's space, without the camera.
+## A parent that pans or parallaxes both nodes does not change this rect,
+## so the pages stay glued to the book instead of being offset twice.
 func _book_rect(sprite: Sprite2D) -> Rect2:
 	var tex_size := Vector2(1920, 1080)
 	if sprite.texture:
 		tex_size = sprite.texture.get_size()
-	var xform := sprite.get_global_transform()
+	var xform := get_global_transform().affine_inverse() * sprite.get_global_transform()
 	var shown := tex_size * xform.get_scale()
 	return Rect2(xform.origin - shown * 0.5, shown)
 
 
-func _map_uv(book: Rect2, uv: Rect2) -> Rect2:
+func _map_uv(book_rect: Rect2, uv: Rect2) -> Rect2:
 	return Rect2(
-		book.position + Vector2(book.size.x * uv.position.x, book.size.y * uv.position.y),
-		Vector2(book.size.x * uv.size.x, book.size.y * uv.size.y)
+		book_rect.position + Vector2(book_rect.size.x * uv.position.x, book_rect.size.y * uv.position.y),
+		Vector2(book_rect.size.x * uv.size.x, book_rect.size.y * uv.size.y)
 	)
 
 
