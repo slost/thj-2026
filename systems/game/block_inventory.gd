@@ -28,7 +28,18 @@ static func block_description(block: CodeBlock) -> String:
 	var text := LocaleText.translate("code.%s.desc" % str(block.id), "en")
 	if text.is_empty():
 		text = block.description
-	return text.format(block.get_values())
+	return text.format(_percent_values(block.get_values()))
+
+
+static func _percent_values(values: Dictionary) -> Dictionary:
+	var shown := {}
+	for key in values.keys():
+		var value: Variant = values[key]
+		if value is float and float(value) >= 0.0 and float(value) <= 1.0:
+			shown[key] = "%d%%" % int(round(float(value) * 100.0))
+		else:
+			shown[key] = value
+	return shown
 
 
 func add(block: CodeBlock, amount: int = 1) -> void:

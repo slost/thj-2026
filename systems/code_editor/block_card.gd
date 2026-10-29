@@ -6,6 +6,10 @@ extends Control
 signal line_pressed(index: int)
 signal line_remove_requested(index: int)
 signal group_remove_requested(index: int)
+signal right_gesture_started(index: int)
+signal right_gesture_finished(index: int, held_msec: int)
+signal row_touched(index: int)
+signal focus_left(index: int)
 signal script_drop_returned(index: int, group: bool)
 signal quick_add_requested(block: CodeBlock)
 ## Script rows forward a drop so it inserts below or into the block under the pointer.
@@ -28,7 +32,6 @@ const _THEME := preload("res://systems/code_editor/editor_theme.tres")
 @export var block_height: float = 40.0
 ## Extra chip width past the words. Zero keeps the script block as wide as its text.
 @export var display_extra: float = 0.0
-const _GROUP_HOLD_MSEC := 420
 
 var drag_data: Variant = null
 var allow_drag := true
@@ -41,6 +44,7 @@ var _indent := 0
 var _compact := false
 var _selected := false
 var _hovered := false
+var _marked := false
 var _ready_done := false
 var _phase := 0.0
 var _speed := 1.0
@@ -50,6 +54,7 @@ var _tilt := 0.02
 var _wave_time := 0.0
 ## 1 while drifting, easing toward 0 while the pointer rests on the card.
 var _motion := 1.0
+var _shadow: Panel
 var _press_button := MOUSE_BUTTON_LEFT
 ## Right-button drags delete the block and the lines nested under it.
 var _drag_removes := false
@@ -126,6 +131,8 @@ func _ready() -> void:
 	_visual.layout_mode = 0
 	_highlight.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	_highlight.layout_mode = 0
+	_shadow = _make_plate(Color(0.12, 0.08, 0.04, 0.9), 14)
+	move_child(_shadow, _visual.get_index())
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
 	_apply()
@@ -160,9 +167,11 @@ func _gui_input(event: InputEvent) -> void:
 			_press_button = mouse.button_index
 			_right_armed = true
 			_right_pressed_at = Time.get_ticks_msec()
+			right_gesture_started.emit(line_index)
 		elif _right_armed:
 			_right_armed = false
-			_release_right_click()
+			var held := Time.get_ticks_msec() - _right_pressed_at
+			right_gesture_finished.emit(line_index, held)
 		return
 	if not mouse.pressed:
 		return
@@ -198,11 +207,7 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 	if not allow_drag or drag_data == null:
 		return null
 	var payload: Dictionary = drag_data.duplicate() if drag_data is Dictionary else {}
-	_drag_removes = line_index >= 0 and _press_button == MOUSE_BUTTON_RIGHT
-	if _drag_removes:
-		_right_armed = false
-		payload["remove"] = true
-		payload["group"] = true
+	_drag_removes = false
 	_active_drag = payload
 	if line_index >= 0:
 		line_pressed.emit(line_index)
@@ -221,7 +226,7 @@ func _apply() -> void:
 		return
 	_title.text = BlockInventory.block_title(_block) if _block else "..."
 	tooltip_text = BlockInventory.block_description(_block) if _block else ""
-	_count_badge.visible = _show_count
+	_count_badge.visible = _show_count and _count > 0
 	var count_pattern := LocaleText.resolve("ui.code_editor.count", "x{count}", "en")
 	_count_label.text = count_pattern.format({"count": _count})
 	var cost := _block.get_ram_cost() if _block else 0
@@ -232,8 +237,7 @@ func _apply() -> void:
 		_visual.theme_type_variation = &"ConditionCardSelected" if condition else &"ActionCardSelected"
 	else:
 		_visual.theme_type_variation = &"ConditionCard" if condition else &"ActionCard"
-	var wash := get_theme_color(&"selected_color", &"BlockCard")
-	_highlight.color = wash if _selected else Color(wash.r, wash.g, wash.b, 0.0)
+	_sync_highlight()
 	var owned := not _show_count or _count > 0
 	modulate = Color.WHITE if owned else get_theme_color(&"unowned_modulate", &"BlockCard")
 	var can_drag := allow_drag and owned
@@ -251,15 +255,13 @@ func _fit_compact() -> void:
 	if title_slot:
 		title_slot.custom_minimum_size.x = _label_width(_title)
 	var needed := _visual.get_combined_minimum_size().x + 8.0
-	var fitted := Vector2(clampf(needed, 96.0, max_width), block_height)
+	var fitted := Vector2(clampf(needed, 96.0, max_width) + _stock_width() + 8.0, block_height)
 	custom_minimum_size = fitted
 	size = fitted
 
 
 func _text_width() -> float:
 	var width := _label_width(_title) + 28.0
-	if _show_count and _count_badge != null and _count_badge.visible:
-		width += _label_width(_count_label) + 20.0
 	if _ram_label != null and _ram_label.visible:
 		width += _label_width(_ram_label) + 20.0
 	return clampf(width, 96.0, max_width)
@@ -277,7 +279,8 @@ func _label_width(label: Label) -> float:
 
 func _chip_rect() -> Rect2:
 	if _compact:
-		return Rect2(2.0, 1.0, maxf(size.x - 4.0, 24.0), maxf(size.y - 2.0, 12.0))
+		var block_width := maxf(size.x - _stock_width() - 4.0, 24.0)
+		return Rect2(2.0, 1.0, block_width, maxf(size.y - 2.0, 12.0))
 	var chip_height := block_height
 	var y := maxf((size.y - chip_height) * 0.5, 0.0)
 	var x := indent_pad + float(_indent) * indent_step
@@ -290,14 +293,14 @@ func _place_visual(y_offset: float, rotation_radians: float, shown_scale: float,
 	if _visual == null:
 		return
 	var chip := _chip_rect()
-	if _highlight:
-		_highlight.position = chip.position
-		_highlight.size = chip.size
+	_sync_highlight()
 	_visual.position = chip.position + Vector2(x_offset, y_offset)
 	_visual.size = chip.size
 	_visual.pivot_offset = _visual.size * 0.5
 	_visual.rotation = rotation_radians
 	_visual.scale = Vector2(shown_scale, shown_scale)
+	_place_shadow(chip, y_offset, x_offset, rotation_radians)
+	_place_stock()
 
 
 func _make_preview() -> Control:
@@ -331,13 +334,71 @@ func _script_drag_index(data: Variant) -> int:
 	return int(data.get("index", -1))
 
 
-func _release_right_click() -> void:
-	if line_index < 0:
+func _stock_width() -> float:
+	if not _show_count or _count <= 0 or _count_label == null:
+		return 0.0
+	return _label_width(_count_label) + 18.0
+
+
+func _place_stock() -> void:
+	if _count_badge == null or _visual == null:
 		return
-	if Time.get_ticks_msec() - _right_pressed_at >= _GROUP_HOLD_MSEC:
-		group_remove_requested.emit(line_index)
+	var show := _show_count and _count > 0
+	_count_badge.visible = show
+	if not show:
+		return
+	var stock := _count_badge.get_combined_minimum_size()
+	_count_badge.size = stock
+	var beat := sin(_wave_time * 1.65 + _phase + 1.8)
+	var drift := cos(_wave_time * 0.85 + _phase + 0.6)
+	var beside := _visual.position + Vector2(_visual.size.x + 8.0, maxf((_visual.size.y - stock.y) * 0.5, 0.0))
+	_count_badge.position = beside + Vector2(drift * 3.5, beat * _bob * 0.85)
+	_count_badge.pivot_offset = stock * 0.5
+	_count_badge.rotation = beat * 0.07
+
+
+func _place_shadow(chip: Rect2, y_offset: float, x_offset: float, rotation_radians: float) -> void:
+	if _shadow == null:
+		return
+	var risen := maxf(-y_offset, 0.0)
+	_shadow.size = chip.size
+	_shadow.pivot_offset = chip.size * 0.5
+	_shadow.position = chip.position + Vector2(3.0 + x_offset * 0.2, 6.0 + risen * 0.55)
+	_shadow.rotation = rotation_radians * 0.35
+	var closeness := clampf(1.0 - risen / 22.0, 0.84, 1.0)
+	_shadow.scale = Vector2(closeness, closeness)
+	_shadow.modulate = Color(1, 1, 1, clampf(0.5 - risen * 0.012, 0.2, 0.5))
+
+
+func _make_plate(color: Color, radius: int) -> Panel:
+	var plate := Panel.new()
+	plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	plate.layout_mode = 0
+	var style := StyleBoxFlat.new()
+	style.bg_color = color
+	style.set_corner_radius_all(radius)
+	plate.add_theme_stylebox_override(&"panel", style)
+	add_child(plate)
+	return plate
+
+
+func _sync_highlight() -> void:
+	if _highlight == null:
+		return
+	var show := line_index >= 0 and (_hovered or _marked)
+	if not show:
+		_highlight.color = Color(0, 0, 0, 0)
+	elif _marked:
+		_highlight.color = Color(0.78, 0.1, 0.08, 0.42)
 	else:
-		line_remove_requested.emit(line_index)
+		_highlight.color = Color(0.55, 0.38, 0.16, 0.22)
+	_highlight.position = Vector2.ZERO
+	_highlight.size = size
+
+
+func set_marked(marked: bool) -> void:
+	_marked = marked
+	_sync_highlight()
 
 
 func _finish_remove_drag() -> void:
@@ -365,8 +426,15 @@ func _mark_handled(data: Variant) -> void:
 func _on_mouse_entered() -> void:
 	_hovered = true
 	z_index = 1
+	_sync_highlight()
+	if line_index >= 0:
+		row_touched.emit(line_index)
 
 
 func _on_mouse_exited() -> void:
 	_hovered = false
 	z_index = 0
+	_sync_highlight()
+	if line_index >= 0:
+		focus_left.emit(line_index)
+		release_focus()

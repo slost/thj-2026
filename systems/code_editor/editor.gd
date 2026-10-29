@@ -38,6 +38,7 @@ func _ready() -> void:
 	_script.move_line.connect(_on_move)
 	_script.remove_line.connect(_on_remove)
 	_script.remove_group.connect(_on_remove_group)
+	_script.remove_rows.connect(_on_remove_rows)
 	_script.indent_line.connect(_on_indent)
 	_bind_slots()
 	_show_slot(0)
@@ -205,6 +206,18 @@ func _on_remove(index: int) -> void:
 
 func _on_return_line(index: int) -> void:
 	_on_remove(index)
+
+
+func _on_remove_rows(indexes: Array) -> void:
+	var ordered: Array[int] = []
+	for item in indexes:
+		var index := int(item)
+		if not ordered.has(index):
+			ordered.append(index)
+	ordered.sort()
+	ordered.reverse()
+	for index in ordered:
+		_on_remove(index)
 
 
 func _on_remove_group(index: int) -> void:

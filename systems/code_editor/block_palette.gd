@@ -82,6 +82,8 @@ func _rebuild() -> void:
 	var cards: Array[BlockCard] = []
 	for block in blocks:
 		var count := Game.block_inventory.get_count(block)
+		if count <= 0:
+			continue
 		var card := _CARD.instantiate() as BlockCard
 		card.max_width = card_max_width
 		card.block_height = card_height

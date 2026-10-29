@@ -269,8 +269,10 @@ func _test_editor_screen() -> void:
 			_fail("palette cards stayed in one column")
 		elif is_equal_approx(first_palette.motion_phase(), second_palette.motion_phase()):
 			_fail("palette cards share a float phase")
-		elif not first_palette.get_node(^"Visual/Row/CountBadge").visible:
+		elif not first_palette.get_node(^"CountBadge").visible:
 			_fail("palette card hid the count badge")
+		elif first_palette.get_node(^"CountBadge").position.x < first_palette.get_node(^"Visual").position.x + first_palette.get_node(^"Visual").size.x - 2.0:
+			_fail("the count is still inside the block")
 		elif _has_thai(first_palette.displayed_title()) or _has_thai(first_palette.tooltip_text):
 			_fail("palette card was still Thai: '%s'" % first_palette.displayed_title())
 		elif _has_thai(str(first_palette.get_node(^"Visual/Row/RamBadge/Ram").text)):
@@ -337,13 +339,19 @@ func _test_editor_screen() -> void:
 			_fail("action card was not the action shape")
 		elif second_card.visual_position().x <= first_card.visual_position().x:
 			_fail("action card was not indented on the page")
-		elif first_card.get_node(^"Visual/Row/CountBadge").visible:
+		elif first_card.get_node(^"CountBadge").visible:
 			_fail("script card showed a count badge")
 		elif is_equal_approx(first_card.motion_phase(), second_card.motion_phase()):
 			_fail("script cards share a float phase")
 		var links := editor.get_node(^"%ScriptLinks") as ScriptLinks
 		if links == null or links.segment_count() < 2:
 			_fail("nested blocks drew no elbow, segments %s" % (links.segment_count() if links else -1))
+		elif not links.has_block_branch():
+			_fail("the nested line still shares the main rail")
+		script.select_line(0)
+		first_card.mouse_exited.emit()
+		if str(first_card.get_node(^"Visual").theme_type_variation) == "ConditionCardSelected":
+			_fail("the script line stayed focused after the pointer left")
 		var kept: int = slot.get_update_function().lines.size()
 		first_card.notification(Node.NOTIFICATION_DRAG_END)
 		if slot.get_update_function().lines.size() != kept:
@@ -440,28 +448,18 @@ func _test_editor_screen() -> void:
 			if slot.get_update_function().lines.size() != 0:
 				_fail("holding right click kept nested blocks, got %d" % slot.get_update_function().lines.size())
 		editor.call("_on_place", attack, 0, 0)
+		editor.call("_on_place", attack, 1, 0)
+		editor.call("_on_place", attack, 2, 0)
 		for _frame in 2:
 			await process_frame
-		held = row_box.get_child(0) as BlockCard
-		if held:
-			var drag_click := InputEventMouseButton.new()
-			drag_click.button_index = MOUSE_BUTTON_RIGHT
-			drag_click.pressed = true
-			held._gui_input(drag_click)
-			var payload: Dictionary = held._get_drag_data(Vector2(8.0, 8.0))
-			if not bool(payload.get("group", false)):
-				_fail("a right-button drag was not a group remove")
-			payload["handled"] = true
-			held.notification(Node.NOTIFICATION_DRAG_END)
-			if slot.get_update_function().lines.size() != 1:
-				_fail("a finished remove drag deleted the block twice")
-			held._gui_input(drag_click)
-			held._get_drag_data(Vector2(8.0, 8.0))
-			held.notification(Node.NOTIFICATION_DRAG_END)
-			for _frame in 2:
-				await process_frame
-			if slot.get_update_function().lines.size() != 0:
-				_fail("releasing a right-button drag did not remove the block")
+		script._on_right_started(0)
+		script._note_row(1)
+		script._note_row(2)
+		script._finish_stroke(0)
+		for _frame in 2:
+			await process_frame
+		if slot.get_update_function().lines.size() != 0:
+			_fail("a right-button stroke did not remove every touched block, got %d" % slot.get_update_function().lines.size())
 		editor.call("_on_place", detect, 0, 0)
 		editor.call("_on_place", attack, 1, 1)
 		for _frame in 2:
@@ -566,6 +564,9 @@ func _test_translations() -> void:
 	var chance := load("res://data/blocks/random_chance.tres") as CodeBlock
 	if not chance.get_display_description().contains("0.5"):
 		_fail("chance placeholder was not filled: '%s'" % chance.get_display_description())
+	var shown := BlockInventory.block_description(chance)
+	if not shown.contains("50%"):
+		_fail("tooltip chance was not a percent: '%s'" % shown)
 	var weak := load("res://data/blocks/low_hp.tres") as CodeBlock
 	if not weak.get_display_description().contains("0.35"):
 		_fail("threshold placeholder was not filled: '%s'" % weak.get_display_description())

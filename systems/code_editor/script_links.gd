@@ -1,5 +1,5 @@
-## Connectors for the script page. Same-indent neighbors share a straight rail.
-## A block nested under the one above it joins that rail with an elbow.
+## Connectors for the script page. Same-level blocks share a straight rail.
+## Every child under a condition hangs off one shared elbow, shaped like |_.
 class_name ScriptLinks
 extends Control
 
@@ -21,6 +21,16 @@ func segment_count() -> int:
 	return _polylines().size()
 
 
+## True when a nested group uses an elbow beside the root rail.
+func has_block_branch() -> bool:
+	var rail := _rail(0)
+	for piece in _polylines():
+		var start: Vector2 = piece[0]
+		if start.x > rail + 8.0:
+			return true
+	return false
+
+
 func _draw() -> void:
 	if _lines.size() < 2 or _row_height <= 0.0:
 		return
@@ -37,19 +47,22 @@ func _polylines() -> Array:
 		return pieces
 	for index in range(1, _lines.size()):
 		var indent := _indent_of(index)
-		var previous := _indent_of(index - 1)
-		if indent == previous:
-			_add(pieces, _rail(indent), _center(index - 1), _rail(indent), _center(index))
-		elif indent > previous:
-			var rail := _rail(previous)
-			var join_y := _center(index)
-			_add(pieces, rail, _center(index - 1), rail, join_y)
-			_add(pieces, rail, join_y, _chip_left(indent), join_y)
-		else:
-			var sibling := _previous_at(index, indent)
+		if indent <= 0:
+			var sibling := _previous_at(index, 0)
 			if sibling >= 0:
-				var rail := _rail(indent)
+				var rail := _rail(0)
 				_add(pieces, rail, _center(sibling), rail, _center(index))
+			continue
+		var stem := _rail(indent)
+		var from_y := _center(index - 1)
+		if _indent_of(index - 1) < indent:
+			from_y = _center(index - 1) + 18.0
+		elif _indent_of(index - 1) > indent:
+			var earlier := _previous_at(index, indent)
+			if earlier >= 0:
+				from_y = _center(earlier)
+		_add(pieces, stem, from_y, stem, _center(index))
+		_add(pieces, stem, _center(index), _chip_left(indent), _center(index))
 	return pieces
 
 

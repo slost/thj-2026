@@ -135,6 +135,22 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tooltip"]
+content_margin_left = 14.0
+content_margin_top = 10.0
+content_margin_right = 14.0
+content_margin_bottom = 10.0
+bg_color = Color(0.1, 0.07, 0.04, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.96, 0.86, 0.62, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
 [resource]
 default_font_size = 18
 Button/colors/font_color = Color(0.16, 0.12, 0.08, 1)
@@ -175,3 +191,6 @@ ActionCardSelected/base_type = &"PanelContainer"
 ActionCardSelected/styles/panel = SubResource("StyleBoxFlat_action_selected")
 Badge/base_type = &"PanelContainer"
 Badge/styles/panel = SubResource("StyleBoxFlat_badge")
+TooltipPanel/styles/panel = SubResource("StyleBoxFlat_tooltip")
+TooltipLabel/colors/font_color = Color(0.98, 0.94, 0.86, 1)
+TooltipLabel/font_sizes/font_size = 22

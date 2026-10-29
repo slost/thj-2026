@@ -8,6 +8,7 @@ signal place_block(block: CodeBlock, index: int, indent: int)
 signal move_line(from_index: int, to_index: int, indent: int)
 signal remove_line(index: int)
 signal remove_group(index: int)
+signal remove_rows(indexes: Array)
 signal indent_line(index: int, delta: int)
 
 @export var row_height: float = 64.0
@@ -17,6 +18,10 @@ signal indent_line(index: int, delta: int)
 var _lines: Array[ScriptLine] = []
 var _selected := -1
 var _rebuild_queued := false
+var _stroke_open := false
+var _stroke_started_msec := 0
+var _stroke: Array[int] = []
+const _GROUP_HOLD_MSEC := 420
 
 @onready var _scroll: ScrollContainer = %ScriptScroll
 @onready var _body: Control = %ScriptBody
@@ -93,6 +98,10 @@ func _rebuild() -> void:
 		card.line_pressed.connect(select_line)
 		card.line_remove_requested.connect(_on_card_remove)
 		card.group_remove_requested.connect(_on_card_remove_group)
+		card.right_gesture_started.connect(_on_right_started)
+		card.right_gesture_finished.connect(_on_right_gesture)
+		card.row_touched.connect(_note_row)
+		card.focus_left.connect(_on_focus_left)
 		card.block_drop_requested.connect(_on_card_drop.bind(card))
 		card.set_selected(index == _selected)
 		_rows.add_child(card)
@@ -149,6 +158,11 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 
 func _process(delta: float) -> void:
 	_autoscroll(delta)
+	if _stroke_open:
+		if not Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+			_finish_stroke(Time.get_ticks_msec() - _stroke_started_msec)
+		else:
+			_note_row(_row_at_mouse())
 	if _indicator == null or not _indicator.visible:
 		return
 	if not get_viewport().gui_is_dragging():
@@ -265,6 +279,77 @@ func _on_card_remove(index: int) -> void:
 
 func _on_card_remove_group(index: int) -> void:
 	remove_group.emit(index)
+
+
+func _on_right_started(index: int) -> void:
+	_stroke_open = true
+	_stroke_started_msec = Time.get_ticks_msec()
+	_stroke = [index]
+	_paint_stroke()
+
+
+func _on_right_gesture(index: int, held_msec: int) -> void:
+	if _stroke.is_empty():
+		_stroke = [index]
+		_stroke_open = true
+	_finish_stroke(held_msec)
+
+
+func _on_focus_left(index: int) -> void:
+	if _selected == index:
+		select_line(-1)
+
+
+func _note_row(index: int) -> void:
+	if not _stroke_open or index < 0 or index >= _lines.size():
+		return
+	if _stroke.has(index):
+		return
+	_stroke.append(index)
+	_paint_stroke()
+
+
+func _finish_stroke(held_msec: int) -> void:
+	if not _stroke_open and _stroke.is_empty():
+		return
+	_stroke_open = false
+	var rows: Array[int] = []
+	for index in _stroke:
+		rows.append(int(index))
+	_stroke.clear()
+	_paint_stroke()
+	if rows.is_empty():
+		return
+	if rows.size() > 1:
+		remove_rows.emit(rows)
+	elif held_msec >= _GROUP_HOLD_MSEC:
+		remove_group.emit(rows[0])
+	else:
+		remove_line.emit(rows[0])
+
+
+func _paint_stroke() -> void:
+	if _rows == null:
+		return
+	for child in _rows.get_children():
+		var card := child as BlockCard
+		if card:
+			card.set_marked(_stroke.has(card.line_index))
+
+
+func _row_at_mouse() -> int:
+	var local := get_local_mouse_position()
+	if not Rect2(Vector2.ZERO, size).has_point(local):
+		return -1
+	var scrolled := local.y
+	if _scroll:
+		scrolled += float(_scroll.scroll_vertical)
+	if row_height <= 0.0:
+		return -1
+	var row := int(floor(scrolled / row_height))
+	if row < 0 or row >= _lines.size():
+		return -1
+	return row
 
 
 func _is_remove_drag(data: Variant) -> bool:
