@@ -15,10 +15,20 @@ var _blocks: Dictionary = {}
 static func block_title(block: CodeBlock) -> String:
 	if block == null:
 		return "block"
-	var title := block.get_display_name()
+	var title := block.get_display_name("en")
 	if title.is_empty():
 		return block.get_block_label()
 	return title
+
+
+## Code blocks stay in English even when the game language is Thai.
+static func block_description(block: CodeBlock) -> String:
+	if block == null:
+		return ""
+	var text := LocaleText.translate("code.%s.desc" % str(block.id), "en")
+	if text.is_empty():
+		text = block.description
+	return text.format(block.get_values())
 
 
 func add(block: CodeBlock, amount: int = 1) -> void:

@@ -4,7 +4,7 @@
 [ext_resource type="Theme" path="res://systems/code_editor/editor_theme.tres" id="2_theme"]
 
 [node name="BlockCard" type="Control"]
-custom_minimum_size = Vector2(0, 46)
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 0
@@ -16,9 +16,11 @@ bob_pixels = 2.5
 tilt_degrees = 1.3
 hover_lift = 3.0
 hover_scale = 1.045
-visual_inset_y = 3.0
+visual_inset_y = 2.0
 indent_pad = 8.0
 indent_step = 32.0
+max_width = 440.0
+block_height = 40.0
 
 [node name="Highlight" type="ColorRect" parent="."]
 unique_name_in_owner = true

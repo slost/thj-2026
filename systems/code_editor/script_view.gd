@@ -9,7 +9,7 @@ signal move_line(from_index: int, to_index: int, indent: int)
 signal remove_line(index: int)
 signal indent_line(index: int, delta: int)
 
-@export var row_height: float = 46.0
+@export var row_height: float = 44.0
 @export var indent_step: float = 32.0
 @export var indent_pad: float = 8.0
 
@@ -65,6 +65,8 @@ func _rebuild() -> void:
 	var empty := _lines.is_empty()
 	if _empty:
 		_empty.visible = empty
+		_empty.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+		_empty.text = LocaleText.resolve("ui.code_editor.empty", "(empty)", "en")
 	if empty:
 		return
 	for index in _lines.size():

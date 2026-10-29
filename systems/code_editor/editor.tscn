@@ -181,11 +181,12 @@ grow_horizontal = 2
 grow_vertical = 2
 horizontal_scroll_mode = 0
 
-[node name="PaletteList" type="VBoxContainer" parent="BlockPalette/PaletteScroll"]
+[node name="PaletteList" type="Control" parent="BlockPalette/PaletteScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 8
+size_flags_vertical = 0
+mouse_filter = 2
 
 [node name="ScriptView" type="Control" parent="."]
 unique_name_in_owner = true
@@ -194,7 +195,7 @@ offset_right = 420.0
 offset_bottom = 480.0
 theme = ExtResource("7_theme")
 script = ExtResource("6_script")
-row_height = 46.0
+row_height = 44.0
 indent_step = 32.0
 indent_pad = 8.0
 

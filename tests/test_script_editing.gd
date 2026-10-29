@@ -212,6 +212,7 @@ func _text(lines: Array[ScriptLine]) -> String:
 
 
 func _test_editor_screen() -> void:
+	TranslationServer.set_locale("th")
 	var game := root.get_node(^"Game")
 	var inventory = game.get("block_inventory")
 	var attack := load("res://data/blocks/attack_target.tres") as CodeBlock
@@ -240,7 +241,7 @@ func _test_editor_screen() -> void:
 		_fail("palette is not on the book: %s book %s" % [palette_rect, book_rect])
 	if not book_rect.has_point(script_rect.get_center()):
 		_fail("script is not on the book: %s book %s" % [script_rect, book_rect])
-	var palette_list := editor.get_node(^"%PaletteList") as VBoxContainer
+	var palette_list := editor.get_node(^"%PaletteList") as Control
 	if palette_list.get_child_count() < 2:
 		_fail("palette did not build cards")
 	else:
@@ -248,10 +249,20 @@ func _test_editor_screen() -> void:
 		var second_palette := palette_list.get_child(1) as BlockCard
 		if first_palette == null or second_palette == null:
 			_fail("palette rows are not cards")
+		elif first_palette.size.x > palette.size.x * 0.85:
+			_fail("palette card is still page-wide: %s" % first_palette.size)
+		elif first_palette.position.distance_to(second_palette.position) < 8.0:
+			_fail("palette cards are stacked as a list: %s %s" % [first_palette.position, second_palette.position])
+		elif not _spread_across(palette_list):
+			_fail("palette cards stayed in one column")
 		elif is_equal_approx(first_palette.motion_phase(), second_palette.motion_phase()):
 			_fail("palette cards share a float phase")
 		elif not first_palette.get_node(^"Visual/Row/CountBadge").visible:
 			_fail("palette card hid the count badge")
+		elif _has_thai(first_palette.displayed_title()) or _has_thai(first_palette.tooltip_text):
+			_fail("palette card was still Thai: '%s'" % first_palette.displayed_title())
+		elif _has_thai(str(first_palette.get_node(^"Visual/Row/RamBadge/Ram").text)):
+			_fail("palette RAM badge was still Thai")
 		elif first_palette.tooltip_text.is_empty():
 			_fail("palette card tooltip was empty")
 		else:
@@ -285,11 +296,15 @@ func _test_editor_screen() -> void:
 	else:
 		var first_card := row_box.get_child(0) as BlockCard
 		var second_card := row_box.get_child(1) as BlockCard
-		if first_card == null or first_card.displayed_title() != BlockInventory.block_title(detect):
+		if first_card == null or first_card.displayed_title() != "Enemy in sight":
 			_fail("condition card title was '%s'" % (first_card.displayed_title() if first_card else ""))
+		elif first_card.get_node(^"Visual").size.x > script.size.x * 0.85:
+			_fail("script block is still too long: %s" % first_card.get_node(^"Visual").size)
+		elif first_card.tooltip_text != "You can see an enemy.":
+			_fail("condition tooltip was '%s'" % first_card.tooltip_text)
 		elif first_card.get_node(^"Visual").theme_type_variation != &"ConditionCard":
 			_fail("condition card was not the condition shape")
-		if second_card == null or second_card.displayed_title() != BlockInventory.block_title(attack):
+		if second_card == null or second_card.displayed_title() != "Attack the target":
 			_fail("action card title was '%s'" % (second_card.displayed_title() if second_card else ""))
 		elif second_card.get_node(^"Visual").theme_type_variation != &"ActionCard":
 			_fail("action card was not the action shape")
@@ -299,6 +314,33 @@ func _test_editor_screen() -> void:
 			_fail("script card showed a count badge")
 		elif is_equal_approx(first_card.motion_phase(), second_card.motion_phase()):
 			_fail("script cards share a float phase")
+		var palette_card := palette_list.get_child(0) as BlockCard
+		if palette_card == null or not palette_card._can_drop_data(Vector2.ZERO, {"source": "script", "index": 1}):
+			_fail("palette card did not accept a script block")
+		palette_card._drop_data(Vector2.ZERO, {"source": "script", "index": 1})
+		for _frame in 2:
+			await process_frame
+		if slot.get_update_function().lines.size() != 1:
+			_fail("dropping a script block on the palette did not return it")
+		var last_card := row_box.get_child(0) as BlockCard
+		if last_card:
+			last_card.line_remove_requested.emit(0)
+		for _frame in 2:
+			await process_frame
+		if slot.get_update_function().lines.size() != 0:
+			_fail("the last block could not be removed")
+		elif row_box.get_child_count() != 0:
+			_fail("an empty script still showed a block")
+		elif not editor.get_node(^"%EmptyLabel").visible:
+			_fail("an empty script hid the empty label")
+		elif _has_thai(str(editor.get_node(^"%EmptyLabel").text)):
+			_fail("empty script label was Thai")
+		if inventory.get_count(detect) != owned:
+			_fail("clearing the script did not return the condition")
+		editor.call("_on_place", detect, 0, 0)
+		editor.call("_on_place", attack, 1, 1)
+		for _frame in 2:
+			await process_frame
 		var top := script._plan(Vector2(script.indent_pad + 4.0, 2.0), {"source": "palette", "block": attack})
 		if int(top.x) != 0:
 			_fail("drop at the top row was gap %s" % top)
@@ -364,7 +406,6 @@ func _test_translations() -> void:
 		"forget_all_actions": ["Forget all plans", "ลืมแผนทั้งหมด"],
 		"forget_everything": ["Forget everything", "ลืมทุกอย่าง"],
 	}
-	var previous := TranslationServer.get_locale()
 	for id in names.keys():
 		var pair: Array = names[id]
 		var block := load("res://data/blocks/%s.tres" % str(id)) as CodeBlock
@@ -393,7 +434,31 @@ func _test_translations() -> void:
 	var weak := load("res://data/blocks/low_hp.tres") as CodeBlock
 	if not weak.get_display_description().contains("0.35"):
 		_fail("threshold placeholder was not filled: '%s'" % weak.get_display_description())
-	TranslationServer.set_locale(previous)
+	TranslationServer.set_locale("en")
+
+
+func _has_thai(text: String) -> bool:
+	for index in text.length():
+		var code := text.unicode_at(index)
+		if code >= 0x0E00 and code <= 0x0E7F:
+			return true
+	return false
+
+
+func _spread_across(board: Control) -> bool:
+	var origin := 0.0
+	var saw := false
+	for child in board.get_children():
+		var card := child as Control
+		if card == null:
+			continue
+		if not saw:
+			origin = card.position.x
+			saw = true
+			continue
+		if absf(card.position.x - origin) > 24.0:
+			return true
+	return false
 
 
 func _sprite_world_rect(sprite: Sprite2D) -> Rect2:
