@@ -30,6 +30,14 @@ var collar := 0
 # Refs
 var world_map: WorldMap
 
+## Blocks the player owns. Empty on startup, then seeded from data/blocks.
+var block_inventory: BlockInventory
+## Minion slots. Each keeps its own program, cloned from the def on first use.
+var roster: Array[MinionSlot] = []
+
+const _ROSTER_SIZE := 4
+const _SEED_RAM: Array[int] = [8, 12, 16, 10]
+
 
 func change_stage(stage: Node) -> void:
 	current_stage = stage
@@ -137,3 +145,27 @@ func change_resource(resource_type: ResourceType, amount: int) -> void:
 			collar = max(0, collar + amount)
 			
 	resource_changed.emit()
+
+
+func _ready() -> void:
+	block_inventory = BlockInventory.new()
+	block_inventory.seed_if_empty()
+	_seed_roster_if_empty()
+
+
+func _seed_roster_if_empty() -> void:
+	if not roster.is_empty():
+		return
+	for index in _ROSTER_SIZE:
+		var def := UnitDef.new()
+		def.id = StringName("minion_%d" % (index + 1))
+		def.name = "Minion %d" % (index + 1)
+		def.team = Unit2D.Team.MINION
+		def.ram = _SEED_RAM[index]
+		var events: Array[EventGraph.Event] = []
+		events.append(EventGraph.Event.ON_UPDATE)
+		def.allowed_events = events
+		def.starting_program = MinionSlot.blank_program()
+		var slot := MinionSlot.new()
+		slot.def = def
+		roster.append(slot)

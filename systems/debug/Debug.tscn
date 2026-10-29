@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://blvaendeci6yd" path="res://systems/debug/debug.gd" id="1_a8e4d"]
 
 [node name="CanvasLayer" type="CanvasLayer" unique_id=845550041]
+layer = 99
 script = ExtResource("1_a8e4d")
 
 [node name="HBoxContainer" type="VBoxContainer" parent="." unique_id=96875597]

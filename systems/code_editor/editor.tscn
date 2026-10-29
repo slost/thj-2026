@@ -1,0 +1,50 @@
+[gd_scene format=3 uid="uid://b7gl0em3a23l"]
+
+[ext_resource type="Texture2D" uid="uid://dqmg8d3tr3fsm" path="res://placeholders/text_pages.png" id="1_j75jk"]
+[ext_resource type="Script" uid="uid://bgit4iapmj1bm" path="res://addons/lost_framework/modules/asset_manager/hot_swap_sprite.gd" id="2_73kyq"]
+[ext_resource type="Script" uid="uid://dw84jg68x20tf" path="res://addons/lost_framework/modules/camera_controler/mouse_pan_component.gd" id="3_fhbsv"]
+[ext_resource type="Script" path="res://systems/code_editor/editor.gd" id="4_editor"]
+
+[node name="Editor" type="Node2D" unique_id=849782930]
+script = ExtResource("4_editor")
+
+[node name="BookScreen" type="Sprite2D" parent="." unique_id=1602681713]
+scale = Vector2(0.8703704, 0.8703704)
+texture = ExtResource("1_j75jk")
+script = ExtResource("2_73kyq")
+asset_id = "tex_book_screen"
+metadata/_custom_type_script = "uid://bgit4iapmj1bm"
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=712336434]
+
+[node name="MousePan" type="Node" parent="Camera2D" unique_id=2089436963]
+script = ExtResource("3_fhbsv")
+max_offset = Vector2(76.8, 48)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=23786887]
+
+[node name="UnitsContainer" type="HBoxContainer" parent="CanvasLayer" unique_id=14003093]
+offset_left = 1206.0
+offset_top = 148.0
+offset_right = 1696.0
+offset_bottom = 188.0
+
+[node name="UnitButton1" type="Button" parent="CanvasLayer/UnitsContainer" unique_id=761625322]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "1"
+
+[node name="UnitButton2" type="Button" parent="CanvasLayer/UnitsContainer" unique_id=1749574194]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "2"
+
+[node name="UnitButton3" type="Button" parent="CanvasLayer/UnitsContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "3"
+
+[node name="UnitButton4" type="Button" parent="CanvasLayer/UnitsContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "4"
