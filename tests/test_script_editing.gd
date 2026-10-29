@@ -16,6 +16,7 @@ func _run() -> void:
 	await _test_editor_screen()
 	await _test_world_map_book()
 	await _test_raid_spawns_roster()
+	await _test_stop_thinking()
 	var game := root.get_node_or_null(^"Game")
 	if game == null:
 		_fail("Game autoload is missing")
@@ -599,6 +600,7 @@ func _test_translations() -> void:
 		"forget_last_action": ["Forget the latest plan", "ลืมแผนล่าสุด"],
 		"forget_all_actions": ["Forget all plans", "ลืมแผนทั้งหมด"],
 		"forget_everything": ["Forget everything", "ลืมทุกอย่าง"],
+		"stop_thinking": ["Stop thinking", "หยุดคิด"],
 	}
 	for id in names.keys():
 		var pair: Array = names[id]
@@ -936,6 +938,65 @@ func _test_raid_spawns_roster() -> void:
 	game.set("raid_slots", [])
 	game.set("current_stage", null)
 	battle.queue_free()
+
+
+func _test_stop_thinking() -> void:
+	var stop := load("res://data/blocks/stop_thinking.tres") as CodeBlock
+	var stand := load("res://data/blocks/stand_still.tres") as CodeBlock
+	if stop == null or stand == null:
+		_fail("stop thinking block is missing")
+		return
+	var program := MinionSlot.blank_program()
+	var update := program.functions[0]
+	update.lines.append(_line(stop, 0))
+	update.lines.append(_line(stand, 0))
+	var hit := UnitFunction.new()
+	hit.function_name = "ON_HIT"
+	hit.lines.append(_line(stop, 0))
+	hit.lines.append(_line(stand, 0))
+	program.functions.append(hit)
+	program.event_graph.connect_function(EventGraph.Event.ON_HIT, hit)
+	var def := UnitDef.new()
+	def.team = Unit2D.Team.MINION
+	def.cpu = 1
+	var events: Array[EventGraph.Event] = [EventGraph.Event.ON_UPDATE, EventGraph.Event.ON_HIT]
+	def.allowed_events = events
+	def.starting_program = program
+	var unit := (load("res://systems/units/unit.tscn") as PackedScene).instantiate() as Unit2D
+	unit.def = def
+	root.add_child(unit)
+	await process_frame
+	unit.targets.append(unit)
+	var remembered := unit.targets.size()
+	if not unit.runner.fire(EventGraph.Event.ON_HIT, null):
+		_fail("stop thinking did not run during an instant event")
+	if not unit.queue_actions.is_empty():
+		_fail("stop thinking kept reading the instant event")
+	if unit.targets.size() != remembered:
+		_fail("stop thinking cleared remembered targets")
+	unit.state = Unit2D.State.IDLE
+	unit.runner.read_index = 0
+	unit.runner.set("_timer_armed", true)
+	unit.runner.set("_read_timer", 0.0)
+	var interval := Formular.calculate_think_interval(unit.get_cpu())
+	unit.runner.tick(0.0)
+	if unit.runner.read_index != 0 or not unit.queue_actions.is_empty():
+		_fail("stop thinking read the next line in the same think")
+	unit.runner.tick(interval * 0.5)
+	if unit.runner.read_index != 0 or not unit.queue_actions.is_empty():
+		_fail("stop thinking read again before the think bar filled")
+	unit.state = Unit2D.State.IDLE
+	unit.runner.tick(interval * 0.5)
+	if unit.runner.read_index != 0:
+		_fail("the next think did not start at line 0")
+	if not unit.queue_actions.is_empty():
+		_fail("the line after stop thinking ran after a full think")
+	var left := float(unit.runner.get("_read_timer"))
+	if left < interval * 0.75:
+		_fail("line 0 was read again without a full think interval, timer %s" % left)
+	if unit.targets.size() != remembered:
+		_fail("a stopped think cleared remembered targets")
+	unit.queue_free()
 
 
 func _minions_under(battle: Node) -> Array[Unit2D]:
