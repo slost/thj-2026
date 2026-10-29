@@ -340,8 +340,11 @@ func _show_ram() -> void:
 	if slot == null or _ram_label == null:
 		return
 	var used := slot.get_update_function().get_mb_cost()
+	var maximum := slot.ram_max()
+	if _script:
+		_script.set_mb_budget(used, maximum)
 	var pattern := LocaleText.resolve("ui.code_editor.ram", "RAM: {used}/{max} MB")
-	_ram_label.text = pattern.format({"used": used, "max": slot.ram_max()})
+	_ram_label.text = pattern.format({"used": used, "max": maximum})
 	_ram_label.remove_theme_color_override(&"font_color")
 
 

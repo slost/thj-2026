@@ -55,3 +55,5 @@ ui.code_editor.ram,RAM: {used}/{max} MB,แรม: {used}/{max} MB
 ui.code_editor.ram_badge,{cost} MB,{cost} MB
 ui.code_editor.count,x{count},x{count}
 ui.code_editor.empty,(empty),(ว่าง)
+ui.code_editor.drop_mb,Not enough MB,MB ไม่พอ
+ui.code_editor.drop_indent,Can't indent here,ย่อหน้าตรงนี้ไม่ได้

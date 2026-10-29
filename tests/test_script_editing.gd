@@ -351,6 +351,10 @@ func _test_editor_screen() -> void:
 			_fail("nested blocks drew no elbow, segments %s" % (links.segment_count() if links else -1))
 		elif not links.has_block_branch():
 			_fail("the nested line still shares the main rail")
+		elif not links.root_row_has_elbow():
+			_fail("the first row has no elbow off the main rail")
+		else:
+			await _test_drop_preview(script, attack)
 		script.select_line(0)
 		first_card.mouse_exited.emit()
 		if str(first_card.get_node(^"Visual").theme_type_variation) == "ConditionCardSelected":
@@ -516,6 +520,60 @@ func _test_editor_screen() -> void:
 	host.queue_free()
 
 
+func _test_drop_preview(script: ScriptView, attack: CodeBlock) -> void:
+	script.set_process(false)
+	var into := Vector2(script.indent_pad + script.indent_step * 1.2, script.row_height * 0.5)
+	var beside := Vector2(script.indent_pad + 4.0, script.row_height * 0.5)
+	var payload := {"source": "palette", "block": attack}
+	var plan := script._plan(into, payload)
+	script.set_mb_budget(1, 8)
+	script.preview_drop(into, payload)
+	for _frame in 10:
+		await process_frame
+	script._follow_drop_ghost()
+	var ghost := script.get_node_or_null(^"ScriptScroll/ScriptBody/DropGhost") as BlockCard
+	var gap := script.get_node_or_null(^"ScriptScroll/ScriptBody/ScriptRows/DropGap") as Control
+	var rows := script.get_node(^"ScriptScroll/ScriptBody/ScriptRows") as Control
+	if ghost == null or gap == null:
+		_fail("drop preview did not open a ghost row")
+	elif gap.get_index() != int(plan.x):
+		_fail("preview gap %d disagreed with the drop %s" % [gap.get_index(), plan])
+	elif ghost.position.distance_to(rows.position + gap.position) > 2.0:
+		_fail("ghost landed at %s, gap at %s" % [ghost.position, rows.position + gap.position])
+	else:
+		var visual := ghost.get_node(^"Visual") as Control
+		var expected_x := script.indent_pad + plan.y * script.indent_step
+		if absf(visual.position.x - expected_x) > 10.0:
+			_fail("ghost indent was %s, drop indent %s" % [visual.position.x, expected_x])
+		elif ghost.modulate.g < 0.9:
+			_fail("a legal drop ghost was tinted red")
+	script.preview_drop(beside, payload)
+	await process_frame
+	script._follow_drop_ghost()
+	var beside_plan := script._plan(beside, payload)
+	if ghost:
+		var moved := ghost.get_node(^"Visual") as Control
+		var beside_x := script.indent_pad + beside_plan.y * script.indent_step
+		if absf(moved.position.x - beside_x) > 10.0:
+			_fail("moving sideways left the ghost at %s, drop wants %s" % [moved.position.x, beside_x])
+	script.set_mb_budget(8, 8)
+	script.preview_drop(into, payload)
+	await process_frame
+	if ghost and ghost.modulate.g > 0.6:
+		_fail("an over-budget drop was not tinted red")
+	var reason := script.get_node_or_null(^"ScriptScroll/ScriptBody/DropReason") as Label
+	if reason == null or not reason.visible or not str(reason.text).contains("MB"):
+		_fail("over-budget drop gave no reason")
+	if script._can_drop_data(into, payload):
+		_fail("over-budget drop was accepted")
+	script.clear_drop_preview()
+	await process_frame
+	if script.get_node_or_null(^"ScriptScroll/ScriptBody/ScriptRows/DropGap") != null:
+		_fail("cancelling the drag left the gap open")
+	script.set_mb_budget(1, 8)
+	script.set_process(true)
+
+
 func _test_translations() -> void:
 	var names := {
 		"enemy_in_attack_range": ["Enemy within reach", "ศัตรูอยู่ในระยะโจมตี"],
@@ -560,7 +618,7 @@ func _test_translations() -> void:
 			_fail("missing english desc for %s" % str(id))
 		if LocaleText.translate("code.%s.desc" % str(id), "th").is_empty():
 			_fail("missing thai desc for %s" % str(id))
-	for key in ["ui.code_editor.tab_conditions", "ui.code_editor.tab_actions", "ui.code_editor.ram_hint", "ui.code_editor.ram", "ui.code_editor.empty"]:
+	for key in ["ui.code_editor.tab_conditions", "ui.code_editor.tab_actions", "ui.code_editor.ram_hint", "ui.code_editor.ram", "ui.code_editor.empty", "ui.code_editor.drop_mb", "ui.code_editor.drop_indent"]:
 		if LocaleText.translate(key, "en").is_empty() or LocaleText.translate(key, "th").is_empty():
 			_fail("missing translation %s" % key)
 	TranslationServer.set_locale("en")
