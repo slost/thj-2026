@@ -44,6 +44,7 @@ var _indent := 0
 var _compact := false
 var _selected := false
 var _hovered := false
+var _drag_preview: Control
 var _marked := false
 var _ready_done := false
 var _phase := 0.0
@@ -145,6 +146,7 @@ func _notification(what: int) -> void:
 		_apply()
 	elif what == NOTIFICATION_DRAG_END:
 		_finish_remove_drag()
+		_clear_drag_preview()
 
 
 func _process(delta: float) -> void:
@@ -156,6 +158,7 @@ func _process(delta: float) -> void:
 	var lift := hover_lift if _hovered else 0.0
 	var shown := hover_scale if _hovered else 1.0
 	_place_visual(wave * _bob + lift, wave * _tilt, shown, sway * _drift)
+	_follow_drag_preview()
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -215,7 +218,11 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 	if _drag_removes:
 		preview.modulate = Color(1.0, 0.72, 0.68)
 	if get_viewport().gui_is_dragging():
-		set_drag_preview(preview)
+		# The engine preview is drawn on the root canvas, under the portrait layer.
+		var ghost := Control.new()
+		ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		set_drag_preview(ghost)
+		_show_drag_preview(preview)
 	else:
 		preview.queue_free()
 	return _active_drag
@@ -229,14 +236,15 @@ func _apply() -> void:
 	_count_badge.visible = _show_count and _count > 0
 	var count_pattern := LocaleText.resolve("ui.code_editor.count", "x{count}", "en")
 	_count_label.text = count_pattern.format({"count": _count})
-	var cost := _block.get_ram_cost() if _block else 0
-	var ram_pattern := LocaleText.resolve("ui.code_editor.ram_badge", "{cost} RAM", "en")
+	var cost := _block.get_mb_cost() if _block else 0
+	var ram_pattern := LocaleText.resolve("ui.code_editor.ram_badge", "{cost} MB", "en")
 	_ram_label.text = ram_pattern.format({"cost": cost})
 	var condition := _block is ConditionBlock
 	if _selected:
 		_visual.theme_type_variation = &"ConditionCardSelected" if condition else &"ActionCardSelected"
 	else:
 		_visual.theme_type_variation = &"ConditionCard" if condition else &"ActionCard"
+	_sync_stack_order()
 	_sync_highlight()
 	var owned := not _show_count or _count > 0
 	modulate = Color.WHITE if owned else get_theme_color(&"unowned_modulate", &"BlockCard")
@@ -425,7 +433,7 @@ func _mark_handled(data: Variant) -> void:
 
 func _on_mouse_entered() -> void:
 	_hovered = true
-	z_index = 1
+	_sync_stack_order()
 	_sync_highlight()
 	if line_index >= 0:
 		row_touched.emit(line_index)
@@ -433,8 +441,61 @@ func _on_mouse_entered() -> void:
 
 func _on_mouse_exited() -> void:
 	_hovered = false
-	z_index = 0
+	_sync_stack_order()
 	_sync_highlight()
 	if line_index >= 0:
 		focus_left.emit(line_index)
 		release_focus()
+
+
+## Selected cards stay above later rows. Hovered cards stay above idle ones.
+func _sync_stack_order() -> void:
+	if _selected:
+		z_index = 2
+	elif _hovered:
+		z_index = 1
+	else:
+		z_index = 0
+
+
+func _show_drag_preview(preview: Control) -> void:
+	_clear_drag_preview()
+	var host := _drag_host()
+	if host == null:
+		preview.queue_free()
+		return
+	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	preview.z_index = 100
+	host.add_child(preview)
+	_drag_preview = preview
+	_follow_drag_preview()
+
+
+func _follow_drag_preview() -> void:
+	if _drag_preview == null or not is_instance_valid(_drag_preview):
+		_drag_preview = null
+		return
+	var viewport := get_viewport()
+	if viewport == null or not viewport.gui_is_dragging():
+		_clear_drag_preview()
+		return
+	var host := _drag_preview.get_parent() as CanvasItem
+	if host == null:
+		return
+	var local := host.get_global_transform_with_canvas().affine_inverse() * viewport.get_mouse_position()
+	_drag_preview.position = local - _drag_preview.size * 0.5
+
+
+func _clear_drag_preview() -> void:
+	if _drag_preview != null and is_instance_valid(_drag_preview):
+		_drag_preview.queue_free()
+	_drag_preview = null
+
+
+func _drag_host() -> Node2D:
+	var current: Node = self
+	while current:
+		if current is Node2D:
+			return current as Node2D
+		current = current.get_parent()
+	return null

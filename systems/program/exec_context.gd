@@ -6,6 +6,8 @@ var self_unit: Unit2D
 var event: EventGraph.Event
 var event_source: Node   ## e.g. attacker for ON_HIT, corpse for ON_ALLY_DIED
 var target: Node         ## set by conditions, used by actions
+## Set by a block to end this read. The runner starts the next think at line 0.
+var stop_reading: bool = false
 
 
 func _init(p_unit: Unit2D, p_event: EventGraph.Event, p_source: Node = null) -> void:

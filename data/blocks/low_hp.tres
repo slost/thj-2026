@@ -8,3 +8,4 @@ id = &"low_hp"
 name = "Feeling weak"
 description = "You feel weak when your blood is {threshold} of full or less."
 threshold = 0.35
+mb_cost = 1

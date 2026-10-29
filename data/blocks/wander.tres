@@ -7,3 +7,4 @@ script = ExtResource("1_block")
 id = &"wander"
 name = "Wander around"
 description = "Walk off in a random direction."
+mb_cost = 1

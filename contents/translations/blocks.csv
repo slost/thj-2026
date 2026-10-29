@@ -45,13 +45,31 @@ code.forget_all_actions.name,Forget all plans,ลืมแผนทั้งห�
 code.forget_all_actions.desc,Drop every plan you were going to do.,ลืมทุกแผนที่ตั้งใจจะทำ
 code.forget_everything.name,Forget everything,ลืมทุกอย่าง
 code.forget_everything.desc,Let go of every person and every plan.,ลืมทั้งคนที่จำไว้และทุกแผน
-ui.code_editor.tab_conditions,Conditions,เงื่อนไข
-ui.code_editor.tab_actions,Actions,คำสั่ง
+code.stop_thinking.name,Stop thinking,หยุดคิด
+code.stop_thinking.desc,Stop reading the script and start over from the top next time.,เลิกอ่านสคริปต์ แล้วเริ่มอ่านจากบรรทัดแรกในรอบหน้า
+data.spell_1.name,Spell 1,เวท 1
+data.spell_2.name,Spell 2,เวท 2
+data.spell_3.name,Spell 3,เวท 3
+data.spell_4.name,Spell 4,เวท 4
+data.spell_5.name,Spell 5,เวท 5
+data.spell_6.name,Spell 6,เวท 6
+data.spell_7.name,Spell 7,เวท 7
+data.spell_8.name,Spell 8,เวท 8
+ui.code_editor.sort_conditions_first,Conditions first,เงื่อนไขขึ้นก่อน
+ui.code_editor.sort_actions_first,Actions first,คำสั่งขึ้นก่อน
+ui.summon.not_enough_corpses,Not enough corpses,ศพไม่พอ
+ui.summon.not_enough,Not enough {resource},{resource} ไม่พอ
+ui.battle.retreat_title,Retreat?,ถอยหรือไม่
+ui.battle.retreat_body,Abandon every minion and leave the raid?,ทิ้งมินเนียนทั้งหมดแล้วออกจากศึกหรือไม่
+ui.battle.retreat_confirm,Retreat,ถอย
+ui.battle.retreat_cancel,Stay,อยู่ต่อ
 ui.code_editor.sort_name,Name,ชื่อ
 ui.code_editor.sort_kind,Kind,ชนิด
 ui.code_editor.sort_ram,RAM,แรม
-ui.code_editor.ram_hint,Remembered people and plans also use RAM.,คนที่จำไว้กับแผนก็ใช้แรมด้วย
-ui.code_editor.ram,RAM  {used} / {max},แรม  {used} / {max}
-ui.code_editor.ram_badge,{cost} RAM,{cost} แรม
+ui.code_editor.ram_hint,Remembered people and plans also use MB.,คนที่จำไว้กับแผนก็ใช้ MB ด้วย
+ui.code_editor.ram,RAM: {used}/{max} MB,แรม: {used}/{max} MB
+ui.code_editor.ram_badge,{cost} MB,{cost} MB
 ui.code_editor.count,x{count},x{count}
 ui.code_editor.empty,(empty),(ว่าง)
+ui.code_editor.drop_mb,Not enough MB,MB ไม่พอ
+ui.code_editor.drop_indent,Can't indent here,ย่อหน้าตรงนี้ไม่ได้

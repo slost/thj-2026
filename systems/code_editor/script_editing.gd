@@ -87,7 +87,7 @@ static func remove_line(lines: Array[ScriptLine], index: int) -> CodeBlock:
 static func fits_ram(used: int, block: CodeBlock, ram_max: int) -> bool:
 	var extra := 0
 	if block:
-		extra = block.get_ram_cost()
+		extra = block.get_mb_cost()
 	return used + extra <= ram_max
 
 

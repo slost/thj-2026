@@ -2,7 +2,6 @@
 
 [ext_resource type="Texture2D" uid="uid://dqmg8d3tr3fsm" path="res://placeholders/text_pages.png" id="1_j75jk"]
 [ext_resource type="Script" uid="uid://bgit4iapmj1bm" path="res://addons/lost_framework/modules/asset_manager/hot_swap_sprite.gd" id="2_73kyq"]
-[ext_resource type="Script" uid="uid://dw84jg68x20tf" path="res://addons/lost_framework/modules/camera_controler/mouse_pan_component.gd" id="3_fhbsv"]
 [ext_resource type="Script" path="res://systems/code_editor/editor.gd" id="4_editor"]
 [ext_resource type="Script" path="res://systems/code_editor/block_palette.gd" id="5_palette"]
 [ext_resource type="Script" path="res://systems/code_editor/script_view.gd" id="6_script"]
@@ -34,61 +33,103 @@ script = ExtResource("2_73kyq")
 asset_id = "tex_book_screen"
 metadata/_custom_type_script = "uid://bgit4iapmj1bm"
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=712336434]
-
-[node name="MousePan" type="Node" parent="Camera2D" unique_id=2089436963]
-script = ExtResource("3_fhbsv")
-max_offset = Vector2(76.8, 48)
-
-[node name="UnitsContainer" type="HBoxContainer" parent="." unique_id=14003093]
+[node name="SpellsContainer" type="HBoxContainer" parent="." unique_id=14003093]
 unique_name_in_owner = true
 offset_left = 1206.0
 offset_top = 148.0
 offset_right = 1696.0
 offset_bottom = 188.0
 theme = ExtResource("7_theme")
-theme_override_constants/separation = 8
+theme_override_constants/separation = 4
 alignment = 1
 
-[node name="UnitButton1" type="Button" parent="UnitsContainer" unique_id=761625322]
+[node name="SpellButton1" type="Button" parent="SpellsContainer" unique_id=761625322]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 14
 toggle_mode = true
 button_group = SubResource("ButtonGroup_units")
+clip_text = true
 text = "1"
 
-[node name="UnitButton2" type="Button" parent="UnitsContainer" unique_id=1749574194]
+[node name="SpellButton2" type="Button" parent="SpellsContainer" unique_id=1749574194]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 14
 toggle_mode = true
 button_group = SubResource("ButtonGroup_units")
+clip_text = true
 text = "2"
 
-[node name="UnitButton3" type="Button" parent="UnitsContainer"]
+[node name="SpellButton3" type="Button" parent="SpellsContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 14
 toggle_mode = true
 button_group = SubResource("ButtonGroup_units")
+clip_text = true
 text = "3"
 
-[node name="UnitButton4" type="Button" parent="UnitsContainer"]
+[node name="SpellButton4" type="Button" parent="SpellsContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 14
 toggle_mode = true
 button_group = SubResource("ButtonGroup_units")
+clip_text = true
 text = "4"
+
+[node name="SpellButton5" type="Button" parent="SpellsContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 14
+toggle_mode = true
+button_group = SubResource("ButtonGroup_units")
+clip_text = true
+text = "5"
+
+[node name="SpellButton6" type="Button" parent="SpellsContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 14
+toggle_mode = true
+button_group = SubResource("ButtonGroup_units")
+clip_text = true
+text = "6"
+
+[node name="SpellButton7" type="Button" parent="SpellsContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 14
+toggle_mode = true
+button_group = SubResource("ButtonGroup_units")
+clip_text = true
+text = "7"
+
+[node name="SpellButton8" type="Button" parent="SpellsContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 14
+toggle_mode = true
+button_group = SubResource("ButtonGroup_units")
+clip_text = true
+text = "8"
 
 [node name="ScriptHeader" type="Control" parent="."]
 unique_name_in_owner = true
@@ -159,7 +200,7 @@ offset_bottom = 44.0
 grow_horizontal = 2
 theme_override_constants/separation = 8
 
-[node name="SortConditions" type="Button" parent="BlockPalette/Tabs"]
+[node name="SortConditionsFirst" type="Button" parent="BlockPalette/Tabs"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -167,16 +208,16 @@ focus_mode = 0
 toggle_mode = true
 button_pressed = true
 button_group = SubResource("ButtonGroup_sort")
-text = "ui.code_editor.tab_conditions"
+text = "ui.code_editor.sort_conditions_first"
 
-[node name="SortActions" type="Button" parent="BlockPalette/Tabs"]
+[node name="SortActionsFirst" type="Button" parent="BlockPalette/Tabs"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
 toggle_mode = true
 button_group = SubResource("ButtonGroup_sort")
-text = "ui.code_editor.tab_actions"
+text = "ui.code_editor.sort_actions_first"
 
 [node name="PaletteScroll" type="ScrollContainer" parent="BlockPalette"]
 unique_name_in_owner = true

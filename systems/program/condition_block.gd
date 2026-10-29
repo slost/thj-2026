@@ -27,8 +27,8 @@ func get_block_label() -> String:
 	return "%s then [%s]" % [label, then_condition.get_block_label()]
 
 
-func get_ram_cost() -> int:
-	var total := super.get_ram_cost()
+func get_mb_cost() -> int:
+	var total := super.get_mb_cost()
 	if then_condition:
-		total += then_condition.get_ram_cost()
+		total += then_condition.get_mb_cost()
 	return total

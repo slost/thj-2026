@@ -6,10 +6,10 @@ extends Resource
 @export var lines: Array[ScriptLine] = []
 
 
-## Sum of every block's RAM cost. Nested then_condition costs are included by the block.
-func get_ram_cost() -> int:
+## Sum of every block's MB cost. Nested then_condition costs are included by the block.
+func get_mb_cost() -> int:
 	var total := 0
 	for line in lines:
 		if line and line.block:
-			total += line.block.get_ram_cost()
+			total += line.block.get_mb_cost()
 	return total

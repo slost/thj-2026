@@ -1,10 +1,12 @@
-## One army slot: a shared UnitDef plus this minion's own program.
+## One summon spell: a unit template, that spell's own program, and later its summon cost.
 ## The program is cloned from def.starting_program the first time it is asked for.
-class_name MinionSlot
+class_name SummonSpell
 extends RefCounted
 
 var def: UnitDef
 var program: UnitProgram
+## What the player spends to summon this spell. Empty means one corpse.
+var costs: Array[SummonCost] = []
 
 
 static func blank_program() -> UnitProgram:
@@ -24,12 +26,26 @@ static func blank_program() -> UnitProgram:
 	return created
 
 
+func get_costs() -> Array[SummonCost]:
+	if costs.is_empty():
+		# Resource indexes match Game.ResourceType: corpse, then gore.
+		var corpse := SummonCost.new()
+		corpse.resource_type = 0
+		corpse.amount = 1
+		costs.append(corpse)
+		var gore := SummonCost.new()
+		gore.resource_type = 4
+		gore.amount = 1
+		costs.append(gore)
+	return costs
+
+
 func display_name() -> String:
 	if def == null:
-		return "Minion"
+		return "Spell"
 	var title := def.get_display_name()
 	if title.is_empty():
-		return "Minion"
+		return "Spell"
 	return title
 
 

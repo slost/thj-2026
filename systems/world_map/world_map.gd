@@ -9,6 +9,8 @@ enum State {MAP, PINNED, CAMP, CODE, FOCUS}
 @export var map: Node2D
 @export var camp: Node2D
 @export var book: Node2D
+## Node, not CodeEditor: that script reads Game, and Game references WorldMap.
+@export var code_editor: Node
 @export var town_info: Control
 @export var map_marker: Marker2D
 
@@ -32,6 +34,13 @@ var _map_rest_scale: Vector2 = Vector2.ONE
 var _map_tween: Tween
 
 
+const _Summoner := preload("res://systems/game/summoner.gd")
+const _INDICATOR_TEXTURE := preload("res://placeholders/tex_indicator.png")
+
+var _camp_director: FocusDirector
+var _camp_script: Control
+
+
 func _ready() -> void:
 	Game.change_stage(self)
 	Game.world_map = self
@@ -39,16 +48,29 @@ func _ready() -> void:
 		_map_rest_position = map.position
 		_map_rest_scale = map.scale
 	unfocus_location()
+	Game.load_map_state()
 	set_state()
+	if camp:
+		_Summoner.spawn_army_at(camp)
 
 	# Test resources
 	Game.change_resource(Game.ResourceType.CORPSE, 10)
 	Game.change_resource(Game.ResourceType.BONE, 5)
+	Game.change_resource(Game.ResourceType.GORE, 10)
 	Game.change_resource(Game.ResourceType.WEAPON, -3)
 	
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if current_state == State.CODE and event is InputEventKey:
+		var key := event as InputEventKey
+		if key.pressed and not key.echo and key.keycode == KEY_ESCAPE:
+			set_state(State.MAP)
+			get_viewport().set_input_as_handled()
+			return
+	# Card drags and the open book must not select or clear a town.
+	if get_viewport().gui_is_dragging():
+		return
 	if current_state != State.MAP and current_state != State.FOCUS and current_state != State.PINNED:
 		return
 	if event is not InputEventMouseButton or not event.pressed:
@@ -248,6 +270,20 @@ func _town_at_mouse() -> TownLocation:
 func _update_state() -> void:
 	set_camp_visible(current_state == State.CAMP)
 	set_book_visible(current_state == State.CODE)
+	_sync_code_editor()
+	_sync_unit_bars()
+	_sync_camp_focus()
+	if current_state == State.CAMP and camp:
+		_Summoner.spawn_army_at(camp)
+
+
+func _sync_code_editor() -> void:
+	if code_editor == null:
+		return
+	if current_state == State.CODE:
+		code_editor.call(&"open")
+	else:
+		code_editor.call(&"close")
 
 
 func set_camp_visible(value: bool = true) -> void:
@@ -257,6 +293,7 @@ func set_camp_visible(value: bool = true) -> void:
 			if child.has_method("set_visible"):
 				child.set_visible(value)
 		camp.visible = value
+		camp.process_mode = Node.PROCESS_MODE_INHERIT if value else Node.PROCESS_MODE_DISABLED
 
 
 func set_book_visible(value: bool = true) -> void:
@@ -280,5 +317,70 @@ func _update_buttons() -> void:
 			code_button.modulate = Color.WHITE
 
 
+func _sync_unit_bars() -> void:
+	var show := current_state == State.CAMP
+	if camp == null:
+		return
+	for node in camp.find_children("*", "Unit2D", true, false):
+		if node.has_method("set_status_bars_visible"):
+			node.call("set_status_bars_visible", show)
+
+
+func _sync_camp_focus() -> void:
+	var active := current_state == State.CAMP
+	if active:
+		_ensure_camp_focus()
+	if _camp_director:
+		_camp_director.process_mode = Node.PROCESS_MODE_INHERIT if active else Node.PROCESS_MODE_DISABLED
+		if not active:
+			_camp_director.clear_selection()
+	if _camp_script:
+		_camp_script.visible = active
+
+
+func _ensure_camp_focus() -> void:
+	if _camp_director != null or camp == null:
+		return
+	var hover := _camp_indicator("CampHover", 20)
+	var pin := _camp_indicator("CampPin", 19)
+	camp.add_child(hover)
+	camp.add_child(pin)
+	var director := FocusDirector.new()
+	director.name = "CampFocus"
+	director.indicator = hover
+	director.pin_indicator = pin
+	add_child(director)
+	_camp_director = director
+	var panel := ScriptDebugPanel.new()
+	panel.name = "CampScript"
+	var ui := get_node_or_null("UI")
+	if ui:
+		ui.add_child(panel)
+	else:
+		add_child(panel)
+	panel.visible = false
+	_camp_script = panel
+
+
+func _camp_indicator(node_name: String, z: int) -> Sprite2D:
+	var sprite := Sprite2D.new()
+	sprite.name = node_name
+	sprite.z_index = z
+	sprite.visible = false
+	sprite.texture = _INDICATOR_TEXTURE
+	return sprite
+
+
+func summon_spot(world_pos: Vector2) -> Dictionary:
+	if current_state != State.CAMP or camp == null or not camp.has_method("contains_world"):
+		return {"ok": false, "pos": world_pos}
+	if not bool(camp.call("contains_world", world_pos)):
+		return {"ok": false, "pos": world_pos}
+	return {"ok": true, "pos": world_pos}
+
+
 func _on_raid_button_pressed() -> void:
-	Game.raid_to(focus_location)
+	var slots: Array[int] = []
+	for index in Game.spells.size():
+		slots.append(index)
+	Game.raid_to(focus_location, slots)

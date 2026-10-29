@@ -1,0 +1,140 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://systems/ui/summon_hotbar.gd" id="1_hotbar"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_spells"]
+
+[node name="SummonHotbar" type="Control"]
+layout_mode = 3
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 520.0
+offset_top = -118.0
+offset_right = -480.0
+offset_bottom = -12.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("1_hotbar")
+
+[node name="Flash" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = -36.0
+offset_bottom = -4.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 1
+text = "Not enough corpses"
+
+[node name="Slots" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="Spell1" type="Button" parent="Slots"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(108, 72)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 14
+toggle_mode = true
+button_group = SubResource("ButtonGroup_spells")
+clip_text = true
+text = "1"
+
+[node name="Spell2" type="Button" parent="Slots"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(108, 72)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 14
+toggle_mode = true
+button_group = SubResource("ButtonGroup_spells")
+clip_text = true
+text = "2"
+
+[node name="Spell3" type="Button" parent="Slots"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(108, 72)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 14
+toggle_mode = true
+button_group = SubResource("ButtonGroup_spells")
+clip_text = true
+text = "3"
+
+[node name="Spell4" type="Button" parent="Slots"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(108, 72)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 14
+toggle_mode = true
+button_group = SubResource("ButtonGroup_spells")
+clip_text = true
+text = "4"
+
+[node name="Spell5" type="Button" parent="Slots"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(108, 72)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 14
+toggle_mode = true
+button_group = SubResource("ButtonGroup_spells")
+clip_text = true
+text = "5"
+
+[node name="Spell6" type="Button" parent="Slots"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(108, 72)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 14
+toggle_mode = true
+button_group = SubResource("ButtonGroup_spells")
+clip_text = true
+text = "6"
+
+[node name="Spell7" type="Button" parent="Slots"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(108, 72)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 14
+toggle_mode = true
+button_group = SubResource("ButtonGroup_spells")
+clip_text = true
+text = "7"
+
+[node name="Spell8" type="Button" parent="Slots"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(108, 72)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 14
+toggle_mode = true
+button_group = SubResource("ButtonGroup_spells")
+clip_text = true
+text = "8"

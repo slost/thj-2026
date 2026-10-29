@@ -7,3 +7,4 @@ script = ExtResource("1_block")
 id = &"move_away_from_target"
 name = "Run from the target"
 description = "Back away from the one you remember."
+mb_cost = 1

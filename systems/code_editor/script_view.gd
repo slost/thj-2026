@@ -21,6 +21,8 @@ var _rebuild_queued := false
 var _stroke_open := false
 var _stroke_started_msec := 0
 var _stroke: Array[int] = []
+## False while the editor is closed, so shortcuts and drag scrolling stay off the map.
+var _input_enabled := true
 const _GROUP_HOLD_MSEC := 420
 
 @onready var _scroll: ScrollContainer = %ScriptScroll
@@ -29,6 +31,18 @@ const _GROUP_HOLD_MSEC := 420
 @onready var _rows: VBoxContainer = %ScriptRows
 @onready var _empty: Label = %EmptyLabel
 @onready var _indicator: ColorRect = %DropIndicator
+
+const _GAP_SECONDS := 0.12
+var _mb_used := 0
+var _mb_max := 0
+var _ghost: BlockCard
+var _ghost_reason: Label
+var _spacer: Control
+var _gap_tween: Tween
+var _preview_gap := -1
+var _preview_indent := -1
+var _preview_block: CodeBlock
+var _preview_reason := ""
 
 
 func set_lines(lines: Array[ScriptLine]) -> void:
@@ -60,8 +74,22 @@ func _queue_rebuild() -> void:
 	call_deferred("_rebuild")
 
 
+func set_mb_budget(used: int, maximum: int) -> void:
+	_mb_used = maxi(used, 0)
+	_mb_max = maxi(maximum, 0)
+
+
+func preview_drop(at: Vector2, data: Variant) -> void:
+	_show_drop(at, data, _plan(at, data))
+
+
+func clear_drop_preview() -> void:
+	_clear_drop_preview()
+
+
 func _rebuild() -> void:
 	_rebuild_queued = false
+	_dismiss_drop_nodes()
 	if _rows == null:
 		return
 	for child in _rows.get_children():
@@ -123,19 +151,18 @@ func _sync_body() -> void:
 
 func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 	if _is_remove_drag(data):
-		if _indicator:
-			_indicator.visible = false
+		_clear_drop_preview()
 		return true
 	var plan := _plan(at_position, data)
-	_show_plan(plan)
-	return plan.x >= 0.0
+	_show_drop(at_position, data, plan)
+	return plan.x >= 0.0 and _reject_reason(data, plan).is_empty()
 
 
 func _drop_data(at_position: Vector2, data: Variant) -> void:
 	if _is_remove_drag(data):
 		if data is Dictionary:
 			data["handled"] = true
-		_indicator.visible = false
+		_clear_drop_preview()
 		var index := int(data.get("index", -1))
 		if bool(data.get("group", false)):
 			remove_group.emit(index)
@@ -143,8 +170,8 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 			remove_line.emit(index)
 		return
 	var plan := _plan(at_position, data)
-	_indicator.visible = false
-	if plan.x < 0.0 or not data is Dictionary:
+	_clear_drop_preview()
+	if plan.x < 0.0 or not data is Dictionary or not _reject_reason(data, plan).is_empty():
 		return
 	data["handled"] = true
 	var source := str(data.get("source", ""))
@@ -156,27 +183,43 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 		move_line.emit(int(data.get("index", -1)), int(plan.x), int(plan.y))
 
 
+## Keyboard shortcuts, drag scrolling, and the delete stroke. Closed editors must not see them.
+func set_input_enabled(enabled: bool) -> void:
+	_input_enabled = enabled
+	set_process(enabled)
+	set_process_input(enabled)
+	if enabled:
+		return
+	_stroke_open = false
+	_stroke.clear()
+	_clear_drop_preview()
+	_paint_stroke()
+
+
 func _process(delta: float) -> void:
+	if not _input_enabled:
+		return
 	_autoscroll(delta)
 	if _stroke_open:
 		if not Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
 			_finish_stroke(Time.get_ticks_msec() - _stroke_started_msec)
 		else:
 			_note_row(_row_at_mouse())
-	if _indicator == null or not _indicator.visible:
-		return
 	if not get_viewport().gui_is_dragging():
-		_indicator.visible = false
+		if _preview_gap >= 0:
+			_clear_drop_preview()
 		return
 	var local := get_local_mouse_position()
 	if not Rect2(Vector2.ZERO, size).has_point(local):
-		_indicator.visible = false
+		if _preview_gap >= 0:
+			_clear_drop_preview()
 		return
 	var drag: Variant = get_viewport().gui_get_drag_data()
 	if _is_remove_drag(drag):
-		_indicator.visible = false
+		_clear_drop_preview()
 		return
-	_show_plan(_plan(local, drag))
+	_show_drop(local, drag, _plan(local, drag))
+	_follow_drop_ghost()
 
 
 func _autoscroll(delta: float) -> void:
@@ -199,6 +242,8 @@ func _autoscroll(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if not _input_enabled:
+		return
 	if not event is InputEventKey:
 		return
 	var key := event as InputEventKey
@@ -253,18 +298,156 @@ func _gap_at(local_y: float) -> int:
 	return row + 1
 
 
-func _show_plan(plan: Vector2) -> void:
-	if _indicator == null or plan.x < 0.0:
-		if _indicator:
-			_indicator.visible = false
+func _show_drop(at: Vector2, data: Variant, plan: Vector2) -> void:
+	if _indicator:
+		_indicator.visible = false
+	if _rows == null:
 		return
-	var y := plan.x * row_height
-	if _scroll:
-		y -= float(_scroll.scroll_vertical)
-	var x := indent_pad + plan.y * indent_step
-	_indicator.position = Vector2(x, y - 2.0)
-	_indicator.size = Vector2(maxf(size.x - x - 12.0, 24.0), 4.0)
-	_indicator.visible = true
+	var gap := int(plan.x) if plan.x >= 0.0 else _gap_at(at.y)
+	var indent := int(plan.y) if plan.x >= 0.0 else _raw_indent(at.x, gap, data)
+	var reason := _reject_reason(data, plan)
+	var block := _drag_block(data)
+	var changed := _ghost == null or _preview_block != block or _preview_indent != indent
+	_open_gap(gap)
+	_preview_indent = indent
+	if changed:
+		_ensure_ghost(block, indent)
+	_preview_block = block
+	_preview_reason = reason
+	var rejected := not reason.is_empty()
+	if _ghost:
+		_ghost.modulate = Color(1.0, 0.35, 0.32, 0.78) if rejected else Color(1, 1, 1, 0.55)
+		_ghost.visible = true
+	if _ghost_reason:
+		_ghost_reason.visible = rejected
+		_ghost_reason.text = reason
+	_follow_drop_ghost()
+
+
+func _reject_reason(data: Variant, plan: Vector2) -> String:
+	if plan.x < 0.0:
+		return LocaleText.resolve("ui.code_editor.drop_indent", "Can't indent here", "en")
+	if str(data.get("source", "")) != "palette":
+		return ""
+	var block := _drag_block(data)
+	if block == null or ScriptEditing.fits_ram(_mb_used, block, _mb_max):
+		return ""
+	return LocaleText.resolve("ui.code_editor.drop_mb", "Not enough MB", "en")
+
+
+func _raw_indent(local_x: float, gap: int, data: Variant) -> int:
+	var skip_from := -1
+	var skip_until := -1
+	if data is Dictionary and str(data.get("source", "")) == "script":
+		skip_from = int(data.get("index", -1))
+		if skip_from >= 0:
+			skip_until = ScriptEditing.subtree_end(_lines, skip_from)
+	var raw := int(floor((local_x - indent_pad) / indent_step))
+	return ScriptEditing.clamped_indent(_lines, gap, raw, skip_from, skip_until)
+
+
+func _drag_block(data: Variant) -> CodeBlock:
+	if not data is Dictionary:
+		return null
+	if str(data.get("source", "")) == "palette":
+		return data.get("block") as CodeBlock
+	var index := int(data.get("index", -1))
+	if index < 0 or index >= _lines.size() or _lines[index] == null:
+		return null
+	return _lines[index].block
+
+
+func _open_gap(gap: int) -> void:
+	_ensure_spacer()
+	var last := maxi(_rows.get_child_count() - 1, 0)
+	_rows.move_child(_spacer, clampi(gap, 0, last))
+	_preview_gap = gap
+	if is_equal_approx(_spacer.custom_minimum_size.y, row_height):
+		return
+	if _gap_tween != null and _gap_tween.is_running():
+		return
+	_gap_tween = create_tween()
+	_gap_tween.tween_property(_spacer, "custom_minimum_size:y", row_height, _GAP_SECONDS)
+
+
+func _ensure_spacer() -> void:
+	if _spacer != null and is_instance_valid(_spacer) and _spacer.get_parent() == _rows:
+		return
+	_spacer = Control.new()
+	_spacer.name = "DropGap"
+	_spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_rows.add_child(_spacer)
+
+
+func _ensure_ghost(block: CodeBlock, indent: int) -> void:
+	if _body == null:
+		return
+	if _ghost == null or not is_instance_valid(_ghost):
+		_ghost = (load("res://systems/code_editor/block_card.tscn") as PackedScene).instantiate() as BlockCard
+		_ghost.name = "DropGhost"
+		_ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_ghost.allow_drag = false
+		_ghost.z_index = 4
+		_ghost.indent_pad = indent_pad
+		_ghost.indent_step = indent_step
+		_ghost.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_body.add_child(_ghost)
+	if _ghost_reason == null or not is_instance_valid(_ghost_reason):
+		_ghost_reason = Label.new()
+		_ghost_reason.name = "DropReason"
+		_ghost_reason.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_ghost_reason.z_index = 5
+		_ghost_reason.add_theme_color_override(&"font_color", Color(0.55, 0.08, 0.06))
+		_body.add_child(_ghost_reason)
+	_ghost.custom_minimum_size = Vector2(0, row_height)
+	_ghost.size = Vector2(maxf(_rows.size.x if _rows else size.x, 80.0), row_height)
+	_ghost.setup(block, 0, false, indent)
+
+
+func _follow_drop_ghost() -> void:
+	if _spacer == null or not is_instance_valid(_spacer):
+		if _links:
+			_links.clear_drop()
+		return
+	var open := _spacer.custom_minimum_size.y
+	if _links:
+		_links.show_drop(_preview_gap, _preview_indent, open)
+	if _ghost == null or _rows == null:
+		return
+	_ghost.position = _rows.position + _spacer.position
+	_ghost.size.x = maxf(_rows.size.x, 80.0)
+	if _ghost_reason:
+		var chip_x := indent_pad + float(maxi(_preview_indent, 0)) * indent_step
+		_ghost_reason.position = _ghost.position + Vector2(chip_x, -4.0)
+
+
+func _dismiss_drop_nodes() -> void:
+	_preview_gap = -1
+	_preview_indent = -1
+	_preview_block = null
+	_preview_reason = ""
+	if _gap_tween:
+		_gap_tween.kill()
+		_gap_tween = null
+	_spacer = null
+	if _ghost != null and is_instance_valid(_ghost):
+		_ghost.queue_free()
+	_ghost = null
+	if _ghost_reason != null and is_instance_valid(_ghost_reason):
+		_ghost_reason.queue_free()
+	_ghost_reason = null
+	if _indicator:
+		_indicator.visible = false
+	if _links:
+		_links.clear_drop()
+
+
+func _clear_drop_preview() -> void:
+	var spacer := _spacer
+	_dismiss_drop_nodes()
+	if spacer != null and is_instance_valid(spacer):
+		spacer.queue_free()
 
 
 func _on_card_drop(at_position: Vector2, data: Variant, card: BlockCard) -> void:

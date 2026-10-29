@@ -20,8 +20,8 @@ var _sort := SortMode.CONDITIONS
 var _rebuild_queued := false
 var _laying_out := false
 
-@onready var _conditions_tab: Button = %SortConditions
-@onready var _actions_tab: Button = %SortActions
+@onready var _conditions_tab: Button = %SortConditionsFirst
+@onready var _actions_tab: Button = %SortActionsFirst
 @onready var _list: Control = %PaletteList
 
 
@@ -51,6 +51,10 @@ func _drop_data(_at_position: Vector2, data: Variant) -> void:
 		return_group.emit(index)
 	else:
 		return_line.emit(index)
+
+
+func refresh() -> void:
+	_queue_rebuild()
 
 
 func _queue_rebuild() -> void:

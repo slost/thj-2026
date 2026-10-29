@@ -9,6 +9,7 @@ var read_index: int = 0
 
 var _read_timer: float = 0.0
 var _timer_armed: bool = false
+var _stop_reading: bool = false
 
 @onready var unit: Unit2D = get_parent() as Unit2D
 
@@ -80,6 +81,9 @@ func read_current_line() -> void:
 		read_index = 0
 	var line := function.lines[read_index]
 	var enter_body := _apply_line(line, EventGraph.Event.ON_UPDATE, null)
+	if _stop_reading:
+		read_index = 0
+		return
 	var next := next_line_index(function.lines, read_index, enter_body)
 	read_index = 0 if next >= function.lines.size() else next
 
@@ -129,6 +133,8 @@ func _run_instant(function: UnitFunction, event: EventGraph.Event, source: Node)
 		var enter_body := _apply_line(line, event, source)
 		if line and line.block is ActionBlock:
 			acted = true
+		if _stop_reading:
+			break
 		var next := next_line_index(function.lines, index, enter_body)
 		if next <= index:
 			break
@@ -139,17 +145,21 @@ func _run_instant(function: UnitFunction, event: EventGraph.Event, source: Node)
 
 ## A passing condition enters the indented body. A failing one does not.
 func _apply_line(line: ScriptLine, event: EventGraph.Event, source: Node) -> bool:
+	_stop_reading = false
 	if line == null or line.block == null or unit == null:
 		return true
 	var ctx := ExecContext.new(unit, event, source)
 	ctx.target = unit.get_primary_target()
 	if line.block is ConditionBlock:
-		return (line.block as ConditionBlock).evaluate(unit, ctx)
+		var passed := (line.block as ConditionBlock).evaluate(unit, ctx)
+		_stop_reading = ctx.stop_reading
+		return passed
 	if line.block is ActionBlock:
 		var action := line.block as ActionBlock
 		if action.runs_immediately():
 			action.execute(unit, ctx)
 		elif not action.affects_target() or unit.get_primary_target() != null:
 			unit.enqueue_action(action)
+		_stop_reading = ctx.stop_reading
 		return true
 	return true

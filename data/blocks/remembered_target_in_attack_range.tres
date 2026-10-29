@@ -7,3 +7,4 @@ script = ExtResource("1_block")
 id = &"remembered_target_in_attack_range"
 name = "Target within reach"
 description = "The one you remember is close enough to hit."
+mb_cost = 1

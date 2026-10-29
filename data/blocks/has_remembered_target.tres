@@ -7,3 +7,4 @@ script = ExtResource("1_block")
 id = &"has_remembered_target"
 name = "Remembers someone"
 description = "You still remember someone."
+mb_cost = 1

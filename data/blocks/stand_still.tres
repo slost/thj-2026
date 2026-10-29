@@ -7,3 +7,4 @@ script = ExtResource("1_block")
 id = &"stand_still"
 name = "Stand still"
 description = "Stop and stay put."
+mb_cost = 1

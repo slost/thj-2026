@@ -7,8 +7,8 @@ class_name CodeBlock
 enum Rarity { COMMON, UNCOMMON, RARE, CURSED }
 
 @export var rarity: Rarity = Rarity.COMMON
-## How much of the unit's RAM this block uses. Nested blocks add their own cost.
-@export var ram_cost: int = 1
+## How many MB of the unit's RAM this block uses. Nested blocks add their own cost.
+@export var mb_cost: int = 1
 
 
 func _domain_id() -> StringName:
@@ -19,5 +19,5 @@ func get_block_label() -> String:
 	return name if not name.is_empty() else "block"
 
 
-func get_ram_cost() -> int:
-	return maxi(ram_cost, 0)
+func get_mb_cost() -> int:
+	return maxi(mb_cost, 0)

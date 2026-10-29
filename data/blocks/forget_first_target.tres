@@ -9,3 +9,4 @@ name = "Forget the first target"
 description = "Let go of the first one you remember."
 slot = 0
 which = 0
+mb_cost = 1
