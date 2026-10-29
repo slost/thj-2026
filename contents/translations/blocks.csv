@@ -47,6 +47,14 @@ code.forget_everything.name,Forget everything,ลืมทุกอย่าง
 code.forget_everything.desc,Let go of every person and every plan.,ลืมทั้งคนที่จำไว้และทุกแผน
 code.stop_thinking.name,Stop thinking,หยุดคิด
 code.stop_thinking.desc,Stop reading the script and start over from the top next time.,เลิกอ่านสคริปต์ แล้วเริ่มอ่านจากบรรทัดแรกในรอบหน้า
+data.spell_1.name,Spell 1,เวท 1
+data.spell_2.name,Spell 2,เวท 2
+data.spell_3.name,Spell 3,เวท 3
+data.spell_4.name,Spell 4,เวท 4
+data.spell_5.name,Spell 5,เวท 5
+data.spell_6.name,Spell 6,เวท 6
+data.spell_7.name,Spell 7,เวท 7
+data.spell_8.name,Spell 8,เวท 8
 ui.code_editor.sort_conditions_first,Conditions first,เงื่อนไขขึ้นก่อน
 ui.code_editor.sort_actions_first,Actions first,คำสั่งขึ้นก่อน
 ui.code_editor.sort_name,Name,ชื่อ

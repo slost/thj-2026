@@ -36,11 +36,11 @@ var world_map: WorldMap
 
 ## Blocks the player owns. Empty on startup, then seeded from data/blocks.
 var block_inventory: BlockInventory
-## Minion slots. Each keeps its own program, cloned from the def on first use.
-var roster: Array[MinionSlot] = []
+## Summon spells. Each keeps its own program, cloned from the def on first use.
+var spells: Array[SummonSpell] = []
 
-const _ROSTER_SIZE := 4
-const _SEED_RAM: Array[int] = [8, 12, 16, 10]
+const _SPELL_COUNT := 8
+const _SEED_RAM: Array[int] = [8, 12, 16, 10, 8, 14, 12, 9]
 
 
 func change_stage(stage: Node) -> void:
@@ -59,12 +59,12 @@ func _normalize_raid_slots(slots: Array[int]) -> Array[int]:
 	var chosen: Array[int] = []
 	var source: Array[int] = []
 	if slots.is_empty():
-		for index in roster.size():
+		for index in spells.size():
 			source.append(index)
 	else:
 		source = slots.duplicate()
 	for index in source:
-		if index < 0 or index >= roster.size():
+		if index < 0 or index >= spells.size():
 			continue
 		if chosen.has(index):
 			continue
@@ -180,22 +180,22 @@ func change_resource(resource_type: ResourceType, amount: int) -> void:
 func _ready() -> void:
 	block_inventory = BlockInventory.new()
 	block_inventory.seed_if_empty()
-	_seed_roster_if_empty()
+	_seed_spells_if_empty()
 
 
-func _seed_roster_if_empty() -> void:
-	if not roster.is_empty():
+func _seed_spells_if_empty() -> void:
+	if not spells.is_empty():
 		return
-	for index in _ROSTER_SIZE:
+	for index in _SPELL_COUNT:
 		var def := UnitDef.new()
-		def.id = StringName("minion_%d" % (index + 1))
-		def.name = "Minion %d" % (index + 1)
+		def.id = StringName("spell_%d" % (index + 1))
+		def.name = "Spell %d" % (index + 1)
 		def.team = Unit2D.Team.MINION
 		def.ram = _SEED_RAM[index]
 		var events: Array[EventGraph.Event] = []
 		events.append(EventGraph.Event.ON_UPDATE)
 		def.allowed_events = events
-		def.starting_program = MinionSlot.blank_program()
-		var slot := MinionSlot.new()
-		slot.def = def
-		roster.append(slot)
+		def.starting_program = SummonSpell.blank_program()
+		var spell := SummonSpell.new()
+		spell.def = def
+		spells.append(spell)

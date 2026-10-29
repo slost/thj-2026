@@ -185,7 +185,7 @@ func spawn_raid_party() -> void:
 	var game := _game()
 	if game == null:
 		return
-	var roster: Array = game.get("roster")
+	var roster: Array = game.get("spells")
 	var indexes: Array = game.get("raid_slots")
 	if indexes.is_empty():
 		indexes = []
@@ -201,7 +201,7 @@ func spawn_raid_party() -> void:
 		if index < 0 or index >= roster.size() or used.has(index):
 			continue
 		used.append(index)
-		var slot := roster[index] as MinionSlot
+		var slot := roster[index] as SummonSpell
 		if slot == null:
 			continue
 		var unit := _UNIT_SCENE.instantiate() as Unit2D
@@ -227,14 +227,14 @@ func _cell_position(map: TileMapLayer, cell: Vector2i) -> Vector2:
 	return to_local(map.to_global(map.map_to_local(cell)))
 
 
-func _party_name(slot: MinionSlot, index: int) -> String:
+func _party_name(slot: SummonSpell, index: int) -> String:
 	var title := slot.display_name().replace("/", " ").replace(":", " ")
 	if title.is_empty():
 		title = "Minion"
 	return "%s %d" % [title, index + 1]
 
 
-func _def_for_slot(slot: MinionSlot) -> UnitDef:
+func _def_for_slot(slot: SummonSpell) -> UnitDef:
 	var def := UnitDef.new()
 	var source := slot.def
 	if source != null:

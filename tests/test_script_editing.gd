@@ -21,9 +21,9 @@ func _run() -> void:
 	if game == null:
 		_fail("Game autoload is missing")
 	else:
-		var roster: Array = game.get("roster")
-		if roster.size() != 4:
-			_fail("roster was not seeded with 4 slots, got %d" % roster.size())
+		var roster: Array = game.get("spells")
+		if roster.size() != 8:
+			_fail("spells were not seeded with 8 slots, got %d" % roster.size())
 		var inventory = game.get("block_inventory")
 		if inventory == null or inventory.get_all().is_empty():
 			_fail("block inventory was not seeded")
@@ -35,8 +35,8 @@ func _run() -> void:
 
 
 func _test_blank_programs_are_separate() -> void:
-	var first := MinionSlot.blank_program()
-	var second := MinionSlot.blank_program()
+	var first := SummonSpell.blank_program()
+	var second := SummonSpell.blank_program()
 	first.functions[0].lines.append(ScriptLine.new())
 	if not second.functions[0].lines.is_empty():
 		_fail("blank programs share their line array")
@@ -46,14 +46,14 @@ func _test_blank_programs_are_separate() -> void:
 
 func _test_slot_clone_keeps_shared_blocks() -> void:
 	var block := _attack()
-	var source := MinionSlot.blank_program()
+	var source := SummonSpell.blank_program()
 	ScriptEditing.insert_line(source.functions[0].lines, 0, 0, block)
 	var def := UnitDef.new()
 	def.name = "Clone"
 	def.ram = 8
 	def.starting_program = source
-	var slot_a := MinionSlot.new()
-	var slot_b := MinionSlot.new()
+	var slot_a := SummonSpell.new()
+	var slot_b := SummonSpell.new()
 	slot_a.def = def
 	slot_b.def = def
 	var function_a := slot_a.get_update_function()
@@ -228,7 +228,10 @@ func _test_editor_screen() -> void:
 		await process_frame
 	var palette := editor.get_node(^"%BlockPalette") as Control
 	var script := editor.get_node(^"%ScriptView") as ScriptView
-	var slots := editor.get_node(^"%UnitsContainer") as Control
+	var slots := editor.get_node(^"%SpellsContainer") as Control
+	var eighth := editor.get_node_or_null(^"%SpellButton8") as Button
+	if eighth == null or eighth.text.is_empty():
+		_fail("the book does not show eight named spells")
 	var palette_rect := palette.get_global_rect()
 	var script_rect := script.get_global_rect()
 	if palette_rect.size.x < 200.0 or palette_rect.size.y < 200.0:
@@ -303,7 +306,7 @@ func _test_editor_screen() -> void:
 	editor.call("_on_place", attack, 1, 5)
 	for _frame in 3:
 		await process_frame
-	var roster: Array = game.get("roster")
+	var roster: Array = game.get("spells")
 	var slot = roster[0]
 	var lines: Array = slot.get_update_function().lines
 	if lines.size() != 2:
@@ -487,8 +490,8 @@ func _test_editor_screen() -> void:
 	if roster[3].get_update_function().lines.size() != 0:
 		_fail("slot 4 was not empty")
 	var name_label := editor.get_node(^"%NameLabel") as Label
-	if name_label.text != "Minion 4":
-		_fail("header did not switch slot, got '%s'" % name_label.text)
+	if name_label.text != roster[3].display_name():
+		_fail("header did not switch spell, got '%s'" % name_label.text)
 	editor.call("_on_slot_button", 0)
 	for _frame in 2:
 		await process_frame
@@ -777,8 +780,8 @@ func _test_world_map_book() -> void:
 		_fail("Code state did not open the editor")
 	if not editor.visible:
 		_fail("Code state left the pages hidden")
-	var roster: Array = game.get("roster")
-	var slot := roster[0] as MinionSlot
+	var roster: Array = game.get("spells")
+	var slot := roster[0] as SummonSpell
 	var count := slot.get_update_function().lines.size()
 	if count <= 0:
 		_fail("roster slot 0 was empty before the map round-trip")
@@ -789,7 +792,7 @@ func _test_world_map_book() -> void:
 		_fail("palette is not on the world map book: %s book %s" % [palette.get_global_rect(), book_rect])
 	if not book_rect.has_point(script.get_global_rect().get_center()):
 		_fail("script is not on the world map book: %s book %s" % [script.get_global_rect(), book_rect])
-	var button := editor.get_node(^"%UnitButton1") as Button
+	var button := editor.get_node(^"%SpellButton1") as Button
 	if button.mouse_filter != Control.MOUSE_FILTER_STOP:
 		_fail("open editor blocked its own buttons")
 	var background := world.get_node(^"BookBackground") as Node2D
@@ -890,8 +893,8 @@ func _test_world_map_book() -> void:
 func _test_raid_spawns_roster() -> void:
 	await process_frame
 	var game := root.get_node(^"Game")
-	var roster: Array = game.get("roster")
-	var slot := roster[0] as MinionSlot
+	var roster: Array = game.get("spells")
+	var slot := roster[0] as SummonSpell
 	var expected_lines := slot.get_update_function().lines
 	if expected_lines.is_empty():
 		_fail("raid test needs a script on slot 0")
@@ -946,7 +949,7 @@ func _test_stop_thinking() -> void:
 	if stop == null or stand == null:
 		_fail("stop thinking block is missing")
 		return
-	var program := MinionSlot.blank_program()
+	var program := SummonSpell.blank_program()
 	var update := program.functions[0]
 	update.lines.append(_line(stop, 0))
 	update.lines.append(_line(stand, 0))

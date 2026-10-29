@@ -1,6 +1,6 @@
-## One army slot: a shared UnitDef plus this minion's own program.
+## One summon spell: a unit template, that spell's own program, and later its summon cost.
 ## The program is cloned from def.starting_program the first time it is asked for.
-class_name MinionSlot
+class_name SummonSpell
 extends RefCounted
 
 var def: UnitDef
@@ -26,10 +26,10 @@ static func blank_program() -> UnitProgram:
 
 func display_name() -> String:
 	if def == null:
-		return "Minion"
+		return "Spell"
 	var title := def.get_display_name()
 	if title.is_empty():
-		return "Minion"
+		return "Spell"
 	return title
 
 

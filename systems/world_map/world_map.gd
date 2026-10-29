@@ -303,6 +303,6 @@ func _update_buttons() -> void:
 
 func _on_raid_button_pressed() -> void:
 	var slots: Array[int] = []
-	for index in Game.roster.size():
+	for index in Game.spells.size():
 		slots.append(index)
 	Game.raid_to(focus_location, slots)

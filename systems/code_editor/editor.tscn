@@ -33,55 +33,103 @@ script = ExtResource("2_73kyq")
 asset_id = "tex_book_screen"
 metadata/_custom_type_script = "uid://bgit4iapmj1bm"
 
-[node name="UnitsContainer" type="HBoxContainer" parent="." unique_id=14003093]
+[node name="SpellsContainer" type="HBoxContainer" parent="." unique_id=14003093]
 unique_name_in_owner = true
 offset_left = 1206.0
 offset_top = 148.0
 offset_right = 1696.0
 offset_bottom = 188.0
 theme = ExtResource("7_theme")
-theme_override_constants/separation = 8
+theme_override_constants/separation = 4
 alignment = 1
 
-[node name="UnitButton1" type="Button" parent="UnitsContainer" unique_id=761625322]
+[node name="SpellButton1" type="Button" parent="SpellsContainer" unique_id=761625322]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 14
 toggle_mode = true
 button_group = SubResource("ButtonGroup_units")
+clip_text = true
 text = "1"
 
-[node name="UnitButton2" type="Button" parent="UnitsContainer" unique_id=1749574194]
+[node name="SpellButton2" type="Button" parent="SpellsContainer" unique_id=1749574194]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 14
 toggle_mode = true
 button_group = SubResource("ButtonGroup_units")
+clip_text = true
 text = "2"
 
-[node name="UnitButton3" type="Button" parent="UnitsContainer"]
+[node name="SpellButton3" type="Button" parent="SpellsContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 14
 toggle_mode = true
 button_group = SubResource("ButtonGroup_units")
+clip_text = true
 text = "3"
 
-[node name="UnitButton4" type="Button" parent="UnitsContainer"]
+[node name="SpellButton4" type="Button" parent="SpellsContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 14
 toggle_mode = true
 button_group = SubResource("ButtonGroup_units")
+clip_text = true
 text = "4"
+
+[node name="SpellButton5" type="Button" parent="SpellsContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 14
+toggle_mode = true
+button_group = SubResource("ButtonGroup_units")
+clip_text = true
+text = "5"
+
+[node name="SpellButton6" type="Button" parent="SpellsContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 14
+toggle_mode = true
+button_group = SubResource("ButtonGroup_units")
+clip_text = true
+text = "6"
+
+[node name="SpellButton7" type="Button" parent="SpellsContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 14
+toggle_mode = true
+button_group = SubResource("ButtonGroup_units")
+clip_text = true
+text = "7"
+
+[node name="SpellButton8" type="Button" parent="SpellsContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 14
+toggle_mode = true
+button_group = SubResource("ButtonGroup_units")
+clip_text = true
+text = "8"
 
 [node name="ScriptHeader" type="Control" parent="."]
 unique_name_in_owner = true

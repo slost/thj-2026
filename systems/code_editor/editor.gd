@@ -1,4 +1,4 @@
-## Code editor. Writes the selected minion's ON_UPDATE script in place.
+## Code editor. Writes the selected spell's ON_UPDATE script in place.
 ## Page controls live in this node's space, next to the book sprite. A shared
 ## camera pan moves both, including when this node sits on a CanvasLayer that
 ## follows the viewport. That layer is what keeps the pages above the portrait.
@@ -49,8 +49,11 @@ var _stored_mouse: Dictionary = {}
 @onready var _script: ScriptView = %ScriptView
 @onready var _name_label: Label = %NameLabel
 @onready var _ram_label: Label = %RamLabel
-@onready var _slots: HBoxContainer = %UnitsContainer
-@onready var _slot_buttons: Array[Button] = [%UnitButton1, %UnitButton2, %UnitButton3, %UnitButton4]
+@onready var _slots: HBoxContainer = %SpellsContainer
+@onready var _slot_buttons: Array[Button] = [
+	%SpellButton1, %SpellButton2, %SpellButton3, %SpellButton4,
+	%SpellButton5, %SpellButton6, %SpellButton7, %SpellButton8,
+]
 
 
 func _ready() -> void:
@@ -90,7 +93,7 @@ func is_open() -> bool:
 	return _active
 
 
-## Shows the editor and re-reads Game.roster and the block inventory.
+## Shows the editor and re-reads Game.spells and the block inventory.
 func open() -> void:
 	var was_open := _active
 	_active = true
@@ -123,7 +126,7 @@ func set_active(active: bool) -> void:
 		close()
 
 
-## Re-reads Game.roster and Game.block_inventory into the pages.
+## Re-reads Game.spells and Game.block_inventory into the pages.
 func refresh() -> void:
 	_bind_slots()
 	if _palette:
@@ -251,10 +254,12 @@ func _fit_pages_if_needed() -> void:
 func _bind_slots() -> void:
 	for index in _slot_buttons.size():
 		var button := _slot_buttons[index]
-		var shown := index < Game.roster.size()
+		var shown := index < Game.spells.size()
 		button.visible = shown
 		if not shown:
 			continue
+		button.text = Game.spells[index].display_name()
+		button.clip_text = true
 		if not button.pressed.is_connected(_on_slot_button):
 			button.pressed.connect(_on_slot_button.bind(index))
 
@@ -315,14 +320,14 @@ func _place(control: Control, rect: Rect2) -> void:
 
 
 func _show_slot(index: int) -> void:
-	if Game.roster.is_empty():
+	if Game.spells.is_empty():
 		return
 	_switching = true
-	_slot = clampi(index, 0, Game.roster.size() - 1)
+	_slot = clampi(index, 0, Game.spells.size() - 1)
 	if _slot < _slot_buttons.size():
 		_slot_buttons[_slot].button_pressed = true
 	_switching = false
-	var slot := Game.roster[_slot]
+	var slot := Game.spells[_slot]
 	_script.set_lines(slot.get_update_function().lines)
 	_refresh_header()
 
@@ -332,6 +337,7 @@ func _refresh_header() -> void:
 	if slot == null or _name_label == null:
 		return
 	_name_label.text = slot.display_name()
+	_bind_slots()
 	_show_ram()
 
 
@@ -447,7 +453,7 @@ func _on_indent(index: int, delta: int) -> void:
 	_script.refresh()
 
 
-func _current_slot() -> MinionSlot:
-	if _slot < 0 or _slot >= Game.roster.size():
+func _current_slot() -> SummonSpell:
+	if _slot < 0 or _slot >= Game.spells.size():
 		return null
-	return Game.roster[_slot]
+	return Game.spells[_slot]
