@@ -5,6 +5,7 @@
 [resource]
 script = ExtResource("1_block")
 id = &"forget_first_action"
-name = "ForgetFirstAction"
+name = "Forget the first plan"
+description = "Drop the first plan you were going to do."
 slot = 1
 which = 0

@@ -5,6 +5,7 @@
 [resource]
 script = ExtResource("1_block")
 id = &"forget_last_target"
-name = "ForgetLastTarget"
+name = "Forget the latest target"
+description = "Let go of the last one you remember."
 slot = 0
 which = 1

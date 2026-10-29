@@ -1,0 +1,57 @@
+keys,en,th
+code.enemy_in_attack_range.name,Enemy within reach,ศัตรูอยู่ในระยะโจมตี
+code.enemy_in_attack_range.desc,An enemy is close enough to hit.,มีศัตรูใกล้พอที่จะตีได้
+code.enemy_in_detect_range.name,Enemy in sight,เห็นศัตรู
+code.enemy_in_detect_range.desc,You can see an enemy.,มองเห็นศัตรูอยู่
+code.has_remembered_target.name,Remembers someone,จำใครไว้อยู่
+code.has_remembered_target.desc,You still remember someone.,ยังจำใครไว้อยู่
+code.no_remembered_target.name,Remembers no one,ไม่ได้จำใครไว้
+code.no_remembered_target.desc,You do not remember anyone.,ไม่ได้จำใครไว้เลย
+code.remembered_target_dead.name,Target is dead,เป้าหมายตายแล้ว
+code.remembered_target_dead.desc,The first one you remember is dead.,คนแรกที่จำไว้ตายแล้ว
+code.remembered_target_in_attack_range.name,Target within reach,เป้าหมายอยู่ในระยะโจมตี
+code.remembered_target_in_attack_range.desc,The one you remember is close enough to hit.,คนที่จำไว้ใกล้พอที่จะตีได้
+code.low_hp.name,Feeling weak,เลือดเหลือน้อย
+code.low_hp.desc,You feel weak when your blood is {threshold} of full or less.,รู้สึกอ่อนแอเมื่อเลือดเหลือไม่เกิน {threshold} ของทั้งหมด
+code.random_chance.name,Feeling lucky,ดวงดี
+code.random_chance.desc,You feel lucky {chance} of the time.,รู้สึกว่าดวงดีอยู่ {chance} ของเวลา
+code.attack_target.name,Attack the target,โจมตีเป้าหมาย
+code.attack_target.desc,Hit the one you remember if they are close enough.,ตีคนที่จำไว้ถ้าเข้าใกล้พอ
+code.move_to_target.name,Walk to the target,เดินไปหาเป้าหมาย
+code.move_to_target.desc,Walk up to the one you remember.,เดินเข้าไปหาคนที่จำไว้
+code.move_away_from_target.name,Run from the target,หนีจากเป้าหมาย
+code.move_away_from_target.desc,Back away from the one you remember.,ถอยห่างจากคนที่จำไว้
+code.wander.name,Wander around,เดินเตร็ดเตร่
+code.wander.desc,Walk off in a random direction.,เดินไปทางไหนก็ได้
+code.stand_still.name,Stand still,ยืนนิ่ง ๆ
+code.stand_still.desc,Stop and stay put.,หยุดยืนอยู่กับที่
+code.remember_hostile.name,Remember an enemy,จำศัตรูไว้
+code.remember_hostile.desc,Keep the nearest enemy you can see in mind.,จำศัตรูที่มองเห็นตัวที่ใกล้ที่สุดไว้
+code.remember_ally.name,Remember a friend,จำพวกเดียวกันไว้
+code.remember_ally.desc,Keep the nearest friend you can see in mind.,จำพวกเดียวกันที่มองเห็นตัวที่ใกล้ที่สุดไว้
+code.remember_any.name,Remember anyone,จำใครก็ได้ไว้
+code.remember_any.desc,Keep the nearest person you can see in mind.,จำคนที่มองเห็นตัวที่ใกล้ที่สุดไว้
+code.forget_first_target.name,Forget the first target,ลืมเป้าหมายแรก
+code.forget_first_target.desc,Let go of the first one you remember.,ลืมคนแรกที่จำไว้
+code.forget_last_target.name,Forget the latest target,ลืมเป้าหมายล่าสุด
+code.forget_last_target.desc,Let go of the last one you remember.,ลืมคนล่าสุดที่จำไว้
+code.forget_all_targets.name,Forget all targets,ลืมเป้าหมายทั้งหมด
+code.forget_all_targets.desc,Let go of everyone you remember.,ลืมทุกคนที่จำไว้
+code.forget_first_action.name,Forget the first plan,ลืมแผนแรก
+code.forget_first_action.desc,Drop the first plan you were going to do.,ลืมแผนแรกที่ตั้งใจจะทำ
+code.forget_last_action.name,Forget the latest plan,ลืมแผนล่าสุด
+code.forget_last_action.desc,Drop the last plan you were going to do.,ลืมแผนล่าสุดที่ตั้งใจจะทำ
+code.forget_all_actions.name,Forget all plans,ลืมแผนทั้งหมด
+code.forget_all_actions.desc,Drop every plan you were going to do.,ลืมทุกแผนที่ตั้งใจจะทำ
+code.forget_everything.name,Forget everything,ลืมทุกอย่าง
+code.forget_everything.desc,Let go of every person and every plan.,ลืมทั้งคนที่จำไว้และทุกแผน
+ui.code_editor.tab_conditions,Conditions,เงื่อนไข
+ui.code_editor.tab_actions,Actions,คำสั่ง
+ui.code_editor.sort_name,Name,ชื่อ
+ui.code_editor.sort_kind,Kind,ชนิด
+ui.code_editor.sort_ram,RAM,แรม
+ui.code_editor.ram_hint,Remembered people and plans also use RAM.,คนที่จำไว้กับแผนก็ใช้แรมด้วย
+ui.code_editor.ram,RAM  {used} / {max},แรม  {used} / {max}
+ui.code_editor.ram_badge,{cost} RAM,{cost} แรม
+ui.code_editor.count,x{count},x{count}
+ui.code_editor.empty,(empty),(ว่าง)

@@ -1,0 +1,100 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://systems/code_editor/block_card.gd" id="1_card"]
+[ext_resource type="Theme" path="res://systems/code_editor/editor_theme.tres" id="2_theme"]
+
+[node name="BlockCard" type="Control"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+mouse_filter = 0
+theme = ExtResource("2_theme")
+theme_type_variation = &"BlockCard"
+script = ExtResource("1_card")
+bob_pixels = 6.0
+tilt_degrees = 2.2
+drift_pixels = 5.0
+hover_lift = 3.0
+hover_scale = 1.045
+visual_inset_y = 2.0
+indent_pad = 8.0
+indent_step = 32.0
+max_width = 440.0
+block_height = 40.0
+display_extra = 0.0
+
+[node name="Highlight" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 0.878431, 0.541176, 0)
+
+[node name="Visual" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+mouse_filter = 2
+theme_type_variation = &"ActionCard"
+
+[node name="Row" type="HBoxContainer" parent="Visual"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="TitleSlot" type="Control" parent="Visual/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="Visual/Row/TitleSlot"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_type_variation = &"CardTitle"
+auto_translate_mode = 2
+text = "Block"
+clip_text = true
+text_overrun_behavior = 3
+vertical_alignment = 1
+
+[node name="CountBadge" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+mouse_filter = 2
+theme_type_variation = &"Badge"
+
+[node name="Count" type="Label" parent="CountBadge"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"BadgeLabel"
+auto_translate_mode = 2
+text = "x1"
+vertical_alignment = 1
+
+[node name="RamBadge" type="PanelContainer" parent="Visual/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"Badge"
+
+[node name="Ram" type="Label" parent="Visual/Row/RamBadge"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"BadgeLabel"
+auto_translate_mode = 2
+text = "1 RAM"
+vertical_alignment = 1

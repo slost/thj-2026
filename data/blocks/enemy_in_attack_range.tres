@@ -5,4 +5,5 @@
 [resource]
 script = ExtResource("1_block")
 id = &"enemy_in_attack_range"
-name = "EnemyInAttackRange"
+name = "Enemy within reach"
+description = "An enemy is close enough to hit."

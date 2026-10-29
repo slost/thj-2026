@@ -5,4 +5,5 @@
 [resource]
 script = ExtResource("1_block")
 id = &"stand_still"
-name = "StandStill"
+name = "Stand still"
+description = "Stop and stay put."

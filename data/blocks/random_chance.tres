@@ -5,5 +5,6 @@
 [resource]
 script = ExtResource("1_block")
 id = &"random_chance"
-name = "RandomChance"
+name = "Feeling lucky"
+description = "You feel lucky {chance} of the time."
 chance = 0.5

@@ -5,4 +5,5 @@
 [resource]
 script = ExtResource("1_block")
 id = &"no_remembered_target"
-name = "NoRememberedTarget"
+name = "Remembers no one"
+description = "You do not remember anyone."

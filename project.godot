@@ -54,6 +54,11 @@ folder_colors={
 "res://systems/": "red"
 }
 
+[internationalization]
+
+locale/fallback="en"
+locale/translations=PackedStringArray("res://contents/translations/blocks.en.translation", "res://contents/translations/blocks.th.translation")
+
 [lost_framework]
 
 asset_manager/remote_enabled=true
