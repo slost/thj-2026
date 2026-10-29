@@ -11,7 +11,7 @@
 [ext_resource type="PackedScene" uid="uid://caqqo21gm7uu2" path="res://systems/world_map/map.tscn" id="8_5xdch"]
 [ext_resource type="Script" uid="uid://bo1xnktwb64sr" path="res://systems/world_map/map_state_button.gd" id="10_5rc7b"]
 [ext_resource type="PackedScene" uid="uid://b7gl0em3a23l" path="res://systems/code_editor/editor.tscn" id="11_editor"]
-[ext_resource type="Script" path="res://systems/world_map/camp_ground.gd" id="12_camp"]
+[ext_resource type="Script" uid="uid://bnkjedhp1d7ys" path="res://systems/world_map/camp_ground.gd" id="12_camp"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_6ji8r"]
 font_size = 32
@@ -162,7 +162,7 @@ scale = Vector2(0.99999994, 0.99999994)
 layer = 5
 follow_viewport_enabled = true
 
-[node name="Editor" parent="CodeLayer" instance=ExtResource("11_editor") node_paths=PackedStringArray("book")]
+[node name="Editor" parent="CodeLayer" unique_id=1197573547 node_paths=PackedStringArray("book") instance=ExtResource("11_editor")]
 book = NodePath("../../BookBackground/BookScreen")
 active_on_ready = false
 

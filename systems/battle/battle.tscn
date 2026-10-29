@@ -4,6 +4,13 @@
 [ext_resource type="TileSet" uid="uid://b6cn8ildm8ly" path="res://contents/tile_set.tres" id="2_kujvl"]
 [ext_resource type="Script" uid="uid://dw84jg68x20tf" path="res://addons/lost_framework/modules/camera_controler/mouse_pan_component.gd" id="2_v40hl"]
 [ext_resource type="Texture2D" uid="uid://4pp0ymujorvi" path="res://placeholders/tex_tileset.png" id="3_8h5sc"]
+[ext_resource type="Texture2D" uid="uid://dcfrgwtq1idis" path="res://placeholders/tex_icon_camp.png" id="4_camp"]
+[ext_resource type="Texture2D" uid="uid://b3i16r87cnfk" path="res://placeholders/tex_icon_book.png" id="5_book"]
+[ext_resource type="Script" uid="uid://bo1xnktwb64sr" path="res://systems/world_map/map_state_button.gd" id="6_state"]
+[ext_resource type="PackedScene" uid="uid://b7gl0em3a23l" path="res://systems/code_editor/editor.tscn" id="7_editor"]
+[ext_resource type="Texture2D" uid="uid://dqmg8d3tr3fsm" path="res://placeholders/text_pages.png" id="8_pages"]
+[ext_resource type="Script" uid="uid://bgit4iapmj1bm" path="res://addons/lost_framework/modules/asset_manager/hot_swap_sprite.gd" id="9_swap"]
+[ext_resource type="Script" uid="uid://dr6gpm73wngym" path="res://addons/lost_framework/modules/camera_controler/parallax_offset_component.gd" id="10_parallax"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_ksea4"]
 texture = ExtResource("3_8h5sc")
@@ -38,8 +45,12 @@ border_color = Color(0.85, 0.82, 0.7, 1)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_city_fill"]
 bg_color = Color(0.42, 0.78, 0.38, 1)
 
-[node name="Battle" type="Node2D" unique_id=1492888788]
+[node name="Battle" type="Node2D" unique_id=1492888788 node_paths=PackedStringArray("field_button", "code_button", "book", "code_editor")]
 script = ExtResource("1_f5pr0")
+field_button = NodePath("CanvasLayer/StateContainer/FieldButton")
+code_button = NodePath("CanvasLayer/StateContainer/CodeButton")
+book = NodePath("BookBackground")
+code_editor = NodePath("CodeLayer/Editor")
 
 [node name="TileMaps" type="Node2D" parent="." unique_id=2039344259]
 
@@ -138,6 +149,59 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_font_sizes/font_size = 64
 text = "Back to World"
+
+[node name="StateContainer" type="HBoxContainer" parent="CanvasLayer"]
+custom_minimum_size = Vector2(128, 128)
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -288.0
+offset_top = -212.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_constants/separation = 16
+
+[node name="FieldButton" type="Button" parent="CanvasLayer/StateContainer"]
+layout_mode = 2
+offset_transform_enabled = true
+icon = ExtResource("4_camp")
+flat = true
+script = ExtResource("6_state")
+
+[node name="CodeButton" type="Button" parent="CanvasLayer/StateContainer"]
+layout_mode = 2
+offset_transform_enabled = true
+icon = ExtResource("5_book")
+flat = true
+script = ExtResource("6_state")
+state = 1
+
+[node name="CodeLayer" type="CanvasLayer" parent="."]
+layer = 5
+follow_viewport_enabled = true
+
+[node name="Editor" parent="CodeLayer" instance=ExtResource("7_editor") node_paths=PackedStringArray("book")]
+book = NodePath("../../BookBackground/BookScreen")
+active_on_ready = false
+
+[node name="BookBackground" type="Node2D" parent="."]
+visible = false
+z_index = 9
+
+[node name="ParallaxOffset" type="Node" parent="BookBackground" node_paths=PackedStringArray("visual")]
+script = ExtResource("10_parallax")
+visual = NodePath("..")
+enabled = false
+
+[node name="BookScreen" type="Sprite2D" parent="BookBackground"]
+scale = Vector2(0.8703704, 0.8703704)
+texture = ExtResource("8_pages")
+script = ExtResource("9_swap")
+asset_id = "tex_book_screen"
 
 [connection signal="pressed" from="CanvasLayer/RetreatButton" to="." method="_on_retreat_pressed"]
 [connection signal="pressed" from="CanvasLayer/StageEndScreen/BackButton" to="." method="_on_button_pressed"]

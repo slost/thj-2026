@@ -19,9 +19,13 @@ const DISABLED_COLOR: Color = Color.DIM_GRAY
 
 # States
 var raid_target_id := "" ## Save key of the town that was raided.
+## Max restore points of the raided town, copied in raid_to before the map unloads.
+var raid_target_max_points := 0.0
 ## Roster indexes brought into the current raid. Empty until raid_to().
 var raid_slots: Array[int] = []
 var pending_raid_damage := 0.0 ## Applied after the map reloads its saved restore points.
+## True from raid_to until the map applies that battle's outcome, even when damage is 0.
+var raid_outcome_pending := false
 var current_stage: Node
 
 # Hard-coded resources
@@ -55,6 +59,8 @@ func change_stage(stage: Node) -> void:
 
 func raid_to(location: TownLocation, slots: Array[int] = []) -> void:
 	raid_target_id = location.get_save_key()
+	raid_target_max_points = location.def.max_restore_points if location.def != null else 0.0
+	raid_outcome_pending = true
 	raid_slots = _normalize_raid_slots(slots)
 	_Summoner.stash_army()
 	save_map_state()
@@ -81,7 +87,6 @@ func _normalize_raid_slots(slots: Array[int]) -> Array[int]:
 
 func back_to_map() -> void:
 	_Summoner.stash_army()
-	pending_raid_damage = 50.0 # test only, remove this later
 	get_tree().change_scene_to_file(MAP_SCENE)
 
 
@@ -128,11 +133,13 @@ func _replace_army(loaded: Array) -> void:
 
 
 func _apply_pending_raid_damage() -> void:
-	if pending_raid_damage <= 0.0:
+	if not raid_outcome_pending and pending_raid_damage <= 0.0:
 		return
 
 	var damage := pending_raid_damage
+	var finished := raid_outcome_pending
 	pending_raid_damage = 0.0
+	raid_outcome_pending = false
 	if world_map == null or raid_target_id.is_empty():
 		return
 
@@ -141,7 +148,12 @@ func _apply_pending_raid_damage() -> void:
 		push_warning("Game: saved raid target '%s' is not on the world map" % raid_target_id)
 		return
 
-	world_map.deal_damage_to(location, damage)
+	if damage > 0.0:
+		world_map.deal_damage_to(location, damage)
+	if finished:
+		var rng := RandomNumberGenerator.new()
+		rng.randomize()
+		world_map.recover_other_towns(location, rng)
 	save_map_state()
 
 
@@ -165,8 +177,10 @@ func delete_save() -> void:
 
 func _clear_raid_request() -> void:
 	raid_target_id = ""
+	raid_target_max_points = 0.0
 	raid_slots.clear()
 	pending_raid_damage = 0.0
+	raid_outcome_pending = false
 
 
 func resource_icon_id(resource_type: ResourceType) -> String:

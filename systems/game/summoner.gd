@@ -60,6 +60,7 @@ static func copy_def(spell: SummonSpell) -> UnitDef:
 		def.name = source.name
 		def.description = source.description
 		def.team = source.team
+		def.race = source.race
 		def.max_hp = source.max_hp
 		def.speed = source.speed
 		def.damage = source.damage
@@ -270,6 +271,7 @@ static func _def_to_data(def: UnitDef) -> Dictionary:
 		"name": def.name,
 		"description": def.description,
 		"team": int(def.team),
+		"race": int(def.race),
 		"max_hp": def.max_hp,
 		"speed": def.speed,
 		"damage": def.damage,
@@ -323,6 +325,8 @@ static func _def_from_data(raw: Variant) -> UnitDef:
 	def.description = str(data.get("description", ""))
 	var team: Unit2D.Team = int(data.get("team", int(Unit2D.Team.MINION)))
 	def.team = team
+	var race: Unit2D.Race = int(data.get("race", int(Unit2D.Race.ZOMBIE)))
+	def.race = race
 	def.max_hp = int(data.get("max_hp", 30))
 	def.speed = float(data.get("speed", 60.0))
 	def.damage = int(data.get("damage", 5))

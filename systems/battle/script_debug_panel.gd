@@ -3,6 +3,8 @@ extends Control
 class_name ScriptDebugPanel
 
 
+const _PORTRAIT_MARGIN := 16.0
+
 var _label: RichTextLabel
 
 
@@ -14,6 +16,7 @@ func _ready() -> void:
 	offset_top = 24.0
 	offset_right = 480.0
 	offset_bottom = 460.0
+	_fit_above_portrait()
 
 	_label = RichTextLabel.new()
 	_label.bbcode_enabled = true
@@ -27,6 +30,7 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	_fit_above_portrait()
 	if _label == null:
 		return
 	var unit := _inspected_unit()
@@ -34,6 +38,18 @@ func _process(_delta: float) -> void:
 		_label.text = "[color=#9aa4b2]Script[/color]\nNo unit focused"
 		return
 	_label.text = _render(unit)
+
+
+## Bottom edge sits just above the portrait, in camp and in battle.
+func _fit_above_portrait() -> void:
+	var bottom := offset_top + 120.0
+	if GUI != null and GUI.has_method("portrait_screen_rect"):
+		var rect: Rect2 = GUI.portrait_screen_rect()
+		if rect.size.y > 1.0:
+			bottom = rect.position.y - _PORTRAIT_MARGIN
+	bottom = maxf(bottom, offset_top + 120.0)
+	if not is_equal_approx(offset_bottom, bottom):
+		offset_bottom = bottom
 
 
 func _inspected_unit() -> Unit2D:

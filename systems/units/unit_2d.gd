@@ -704,6 +704,23 @@ func _finish_attack() -> void:
 		set_state(State.IDLE)
 
 
+## Walk onto an exact cell. False when the cell is blocked, unreachable, or the unit cannot move.
+func try_move_to_cell(cell: Vector2i) -> bool:
+	if state == State.DEAD or state == State.SPAWNING or _dying:
+		return false
+	var nav := _grid_nav()
+	if nav == null or not nav.is_walkable_cell(cell):
+		return false
+	var goal := nav.cell_to_world(cell)
+	if nav.find_path_world(global_position, goal).is_empty():
+		return false
+	_approach_anchor_valid = false
+	_rejected_goals.clear()
+	_no_route = false
+	_set_move_goal(goal)
+	return _has_move_goal
+
+
 func move_toward_target(target: Node2D) -> void:
 	if target == null or state == State.DEAD or state == State.SPAWNING or _dying:
 		return

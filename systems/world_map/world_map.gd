@@ -35,6 +35,7 @@ var _map_tween: Tween
 
 
 const _Summoner := preload("res://systems/game/summoner.gd")
+const _CodeBook := preload("res://systems/code_editor/code_book.gd")
 const _INDICATOR_TEXTURE := preload("res://placeholders/tex_indicator.png")
 
 var _camp_director: FocusDirector
@@ -119,10 +120,27 @@ func refresh_locations() -> void:
 
 func _towns() -> Array[TownLocation]:
 	var towns: Array[TownLocation] = []
-	for child in get_children():
-		if child is TownLocation:
-			towns.append(child)
+	for node in find_children("*", "TownLocation", true, false):
+		var town := node as TownLocation
+		if town:
+			towns.append(town)
 	return towns
+
+
+## Heals every other unlocked town that has not been destroyed. The raided town is left as it is.
+func recover_other_towns(raided: TownLocation, rng: RandomNumberGenerator) -> void:
+	recover_towns(_towns(), raided, rng)
+
+
+static func recover_towns(towns: Array, raided: TownLocation, rng: RandomNumberGenerator) -> void:
+	for entry in towns:
+		var town := entry as TownLocation
+		if town == null or town == raided:
+			continue
+		if town.is_locked() or town.has_been_destroyed:
+			continue
+		var maximum := town.def.max_restore_points if town.def != null else town.restore_points
+		town.heal(Formular.town_recover_amount(maximum, rng))
 
 
 func is_location_selected() -> bool:
@@ -176,6 +194,10 @@ func _update_debug_label() -> void:
 	debug_label.text += "\n" + "Has been destroyed: %s" % focus_location.has_been_destroyed
 	debug_label.text += "\n" + "Restore points: %s" % focus_location.restore_points
 	debug_label.text += "\n" + "Required locations: %s" % str(focus_location.required_locations)
+
+
+func is_coding() -> bool:
+	return current_state == State.CODE
 
 
 func set_state(new_state: State = State.MAP) -> void:
@@ -269,21 +291,11 @@ func _town_at_mouse() -> TownLocation:
 
 func _update_state() -> void:
 	set_camp_visible(current_state == State.CAMP)
-	set_book_visible(current_state == State.CODE)
-	_sync_code_editor()
+	_CodeBook.set_open(book, code_editor, current_state == State.CODE)
 	_sync_unit_bars()
 	_sync_camp_focus()
 	if current_state == State.CAMP and camp:
 		_Summoner.spawn_army_at(camp)
-
-
-func _sync_code_editor() -> void:
-	if code_editor == null:
-		return
-	if current_state == State.CODE:
-		code_editor.call(&"open")
-	else:
-		code_editor.call(&"close")
 
 
 func set_camp_visible(value: bool = true) -> void:
@@ -294,14 +306,6 @@ func set_camp_visible(value: bool = true) -> void:
 				child.set_visible(value)
 		camp.visible = value
 		camp.process_mode = Node.PROCESS_MODE_INHERIT if value else Node.PROCESS_MODE_DISABLED
-
-
-func set_book_visible(value: bool = true) -> void:
-	if book:
-		for child in book.get_children():
-			if child.has_method("set_visible"):
-				child.set_visible(value)
-		book.visible = value
 
 
 func _update_buttons() -> void:

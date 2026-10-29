@@ -229,15 +229,32 @@ func _screen_rect(sprite: Sprite2D) -> Rect2:
 	return Rect2(xform.origin, size)
 
 
+func portrait_screen_rect() -> Rect2:
+	if portrait == null or not is_instance_valid(portrait):
+		return Rect2()
+	return _screen_rect(portrait)
+
+
 func update_portrait() -> void:
+	hand.hide()
+	var stage := Game.current_stage
+	if stage is WorldMap:
+		_apply_world_portrait((stage as WorldMap).current_state)
+		return
+	if stage != null and stage.has_method("is_coding"):
+		if bool(stage.call("is_coding")):
+			_apply_code_portrait()
+		else:
+			_apply_battle_field_portrait()
+
+
+func _apply_world_portrait(state: WorldMap.State) -> void:
+	if state == WorldMap.State.CODE:
+		_apply_code_portrait()
+		return
 	var portrait_texture := ""
 	var book_texture := ""
 	var far_texture := ""
-	hand.hide()
-	if Game.current_stage is not WorldMap:
-		return
-	
-	var state := (Game.current_stage as WorldMap).current_state
 	match state:
 		WorldMap.State.MAP:
 			portrait_texture = "tex_portrait_idle_1"
@@ -247,31 +264,37 @@ func update_portrait() -> void:
 		WorldMap.State.CAMP:
 			portrait_texture = "tex_portrait_evil"
 			book_texture = "tex_portrait_evil_book"
-		WorldMap.State.CODE:
-			portrait_texture = "tex_portrait_write"
-			book_texture = "tex_portrait_write_book"
-			hand.show()
 		_:
-			portrait_texture = "tex_portrait_evil" # TODO: add more portrait states for battle
-
-	if state == WorldMap.State.MAP or state == WorldMap.State.CODE:
-		far.show()
-	else:
-		far.hide()
-
-
+			portrait_texture = "tex_portrait_evil"
 	if state == WorldMap.State.MAP:
+		far.show()
 		book.hide()
 		far_texture = "tex_portrait_idle_book"
-	elif state == WorldMap.State.CODE:
-		book.show()
-		far_texture = "tex_portrait_write_effects"
 	else:
+		far.hide()
 		book.show()
-
 	set_portrait(portrait_texture)
 	set_book(book_texture)
 	set_far(far_texture)
+
+
+## The writing portrait used on the map and in battle while the book is open.
+func _apply_code_portrait() -> void:
+	hand.show()
+	far.show()
+	book.show()
+	set_portrait("tex_portrait_write")
+	set_book("tex_portrait_write_book")
+	set_far("tex_portrait_write_effects")
+
+
+## Field view uses the camp portrait. The camp icon is the field button.
+func _apply_battle_field_portrait() -> void:
+	far.hide()
+	book.show()
+	set_portrait("tex_portrait_evil")
+	set_book("tex_portrait_evil_book")
+	set_far("")
 
 
 func set_portrait(texture_Id: String) -> void:

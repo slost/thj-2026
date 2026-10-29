@@ -11,13 +11,14 @@
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_a8e4d"]
 
 [node name="Gui" type="CanvasLayer" unique_id=1627323203 node_paths=PackedStringArray("portrait", "book", "far", "hand")]
+layer = 99
 script = ExtResource("1_ugo1u")
 portrait = NodePath("NearBackground/HotSwapSprite")
 book = NodePath("BookBackground/BookSprite")
 far = NodePath("FarBackground/FarSprite")
 hand = NodePath("BookBackground/HandSprite")
 
-[node name="SummonHotbar" parent="." instance=ExtResource("7_hotbar")]
+[node name="SummonHotbar" parent="." unique_id=1815066946 instance=ExtResource("7_hotbar")]
 
 [node name="PanelContainer" type="PanelContainer" parent="." unique_id=782532032]
 anchors_preset = 5

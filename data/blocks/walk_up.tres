@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="WalkDirection" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://systems/blocks/walk_direction.gd" id="1_block"]
+
+[resource]
+script = ExtResource("1_block")
+id = &"walk_up"
+name = "Walk up"
+description = "Take one step up."
+mb_cost = 1
+direction = Vector2i(0, -1)

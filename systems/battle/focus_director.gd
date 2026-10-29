@@ -9,6 +9,8 @@ const GROUP := &"focus_director"
 @export var pin_indicator: Node2D
 @export var debug_label: Label
 
+var accepts_pointer := true
+
 var _hover: FocusTargetComponent
 var _pinned: FocusTargetComponent
 var _ranges: Node2D
@@ -24,7 +26,18 @@ func _ready() -> void:
 	_show_empty()
 
 
+func set_accepts_pointer(open: bool) -> void:
+	accepts_pointer = open
+	if open:
+		return
+	_hover = null
+	_pinned = null
+	_refresh()
+
+
 func _unhandled_input(event: InputEvent) -> void:
+	if not accepts_pointer:
+		return
 	if event is not InputEventMouseButton:
 		return
 	var mouse := event as InputEventMouseButton
@@ -42,7 +55,7 @@ func _process(_delta: float) -> void:
 
 ## Hover focus. Still works while another target is pinned.
 func focus_target(target: FocusTargetComponent) -> void:
-	if target == null or not target.can_focus():
+	if not accepts_pointer or target == null or not target.can_focus():
 		return
 	_hover = target
 	_refresh()
@@ -58,7 +71,7 @@ func unfocus_target(target: FocusTargetComponent) -> void:
 
 ## Click focus. Stays until a click lands on empty space or another target.
 func select_target(target: FocusTargetComponent) -> void:
-	if target == null or not target.can_focus():
+	if not accepts_pointer or target == null or not target.can_focus():
 		return
 	_pinned = target
 	_refresh()

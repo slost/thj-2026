@@ -1,7 +1,11 @@
 extends Node2D
 
+enum State { FIELD, CODE }
+
 const _INDICATOR_TEXTURE := preload("res://placeholders/tex_indicator.png")
 const _Summoner := preload("res://systems/game/summoner.gd")
+const _CodeBook := preload("res://systems/code_editor/code_book.gd")
+const _SummonArea := preload("res://systems/battle/summon_area_overlay.gd")
 const _UNIT_SCENE := preload("res://systems/units/unit.tscn")
 const _SPAWN_CELLS: Array[Vector2i] = [
 	Vector2i(-4, -3),
@@ -14,16 +18,27 @@ const _SPAWN_CELLS: Array[Vector2i] = [
 @onready var _stage_end: Control = $CanvasLayer/StageEndScreen
 @onready var _city_progress: ProgressBar = $CanvasLayer/CityProgress
 
-## Cells the player may summon into. Covers the old left-edge spawn column.
-@export var summon_area: Rect2i = Rect2i(-6, -4, 3, 8)
+## Cells the player may summon into. x -11..-4 and the full walkable height y -7..7.
+@export var summon_area: Rect2i = Rect2i(-11, -7, 8, 15)
 ## The raid used to drop every spell on the field. The hotbar summons instead.
 @export var spawn_raid_party_on_ready: bool = false
+## When true, units stop moving and thinking while the book is open. The UI keeps running.
+@export var pause_while_coding := false
+
+@export var field_button: Button
+@export var code_button: Button
+@export var book: Node2D
+## Node, not the editor script: that script reads Game, and a global class would compile too early.
+@export var code_editor: Node
 
 ## Max HP of every villager that has entered this battle, kept after the body is gone.
 var _villager_max: Dictionary = {}
 var _stage_ended := false
 var _party_spawned := false
 var _army_spawned := false
+var _raid_committed := false
+var current_state: State = State.FIELD
+var _summon_overlay: Node2D
 
 
 func _ready() -> void:
@@ -44,10 +59,22 @@ func _ready() -> void:
 			spawn_army()
 	if _stage_end:
 		_stage_end.visible = false
+	set_state(State.FIELD)
 	_refresh_city_progress()
 
 
+func _unhandled_input(event: InputEvent) -> void:
+	if current_state != State.CODE or event is not InputEventKey:
+		return
+	var key := event as InputEventKey
+	if key.pressed and not key.echo and key.keycode == KEY_ESCAPE:
+		set_state(State.FIELD)
+		get_viewport().set_input_as_handled()
+
+
 func _process(_delta: float) -> void:
+	if pause_while_coding and current_state == State.CODE:
+		_set_units_paused(true)
 	if _stage_ended:
 		return
 	var ratio := _refresh_city_progress()
@@ -83,6 +110,7 @@ func _confirm_retreat() -> void:
 
 
 func _on_button_pressed() -> void:
+	commit_raid_outcome()
 	if get_tree().paused:
 		get_tree().paused = false
 	var game := _game()
@@ -110,8 +138,9 @@ func _open_stage_end() -> void:
 
 func _refresh_city_progress() -> float:
 	var ratio := _villager_ratio()
+	# The bar is the raid's stake slice: full means none of it was lost this battle.
 	if _city_progress:
-		_city_progress.value = ratio
+		_city_progress.value = 1.0 - clampf(1.0 - ratio, 0.0, 1.0)
 	return ratio
 
 
@@ -338,3 +367,86 @@ func _summon_cells() -> Array[Vector2i]:
 	if cells.is_empty():
 		cells.append_array(_SPAWN_CELLS)
 	return cells
+
+
+func is_coding() -> bool:
+	return current_state == State.CODE
+
+
+func allows_summon_bar() -> bool:
+	return current_state == State.FIELD and not _stage_ended
+
+
+func accepts_field_pointer() -> bool:
+	return current_state == State.FIELD
+
+
+func set_state(new_state: State = State.FIELD) -> void:
+	current_state = new_state
+	_CodeBook.set_open(book, code_editor, current_state == State.CODE)
+	_update_state_buttons()
+	_set_field_pointer(current_state == State.FIELD)
+	_set_units_paused(pause_while_coding and current_state == State.CODE)
+	if current_state != State.FIELD:
+		set_summon_preview(false)
+	if GUI:
+		GUI.update_portrait()
+
+
+func set_summon_preview(active: bool) -> void:
+	var overlay := _ensure_summon_overlay()
+	if not active or current_state != State.FIELD:
+		overlay.hide_area()
+		return
+	overlay.show_area(get_node_or_null("GridNav") as GridNav, summon_area)
+
+
+## Stores this battle's stake damage once. Retreat and the stage-end exit both come through here.
+func commit_raid_outcome() -> void:
+	if _raid_committed:
+		return
+	var game := _game()
+	if game == null or not bool(game.get("raid_outcome_pending")):
+		return
+	_raid_committed = true
+	var max_points := float(game.get("raid_target_max_points"))
+	var lost := clampf(1.0 - _villager_ratio(), 0.0, 1.0)
+	game.set("pending_raid_damage", Formular.raid_damage(max_points, lost))
+
+
+func _update_state_buttons() -> void:
+	if field_button:
+		field_button.modulate = Color.WHITE if current_state == State.FIELD else Game.DISABLED_COLOR
+	if code_button:
+		code_button.modulate = Color.WHITE if current_state == State.CODE else Game.DISABLED_COLOR
+
+
+func _set_field_pointer(open: bool) -> void:
+	var tree := get_tree()
+	if tree == null:
+		return
+	for node in tree.get_nodes_in_group(FocusDirector.GROUP):
+		var director := node as FocusDirector
+		if director:
+			director.set_accepts_pointer(open)
+
+
+func _set_units_paused(paused: bool) -> void:
+	var tree := get_tree()
+	if tree == null:
+		return
+	var mode := Node.PROCESS_MODE_DISABLED if paused else Node.PROCESS_MODE_INHERIT
+	for node in tree.get_nodes_in_group(Unit2D.GROUP):
+		var unit := node as Node
+		if unit:
+			unit.process_mode = mode
+
+
+func _ensure_summon_overlay() -> Node2D:
+	if _summon_overlay != null and is_instance_valid(_summon_overlay):
+		return _summon_overlay
+	var overlay := _SummonArea.new() as Node2D
+	overlay.name = "SummonArea"
+	add_child(overlay)
+	_summon_overlay = overlay
+	return overlay
