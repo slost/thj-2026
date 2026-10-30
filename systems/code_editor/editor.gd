@@ -29,7 +29,7 @@ enum Page { SPEC, SCRIPT }
 ## While a card is dragging, the current MousePan limit is multiplied by this
 ## so the book does not slide out from under the pointer.
 @export var drag_pan_scale: float = 0.35
-@export var ram_alert_color: Color = Color(0.78, 0.1, 0.08, 1)
+@export var ram_alert_color: Color = UiPalette.DANGER
 
 var _active := false
 var _slot := 0
@@ -280,8 +280,7 @@ func _bind_slots() -> void:
 		button.visible = shown
 		if not shown:
 			continue
-		button.text = Game.spells[index].display_name()
-		button.clip_text = true
+		button.text = ""
 		button.clip_contents = true
 		RaceProfiles.mount_slot_icon(button, Game.spells[index].race)
 		if not button.pressed.is_connected(_on_slot_button):

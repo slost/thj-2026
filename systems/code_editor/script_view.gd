@@ -316,7 +316,7 @@ func _show_drop(at: Vector2, data: Variant, plan: Vector2) -> void:
 	_preview_reason = reason
 	var rejected := not reason.is_empty()
 	if _ghost:
-		_ghost.modulate = Color(1.0, 0.35, 0.32, 0.78) if rejected else Color(1, 1, 1, 0.55)
+		_ghost.modulate = UiPalette.tint(UiPalette.DANGER, 0.78) if rejected else Color(1, 1, 1, 0.55)
 		_ghost.visible = true
 	if _ghost_reason:
 		_ghost_reason.visible = rejected
@@ -398,7 +398,7 @@ func _ensure_ghost(block: CodeBlock, indent: int) -> void:
 		_ghost_reason.name = "DropReason"
 		_ghost_reason.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_ghost_reason.z_index = 5
-		_ghost_reason.add_theme_color_override(&"font_color", Color(0.55, 0.08, 0.06))
+		_ghost_reason.add_theme_color_override(&"font_color", UiPalette.DANGER)
 		_body.add_child(_ghost_reason)
 	_ghost.custom_minimum_size = Vector2(0, row_height)
 	_ghost.size = Vector2(maxf(_rows.size.x if _rows else size.x, 80.0), row_height)

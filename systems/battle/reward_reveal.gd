@@ -48,16 +48,16 @@ func _card(caption: String, icon_id: String) -> Control:
 	card.custom_minimum_size = Vector2(120, 160)
 	card.alignment = BoxContainer.ALIGNMENT_CENTER
 	var icon := HotSwapTextureRect.new()
-	icon.custom_minimum_size = Vector2(96, 96)
+	icon.custom_minimum_size = Vector2(64, 64)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	if icon_id != "":
 		icon.asset_id = icon_id
 	card.add_child(icon)
 	var label := Label.new()
+	label.theme_type_variation = &"LabelNumber"
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.text = caption
-	label.add_theme_font_size_override(&"font_size", 28)
 	card.add_child(label)
 	return card
 

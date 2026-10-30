@@ -3,78 +3,6 @@
 [ext_resource type="Script" uid="uid://d65wnumpf7dw" path="res://addons/lost_framework/modules/settings/settings_screen.gd" id="1_screen"]
 [ext_resource type="PackedScene" uid="uid://b8yjt4yyux080" path="res://addons/lost_framework/modules/settings/settings_volume_row.tscn" id="2_row"]
 
-[sub_resource type="LabelSettings" id="LabelSettings_24tg7"]
-font_size = 64
-outline_size = 16
-outline_color = Color(0, 0, 0, 1)
-
-[sub_resource type="Theme" id="Theme_dl81g"]
-default_font_size = 22
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yu8c3"]
-content_margin_left = 28.0
-content_margin_top = 22.0
-content_margin_right = 28.0
-content_margin_bottom = 22.0
-bg_color = Color(0.105882, 0.086275, 0.156863, 0.94)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.78, 0.7, 0.95, 0.45)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8vf3k"]
-content_margin_left = 16.0
-content_margin_top = 10.0
-content_margin_right = 16.0
-content_margin_bottom = 10.0
-bg_color = Color(0.34, 0.27, 0.5, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.94, 0.9, 1, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_it1br"]
-content_margin_left = 16.0
-content_margin_top = 10.0
-content_margin_right = 16.0
-content_margin_bottom = 10.0
-bg_color = Color(0.78, 0.7, 0.98, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(1, 0.98, 1, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_d2xr0"]
-content_margin_left = 16.0
-content_margin_top = 10.0
-content_margin_right = 16.0
-content_margin_bottom = 10.0
-bg_color = Color(0.46, 0.36, 0.66, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(1, 0.98, 1, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-
 [node name="SettingsScreen" type="Control" unique_id=1686666440]
 layout_mode = 3
 anchors_preset = 15
@@ -89,11 +17,11 @@ back_scene_path = "uid://dx7mrt8whnlgj"
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 28.0
-offset_bottom = 120.0
+offset_top = 16.0
+offset_bottom = 80.0
 grow_horizontal = 2
+theme_type_variation = &"LabelTitle"
 text = "settings.title"
-label_settings = SubResource("LabelSettings_24tg7")
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -102,25 +30,22 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 24.0
-offset_top = 112.0
-offset_right = -24.0
-offset_bottom = -24.0
+offset_left = 16.0
+offset_top = 96.0
+offset_right = -16.0
+offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Panel" type="PanelContainer" parent="Center" unique_id=1193416512]
 layout_mode = 1
-anchors_preset = 13
+anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-anchor_bottom = 1.0
 offset_left = -360.0
 offset_right = 360.0
+offset_bottom = 420.0
 grow_horizontal = 2
-grow_vertical = 2
-theme = SubResource("Theme_dl81g")
-theme_override_styles/panel = SubResource("StyleBoxFlat_yu8c3")
 
 [node name="Scroll" type="ScrollContainer" parent="Center/Panel" unique_id=901400988]
 layout_mode = 2
@@ -132,27 +57,23 @@ horizontal_scroll_mode = 0
 [node name="VBox" type="VBoxContainer" parent="Center/Panel/Scroll" unique_id=77574221]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 14
 
 [node name="LanguageSection" type="VBoxContainer" parent="Center/Panel/Scroll/VBox" unique_id=1001455926]
 layout_mode = 2
-theme_override_constants/separation = 8
 
 [node name="LanguageLabel" type="Label" parent="Center/Panel/Scroll/VBox/LanguageSection" unique_id=402750127]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.86, 0.78, 1, 1)
-theme_override_font_sizes/font_size = 24
 text = "settings.language"
 
 [node name="LanguageSelector" type="HBoxContainer" parent="Center/Panel/Scroll/VBox/LanguageSection" unique_id=575152067]
 custom_minimum_size = Vector2(256, 0)
 layout_mode = 2
 size_flags_horizontal = 0
-theme_override_constants/separation = 8
 
 [node name="Previous" type="Button" parent="Center/Panel/Scroll/VBox/LanguageSection/LanguageSelector" unique_id=1579935050]
-custom_minimum_size = Vector2(48, 0)
+custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
+theme_type_variation = &"ButtonIcon"
 text = "<"
 
 [node name="Value" type="Label" parent="Center/Panel/Scroll/VBox/LanguageSection/LanguageSelector" unique_id=678750313]
@@ -163,8 +84,9 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Next" type="Button" parent="Center/Panel/Scroll/VBox/LanguageSection/LanguageSelector" unique_id=523625644]
-custom_minimum_size = Vector2(48, 0)
+custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
+theme_type_variation = &"ButtonIcon"
 text = ">"
 
 [node name="Separator" type="HSeparator" parent="Center/Panel/Scroll/VBox" unique_id=430928816]
@@ -172,26 +94,22 @@ layout_mode = 2
 
 [node name="HBoxContainer" type="HBoxContainer" parent="Center/Panel/Scroll/VBox" unique_id=695455997]
 layout_mode = 2
-theme_override_constants/separation = 128
 
 [node name="ResolutionSection" type="VBoxContainer" parent="Center/Panel/Scroll/VBox/HBoxContainer" unique_id=399847210]
 layout_mode = 2
-theme_override_constants/separation = 8
 
 [node name="ResolutionLabel" type="Label" parent="Center/Panel/Scroll/VBox/HBoxContainer/ResolutionSection" unique_id=246287215]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.86, 0.78, 1, 1)
-theme_override_font_sizes/font_size = 24
 text = "settings.resolution"
 
 [node name="ResolutionSelector" type="HBoxContainer" parent="Center/Panel/Scroll/VBox/HBoxContainer/ResolutionSection" unique_id=992242179]
 layout_mode = 2
 size_flags_horizontal = 0
-theme_override_constants/separation = 8
 
 [node name="Previous" type="Button" parent="Center/Panel/Scroll/VBox/HBoxContainer/ResolutionSection/ResolutionSelector" unique_id=825943799]
-custom_minimum_size = Vector2(48, 0)
+custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
+theme_type_variation = &"ButtonIcon"
 text = "<"
 
 [node name="Value" type="Label" parent="Center/Panel/Scroll/VBox/HBoxContainer/ResolutionSection/ResolutionSelector" unique_id=1461759869]
@@ -202,42 +120,28 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Next" type="Button" parent="Center/Panel/Scroll/VBox/HBoxContainer/ResolutionSection/ResolutionSelector" unique_id=1613750257]
-custom_minimum_size = Vector2(48, 0)
+custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
+theme_type_variation = &"ButtonIcon"
 text = ">"
 
 [node name="FullscreenSection" type="VBoxContainer" parent="Center/Panel/Scroll/VBox/HBoxContainer" unique_id=1278698637]
 layout_mode = 2
-theme_override_constants/separation = 8
 
 [node name="FullscreenLabel" type="Label" parent="Center/Panel/Scroll/VBox/HBoxContainer/FullscreenSection" unique_id=421617122]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.86, 0.78, 1, 1)
-theme_override_font_sizes/font_size = 24
 text = "settings.fullscreen"
 
 [node name="FullscreenCheck" type="Button" parent="Center/Panel/Scroll/VBox/HBoxContainer/FullscreenSection" unique_id=976884853]
 custom_minimum_size = Vector2(192, 48)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.98, 0.96, 1, 1)
-theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
-theme_override_colors/font_pressed_color = Color(0.14, 0.1, 0.22, 1)
-theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_colors/font_hover_pressed_color = Color(0.14, 0.1, 0.22, 1)
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_8vf3k")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_it1br")
-theme_override_styles/hover = SubResource("StyleBoxFlat_d2xr0")
-theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_it1br")
-theme_override_styles/focus = SubResource("StyleBoxFlat_8vf3k")
 toggle_mode = true
 text = "Window Mode"
 
 [node name="DisplayHint" type="Label" parent="Center/Panel/Scroll/VBox/HBoxContainer/FullscreenSection" unique_id=382981540]
 visible = false
 layout_mode = 2
-theme_override_colors/font_color = Color(0.78, 0.76, 0.86, 1)
-theme_override_font_sizes/font_size = 16
+theme_type_variation = &"LabelMuted"
 text = "settings.window_unavailable"
 autowrap_mode = 3
 
@@ -246,14 +150,10 @@ layout_mode = 2
 
 [node name="AudioLabel" type="Label" parent="Center/Panel/Scroll/VBox" unique_id=82164546]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.86, 0.78, 1, 1)
-theme_override_font_sizes/font_size = 24
 text = "settings.audio"
 
 [node name="AudioList" type="GridContainer" parent="Center/Panel/Scroll/VBox" unique_id=602235983]
 layout_mode = 2
-theme_override_constants/h_separation = 32
-theme_override_constants/v_separation = 32
 columns = 2
 
 [node name="MasterRow" parent="Center/Panel/Scroll/VBox/AudioList" unique_id=1172579256 instance=ExtResource("2_row")]
@@ -282,7 +182,7 @@ label_key = "settings.ui"
 layout_mode = 2
 
 [node name="BackButton" type="Button" parent="Center/Panel/Scroll/VBox" unique_id=2041003223]
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
+theme_type_variation = &"ButtonPrimary"
 text = "settings.back"

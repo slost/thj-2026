@@ -30,8 +30,6 @@ func _ready() -> void:
 	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_label.scroll_active = true
 	_label.fit_content = false
-	_label.add_theme_font_size_override(&"normal_font_size", 22)
-	_label.add_theme_color_override(&"default_color", Color(0.82, 0.86, 0.9))
 	_ensure_sections()
 
 
@@ -42,7 +40,7 @@ func _process(_delta: float) -> void:
 	var unit := _inspected_unit()
 	if unit == null:
 		var idle := LocaleText.resolve("ui.spec.script", "Thinking")
-		var idle_text := "[color=#9aa4b2]%s[/color]\nNo unit focused" % idle
+		var idle_text := "%s\nNo unit focused" % _muted(idle)
 		_label.text = idle_text
 		_put_section("script", idle_text, true)
 		_put_section("stats", "", false)
@@ -74,7 +72,6 @@ func _ensure_sections() -> void:
 	_sections.name = "Sections"
 	_sections.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_sections.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_sections.add_theme_constant_override(&"separation", 6)
 	add_child(_sections)
 	for section in ["script", "stats", "queue", "ram", "anim"]:
 		var box := PanelContainer.new()
@@ -87,8 +84,6 @@ func _ensure_sections() -> void:
 		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		label.custom_minimum_size = Vector2(460, 0)
-		label.add_theme_font_size_override(&"normal_font_size", 22)
-		label.add_theme_color_override(&"default_color", Color(0.82, 0.86, 0.9))
 		box.add_child(label)
 		_sections.add_child(box)
 		_section_labels[section] = label
@@ -102,18 +97,18 @@ func _fill_sections(unit: Unit2D) -> void:
 	_put_section("stats", _stats_line(unit), show_stats_section)
 	var queue := ""
 	if show_queue_section:
-		queue = "[color=#9aa4b2]Queue[/color]  %s\n[color=#9aa4b2]Doing[/color]  %s" % [
-			_escape(_queue_list(unit)), _escape(_current_action(unit)),
+		queue = "%s  %s\n%s  %s" % [
+			_muted("Queue"), _escape(_queue_list(unit)), _muted("Doing"), _escape(_current_action(unit)),
 		]
 	_put_section("queue", queue, show_queue_section)
 	var ram := ""
 	if show_ram_section and unit.stats:
 		var pattern := LocaleText.resolve("ui.code_editor.ram", "RAM: {used}/{max} MB", "en")
 		var usage := pattern.format({"used": unit.get_ram_used(), "max": unit.stats.ram})
-		ram = "[color=#9aa4b2]%s[/color]" % usage
+		ram = _muted(usage)
 	_put_section("ram", ram, show_ram_section and unit.stats != null)
 	var show_anim := show_queue_section and show_ram_section
-	_put_section("anim", "[color=#9aa4b2]Anim[/color]  %s" % _escape(_playing_animation(unit)), show_anim)
+	_put_section("anim", "%s  %s" % [_muted("Anim"), _escape(_playing_animation(unit))], show_anim)
 
 
 func _put_section(section: String, body: String, shown: bool) -> void:
@@ -133,17 +128,20 @@ func _put_section(section: String, body: String, shown: bool) -> void:
 		label.modulate = Color.WHITE
 	else:
 		box.remove_theme_stylebox_override(&"panel")
-		label.modulate = Color(0.82, 0.84, 0.88) if not highlight_section.is_empty() else Color.WHITE
+		label.modulate = UiPalette.TEXT_MUTED if not highlight_section.is_empty() else Color.WHITE
 
 
 func _section_highlight() -> StyleBoxFlat:
 	if _highlight_style == null:
 		_highlight_style = StyleBoxFlat.new()
-		_highlight_style.bg_color = Color(1.0, 0.86, 0.4, 0.22)
-		_highlight_style.content_margin_left = 8.0
-		_highlight_style.content_margin_top = 4.0
-		_highlight_style.content_margin_right = 8.0
-		_highlight_style.content_margin_bottom = 4.0
+		_highlight_style.set_corner_radius_all(0)
+		_highlight_style.set_border_width_all(0)
+		_highlight_style.shadow_size = 0
+		_highlight_style.bg_color = UiPalette.tint(UiPalette.WARN, 0.22)
+		_highlight_style.content_margin_left = UiPalette.S
+		_highlight_style.content_margin_top = UiPalette.S
+		_highlight_style.content_margin_right = UiPalette.S
+		_highlight_style.content_margin_bottom = UiPalette.S
 	return _highlight_style
 
 
@@ -157,11 +155,11 @@ func _pulse_highlight() -> void:
 func _script_block(unit: Unit2D) -> String:
 	var rows := PackedStringArray()
 	var heading := LocaleText.resolve("ui.spec.script", "Thinking")
-	rows.append("[color=#9aa4b2]%s — %s[/color]" % [heading, _escape(_script_title(unit))])
+	rows.append(_muted("%s — %s" % [heading, _escape(_script_title(unit))]))
 	var function := unit.runner.get_update_script() if unit.runner else null
 	var current := unit.runner.read_index if unit.runner else -1
 	if function == null or function.lines.is_empty():
-		rows.append("[color=#9aa4b2](empty)[/color]")
+		rows.append(_muted("(empty)"))
 	else:
 		for index in function.lines.size():
 			var line := function.lines[index]
@@ -172,14 +170,16 @@ func _script_block(unit: Unit2D) -> String:
 				text = _line_text(line)
 			var shown := "%s%s" % ["    ".repeat(indent), text]
 			if index == current:
-				rows.append("[color=#1a1408][bgcolor=#ffe08a]%s[/bgcolor][/color]" % _escape(shown))
+				rows.append("[color=%s][bgcolor=%s]%s[/bgcolor][/color]" % [
+					UiPalette.hex(UiPalette.BG_DARK), UiPalette.hex(UiPalette.WARN), _escape(shown),
+				])
 			else:
 				rows.append(_escape(shown))
 	return "\n".join(rows)
 
 
 func _stats_line(unit: Unit2D) -> String:
-	return "[color=#9aa4b2]CPU[/color]  %d    [color=#9aa4b2]GPU[/color]  %d" % [unit.get_cpu(), unit.get_gpu()]
+	return "%s  %d    %s  %d" % [_muted("CPU"), unit.get_cpu(), _muted("GPU"), unit.get_gpu()]
 
 
 func _inspected_unit() -> Unit2D:
@@ -210,14 +210,14 @@ func _render(unit: Unit2D) -> String:
 	if show_stats_section:
 		rows.append(_stats_line(unit))
 	if show_queue_section:
-		rows.append("[color=#9aa4b2]Queue[/color]  %s" % _escape(_queue_list(unit)))
-		rows.append("[color=#9aa4b2]Doing[/color]  %s" % _escape(_current_action(unit)))
+		rows.append("%s  %s" % [_muted("Queue"), _escape(_queue_list(unit))])
+		rows.append("%s  %s" % [_muted("Doing"), _escape(_current_action(unit))])
 	if show_ram_section and unit.stats:
 		var pattern := LocaleText.resolve("ui.code_editor.ram", "RAM: {used}/{max} MB", "en")
 		var usage := pattern.format({"used": unit.get_ram_used(), "max": unit.stats.ram})
-		rows.append("[color=#9aa4b2]%s[/color]" % usage)
+		rows.append(_muted(usage))
 	if show_queue_section and show_ram_section:
-		rows.append("[color=#9aa4b2]Anim[/color]  %s" % _escape(_playing_animation(unit)))
+		rows.append("%s  %s" % [_muted("Anim"), _escape(_playing_animation(unit))])
 	return "\n".join(rows)
 
 
@@ -301,6 +301,10 @@ func _line_text(line: ScriptLine) -> String:
 	if line == null or line.block == null:
 		return "..."
 	return BlockInventory.block_title(line.block)
+
+
+func _muted(text: String) -> String:
+	return "[color=%s]%s[/color]" % [UiPalette.hex(UiPalette.TEXT_MUTED), text]
 
 
 func _escape(text: String) -> String:

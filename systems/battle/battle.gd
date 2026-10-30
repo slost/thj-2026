@@ -751,11 +751,9 @@ func present_tutorial_ending(text: String) -> void:
 		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		label.set_anchors_preset(Control.PRESET_CENTER_TOP)
 		label.offset_left = -560.0
-		label.offset_top = 36.0
+		label.offset_top = 16.0
 		label.offset_right = 560.0
-		label.offset_bottom = 240.0
-		label.add_theme_font_size_override(&"normal_font_size", 28)
-		label.add_theme_color_override(&"default_color", Color(0.93, 0.9, 0.8))
+		label.offset_bottom = 220.0
 		screen.add_child(label)
 	label.text = text
 

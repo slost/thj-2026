@@ -9,8 +9,12 @@ extends HBoxContainer
 func _ready() -> void:
 	resource_icon.set("asset_id", Game.resource_icon_id(resource_type))
 	Game.resource_changed.connect(self._on_resource_changed)
+	_on_resource_changed()
 
 
 func _on_resource_changed() -> void:
+	if Game.resources_unlimited:
+		resource_label.text = "INF"
+		return
 	var amount: int = Game.get_resource(resource_type)
 	resource_label.text = str(amount)

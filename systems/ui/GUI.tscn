@@ -11,17 +11,6 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_a8e4d"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_city_bg"]
-bg_color = Color(0.05, 0.06, 0.08, 0.9)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.85, 0.82, 0.7, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_city_fill"]
-bg_color = Color(0.42, 0.78, 0.38, 1)
-
 [node name="Gui" type="CanvasLayer" unique_id=1627323203 node_paths=PackedStringArray("portrait", "book", "far", "hand")]
 layer = 99
 script = ExtResource("1_ugo1u")
@@ -37,13 +26,13 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -314.0
+offset_top = 16.0
 offset_right = 314.0
-offset_bottom = 67.0
+offset_bottom = 112.0
 grow_horizontal = 2
 
 [node name="VBoxContainer2" type="HBoxContainer" parent="PanelContainer" unique_id=525803894]
 layout_mode = 2
-theme_override_constants/separation = 32
 
 [node name="HBoxContainer" parent="PanelContainer/VBoxContainer2" unique_id=638644848 instance=ExtResource("1_juocw")]
 layout_mode = 2
@@ -129,11 +118,10 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -314.0
-offset_top = 96.0
+offset_top = 120.0
 offset_right = -190.0
-offset_bottom = 132.0
+offset_bottom = 168.0
 grow_horizontal = 2
-theme_override_font_sizes/font_size = 28
 text = "City"
 vertical_alignment = 1
 
@@ -143,12 +131,11 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -182.0
-offset_top = 100.0
+offset_top = 128.0
 offset_right = 314.0
-offset_bottom = 128.0
+offset_bottom = 152.0
 grow_horizontal = 2
-theme_override_styles/background = SubResource("StyleBoxFlat_city_bg")
-theme_override_styles/fill = SubResource("StyleBoxFlat_city_fill")
+theme_type_variation = &"BarCity"
 max_value = 1.0
 step = 0.0
 value = 1.0
@@ -157,10 +144,10 @@ show_percentage = false
 [node name="ScriptPreview" type="Control" parent="." unique_id=843858237]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 24.0
-offset_top = 24.0
-offset_right = 520.0
-offset_bottom = 460.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 512.0
+offset_bottom = 452.0
 mouse_filter = 2
 script = ExtResource("8_script")
 
@@ -181,10 +168,11 @@ anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = -250.0
-offset_top = -36.0
-offset_right = -24.0
-offset_bottom = 36.0
+offset_left = -242.0
+offset_top = -24.0
+offset_right = -16.0
+offset_bottom = 24.0
 grow_horizontal = 0
 grow_vertical = 2
+theme_type_variation = &"ButtonDanger"
 text = "Sacrifice"

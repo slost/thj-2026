@@ -231,8 +231,9 @@ func _test_editor_screen() -> void:
 	var script := editor.get_node(^"%ScriptView") as ScriptView
 	var slots := editor.get_node(^"%SpellsContainer") as Control
 	var eighth := editor.get_node_or_null(^"%SpellButton8") as Button
-	if eighth == null or eighth.text.is_empty():
-		_fail("the book does not show eight named spells")
+	var eighth_icon := eighth.get_node_or_null(^"RaceIcon") as TextureRect if eighth != null else null
+	if eighth == null or not eighth.text.is_empty() or eighth_icon == null or eighth_icon.texture == null:
+		_fail("the book spell slot should show a portrait and no name")
 	var palette_rect := palette.get_global_rect()
 	var script_rect := script.get_global_rect()
 	if palette_rect.size.x < 200.0 or palette_rect.size.y < 200.0:

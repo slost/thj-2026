@@ -61,6 +61,11 @@ folder_colors={
 "res://systems/": "red"
 }
 
+[gui]
+
+theme/custom="res://systems/ui/theme/flat_theme.tres"
+theme/custom_font="res://contents/bc-rebecca-sharp-regular.otf"
+
 [internationalization]
 
 locale/translations=PackedStringArray("res://contents/translations/blocks.en.translation", "res://contents/translations/blocks.th.translation", "res://contents/translations/ui.en.translation", "res://contents/translations/ui.th.translation")

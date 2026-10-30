@@ -4,10 +4,10 @@ class_name ThinkBarComponent
 
 @export var offset: Vector2 = Vector2(0, -242)
 @export var size: Vector2 = Vector2(128, 6)
-@export var outline_thickness: float = 1.0
-@export var outline_color: Color = Color.WHITE
-@export var background_color: Color = Color(0, 0, 0, 0.8)
-@export var fill_color: Color = Color(0.25, 0.8, 1.0)
+@export var outline_thickness: float = 0.0
+@export var outline_color: Color = UiPalette.BG_DARK
+@export var background_color: Color = UiPalette.BG_DARK
+@export var fill_color: Color = UiPalette.INFO
 
 var _host: Node2D
 var _runner: ProgramRunner

@@ -84,7 +84,6 @@ func _build_pages() -> void:
 	_race_page.add_child(scroll)
 	_race_list = VBoxContainer.new()
 	_race_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_race_list.add_theme_constant_override(&"separation", 8)
 	scroll.add_child(_race_list)
 
 	_detail_page = Control.new()
@@ -92,12 +91,10 @@ func _build_pages() -> void:
 	add_child(_detail_page)
 	var box := VBoxContainer.new()
 	box.set_anchors_preset(Control.PRESET_FULL_RECT)
-	box.add_theme_constant_override(&"separation", 8)
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_detail_page.add_child(box)
 
 	var title := HBoxContainer.new()
-	title.add_theme_constant_override(&"separation", 10)
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(title)
 	_portrait = TextureRect.new()
@@ -135,13 +132,11 @@ func _build_pages() -> void:
 
 	_stats = VBoxContainer.new()
 	_stats.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_stats.add_theme_constant_override(&"separation", 2)
 	box.add_child(_stats)
 
 	_costs = HBoxContainer.new()
 	_costs.name = "CostRow"
 	_costs.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_costs.add_theme_constant_override(&"separation", 6)
 	box.add_child(_costs)
 
 	_explain = Label.new()
@@ -154,7 +149,6 @@ func _build_pages() -> void:
 
 func _stepper() -> Array:
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override(&"separation", 8)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var caption := Label.new()
 	caption.custom_minimum_size = Vector2(88, 0)
@@ -165,6 +159,7 @@ func _stepper() -> Array:
 	row.add_child(minus)
 	var value := Label.new()
 	value.custom_minimum_size = Vector2(28, 0)
+	value.theme_type_variation = &"LabelNumber"
 	value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	value.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	value.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -177,8 +172,9 @@ func _stepper() -> Array:
 func _step_button(text: String) -> Button:
 	var button := Button.new()
 	button.focus_mode = Control.FOCUS_NONE
+	button.theme_type_variation = &"ButtonIcon"
 	button.text = text
-	button.custom_minimum_size = Vector2(36, 36)
+	button.custom_minimum_size = Vector2(UiPalette.L, UiPalette.L)
 	return button
 
 
@@ -274,6 +270,7 @@ func _fill_summon_costs() -> void:
 		_costs.add_child(_resource_icon(cost.resource_type))
 		var bit := Label.new()
 		var comma := "," if index < costs.size() - 1 else ""
+		bit.theme_type_variation = &"LabelNumber"
 		bit.text = "%d %s%s" % [cost.amount, _resource_name(cost.resource_type), comma]
 		bit.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		bit.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -303,8 +300,8 @@ func _race_card(profile: RaceProfile) -> Control:
 	button.clip_contents = true
 	var row := _icon_name_row(profile)
 	row.set_anchors_preset(Control.PRESET_FULL_RECT)
-	row.offset_left = 8.0
-	row.offset_right = -8.0
+	row.offset_left = UiPalette.S
+	row.offset_right = -UiPalette.S
 	button.add_child(row)
 	if _spell != null and _spell.race == profile.race:
 		button.set_pressed_no_signal(true)
@@ -317,13 +314,8 @@ func _locked_card(profile: RaceProfile) -> Control:
 	panel.theme_type_variation = &"ActionCard"
 	panel.custom_minimum_size = Vector2(0, 96)
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override(&"margin_left", 8)
-	margin.add_theme_constant_override(&"margin_top", 6)
-	margin.add_theme_constant_override(&"margin_right", 8)
-	margin.add_theme_constant_override(&"margin_bottom", 6)
 	panel.add_child(margin)
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override(&"separation", 4)
 	margin.add_child(column)
 	column.add_child(_icon_name_row(profile))
 	var locked := Label.new()
@@ -331,18 +323,20 @@ func _locked_card(profile: RaceProfile) -> Control:
 	locked.text = LocaleText.resolve("ui.spec.locked", "Locked")
 	column.add_child(locked)
 	var price := HBoxContainer.new()
-	price.add_theme_constant_override(&"separation", 6)
 	column.add_child(price)
 	for cost in profile.unlock_costs:
 		if cost == null or cost.amount <= 0:
 			continue
 		price.add_child(_resource_icon(cost.resource_type))
 		var amount := Label.new()
+		amount.theme_type_variation = &"LabelNumber"
 		amount.text = str(cost.amount)
 		amount.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		price.add_child(amount)
 	var unlock := Button.new()
 	unlock.focus_mode = Control.FOCUS_NONE
+	unlock.theme_type_variation = &"ButtonPrimary"
+	unlock.custom_minimum_size = Vector2(0, UiPalette.BUTTON_HUD)
 	unlock.text = LocaleText.resolve("ui.spec.unlock", "Unlock")
 	var affordable := Game.can_afford(profile.unlock_costs)
 	unlock.disabled = not affordable
@@ -355,7 +349,6 @@ func _locked_card(profile: RaceProfile) -> Control:
 func _icon_name_row(profile: RaceProfile) -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_theme_constant_override(&"separation", 8)
 	var icon := TextureRect.new()
 	icon.custom_minimum_size = Vector2(48, 48)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -383,7 +376,7 @@ func _on_unlock_pressed(race_value: int) -> void:
 
 func _resource_icon(type_value: int) -> TextureRect:
 	var icon := HotSwapTextureRect.new()
-	icon.custom_minimum_size = Vector2(22, 22)
+	icon.custom_minimum_size = Vector2(UiPalette.L, UiPalette.L)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE

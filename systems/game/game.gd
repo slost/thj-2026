@@ -20,6 +20,8 @@ const SANDBOX_SAVE_SLOT := 1
 const BATTLE_TEST_SCENE := "res://systems/battle/battle_test.tscn"
 const DISABLED_COLOR: Color = Color.DIM_GRAY
 const RESOURCE_CAP := 99
+## Sandbox battle test spends nothing and ignores the cap. The campaign keeps both.
+var resources_unlimited := false
 const BGM_TITLE := "bgm.title"
 const BGM_MAP := "bgm.map"
 const BGM_BATTLE := "bgm.battle"
@@ -340,7 +342,16 @@ func is_race_unlocked(race: Unit2D.Race) -> bool:
 	return unlocked_races.has(int(race))
 
 
+func set_resources_unlimited(enabled: bool) -> void:
+	if resources_unlimited == enabled:
+		return
+	resources_unlimited = enabled
+	resource_changed.emit()
+
+
 func can_afford(costs: Array) -> bool:
+	if resources_unlimited:
+		return true
 	for entry in costs:
 		var cost := entry as SummonCost
 		if cost == null:
@@ -404,6 +415,8 @@ func apply_saved_progress(meta: Dictionary) -> void:
 
 
 func change_resource(resource_type: ResourceType, amount: int) -> void:
+	if resources_unlimited and amount < 0:
+		return
 	match resource_type:
 		ResourceType.CORPSE:
 			corpse = _capped(corpse + amount)
@@ -419,7 +432,10 @@ func change_resource(resource_type: ResourceType, amount: int) -> void:
 
 
 func _capped(value: int) -> int:
-	return clampi(value, 0, RESOURCE_CAP)
+	var floored := maxi(value, 0)
+	if resources_unlimited:
+		return floored
+	return mini(floored, RESOURCE_CAP)
 
 
 ## Keeps the campaign in memory, then loads or starts the sandbox slot.

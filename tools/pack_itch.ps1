@@ -68,7 +68,22 @@ if ($LASTEXITCODE -ne 0) { throw "make_manifest.py failed." }
 
 Write-Host "Zipping..."
 if (Test-Path $Zip) { Remove-Item $Zip -Force }
-Compress-Archive -Path (Join-Path $OutDir "*") -DestinationPath $Zip
+# Compress-Archive in Windows PowerShell 5 writes "\" into entry names, and
+# itch.io (Linux) then extracts "assets\manifest.json" as one file name.
+# .NET Framework's ZipFile.CreateFromDirectory does the same, so build the
+# archive entry by entry with "/" separators.
+Add-Type -AssemblyName System.IO.Compression
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$archive = [IO.Compression.ZipFile]::Open($Zip, [IO.Compression.ZipArchiveMode]::Create)
+try {
+    foreach ($file in Get-ChildItem $OutDir -Recurse -File) {
+        $entryName = $file.FullName.Substring($OutDir.Length).TrimStart("\").Replace("\", "/")
+        [IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, $file.FullName, $entryName, [IO.Compression.CompressionLevel]::Optimal) | Out-Null
+    }
+} finally {
+    $archive.Dispose()
+}
 $sizeMb = [math]::Round((Get-Item $Zip).Length / 1MB, 1)
 Write-Host "Done: $Zip ($sizeMb MB). Upload it to itch as an HTML game (index.html at the zip root)."
+
 

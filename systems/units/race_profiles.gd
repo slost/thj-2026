@@ -24,8 +24,8 @@ static func get_profile(race: Unit2D.Race) -> RaceProfile:
 	return _by_race.get(race, null) as RaceProfile
 
 
-## Small portrait in the corner of a spell-slot button.
-static func mount_slot_icon(button: Button, race: Unit2D.Race) -> void:
+## Portrait filling a spell-slot button. [param bottom_inset] leaves room for a cost row.
+static func mount_slot_icon(button: Button, race: Unit2D.Race, bottom_inset: float = 8.0) -> void:
 	if button == null:
 		return
 	var icon := button.get_node_or_null(^"RaceIcon") as TextureRect
@@ -35,16 +35,16 @@ static func mount_slot_icon(button: Button, race: Unit2D.Race) -> void:
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.anchor_left = 0.0
-		icon.anchor_top = 0.0
-		icon.anchor_right = 0.0
-		icon.anchor_bottom = 1.0
-		icon.offset_left = 3.0
-		icon.offset_top = 4.0
-		icon.offset_right = 28.0
-		icon.offset_bottom = -4.0
 		button.add_child(icon)
 		button.clip_contents = true
+	icon.anchor_left = 0.0
+	icon.anchor_top = 0.0
+	icon.anchor_right = 1.0
+	icon.anchor_bottom = 1.0
+	icon.offset_left = 8.0
+	icon.offset_top = 8.0
+	icon.offset_right = -8.0
+	icon.offset_bottom = -bottom_inset
 	var profile := get_profile(race)
 	icon.texture = profile.icon if profile != null else null
 	icon.visible = icon.texture != null

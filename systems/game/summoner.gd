@@ -10,6 +10,8 @@ const _BLOCK_DIR := "res://data/blocks/%s.tres"
 static func can_afford(spell: SummonSpell) -> bool:
 	if spell == null:
 		return false
+	if Game.resources_unlimited:
+		return true
 	for entry in spell.get_costs():
 		if entry == null:
 			continue

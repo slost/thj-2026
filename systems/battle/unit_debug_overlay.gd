@@ -14,12 +14,8 @@ func _ready() -> void:
 	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_label.position = Vector2(-110, -240)
 	_label.z_index = 40
-	var settings := LabelSettings.new()
-	settings.font_size = 22
-	settings.font_color = Color.WHITE
-	settings.outline_size = 6
-	settings.outline_color = Color(0, 0, 0, 1)
-	_label.label_settings = settings
+	_label.theme_type_variation = &"LabelMuted"
+	_label.add_theme_color_override(&"font_color", UiPalette.TEXT)
 	add_child(_label)
 
 

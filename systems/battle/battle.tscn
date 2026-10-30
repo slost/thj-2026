@@ -72,7 +72,7 @@ offset_right = 903.0
 offset_bottom = 352.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_font_sizes/font_size = 64
+theme_type_variation = &"ButtonDanger"
 text = "Retreat"
 
 [node name="StageEndScreen" type="Control" parent="CanvasLayer" unique_id=1393297997]
@@ -107,19 +107,17 @@ offset_right = 480.0
 offset_bottom = -80.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 16
 alignment = 1
 script = ExtResource("11_reward")
 
 [node name="Title" type="Label" parent="CanvasLayer/StageEndScreen/RewardReveal"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 48
+theme_type_variation = &"LabelTitle"
 text = "Rewards"
 horizontal_alignment = 1
 
 [node name="Row" type="HBoxContainer" parent="CanvasLayer/StageEndScreen/RewardReveal"]
 layout_mode = 2
-theme_override_constants/separation = 28
 alignment = 1
 
 [node name="BackButton" type="Button" parent="CanvasLayer/StageEndScreen" unique_id=1229068114]
@@ -135,7 +133,8 @@ offset_right = 119.0
 offset_bottom = 48.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_font_sizes/font_size = 64
+custom_minimum_size = Vector2(0, 48)
+theme_type_variation = &"ButtonPrimary"
 text = "Back to World"
 
 [node name="StateContainer" type="HBoxContainer" parent="CanvasLayer"]
@@ -151,7 +150,6 @@ offset_right = -16.0
 offset_bottom = -16.0
 grow_horizontal = 0
 grow_vertical = 0
-theme_override_constants/separation = 16
 
 [node name="FieldButton" type="Button" parent="CanvasLayer/StateContainer"]
 layout_mode = 2

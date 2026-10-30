@@ -61,11 +61,11 @@ script = ExtResource("1_1tnwh")
 
 [node name="CodeButton" type="Button" parent="DebugRooms" unique_id=1141681656]
 visible = false
+custom_minimum_size = Vector2(0, 64)
 offset_left = 1346.5
 offset_top = 682.0
 offset_right = 1712.5
 offset_bottom = 778.0
-theme_override_font_sizes/font_size = 64
 text = "Code Editor"
 
 [node name="VBoxContainer" type="HBoxContainer" parent="DebugRooms" unique_id=1940214768]
@@ -74,48 +74,48 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -576.0
-offset_top = 142.0
-offset_right = 576.0
-offset_bottom = 238.0
+offset_left = -216.0
+offset_top = 235.0
+offset_right = 216.0
+offset_bottom = 301.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 32
 
 [node name="WorldMapButton" type="Button" parent="DebugRooms/VBoxContainer" unique_id=1457424934]
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
-theme_override_font_sizes/font_size = 64
+theme_type_variation = &"ButtonPrimary"
 text = "Play"
 
 [node name="TutorialButton" type="Button" parent="DebugRooms/VBoxContainer" unique_id=1724520159]
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
-theme_override_font_sizes/font_size = 64
 text = "Tutorial"
 
 [node name="BattleButton" type="Button" parent="DebugRooms/VBoxContainer" unique_id=1199337233]
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
-theme_override_font_sizes/font_size = 64
 text = "Sand Box"
 
 [node name="AnimationButton" type="Button" parent="DebugRooms/VBoxContainer" unique_id=1141681657]
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
-theme_override_font_sizes/font_size = 64
 text = "Animation"
 
 [node name="SettingButton" type="Button" parent="DebugRooms/VBoxContainer" unique_id=1903984437]
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
-theme_override_font_sizes/font_size = 64
 text = "Settings"
 
 [node name="CreditsButton" type="Button" parent="DebugRooms/VBoxContainer" unique_id=1598981413]
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
-theme_override_font_sizes/font_size = 64
 text = "Credits"
 
-[node name="SettingsScreen" parent="DebugRooms" instance=ExtResource("9_settings")]
+[node name="SettingsScreen" parent="DebugRooms" unique_id=911303317 instance=ExtResource("9_settings")]
 visible = false
 
-[node name="Credits" type="Control" parent="DebugRooms"]
+[node name="Credits" type="Control" parent="DebugRooms" unique_id=197085291]
 visible = false
 layout_mode = 3
 anchors_preset = 15
@@ -124,7 +124,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Backdrop" type="ColorRect" parent="DebugRooms/Credits"]
+[node name="Backdrop" type="ColorRect" parent="DebugRooms/Credits" unique_id=1396599234]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -134,7 +134,7 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="DebugRooms/Credits"]
+[node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="DebugRooms/Credits" unique_id=584415839]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -144,13 +144,13 @@ grow_vertical = 2
 mouse_filter = 2
 expand = true
 
-[node name="BackButton" type="Button" parent="DebugRooms/Credits"]
+[node name="BackButton" type="Button" parent="DebugRooms/Credits" unique_id=1100224940]
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 0
-offset_left = 32.0
-offset_top = 32.0
-offset_right = 220.0
-offset_bottom = 104.0
-theme_override_font_sizes/font_size = 40
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 204.0
+offset_bottom = 80.0
 text = "Skip"
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=192791497]

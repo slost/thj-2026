@@ -19,6 +19,7 @@ signal block_drop_requested(at_position: Vector2, data: Variant)
 var accept_script_return := false
 
 const _THEME := preload("res://systems/code_editor/editor_theme.tres")
+const _Builder := preload("res://systems/ui/theme/flat_theme_builder.gd")
 
 @export var bob_pixels: float = 6.0
 @export var drift_pixels: float = 5.0
@@ -29,7 +30,7 @@ const _THEME := preload("res://systems/code_editor/editor_theme.tres")
 @export var indent_pad: float = 8.0
 @export var indent_step: float = 32.0
 @export var max_width: float = 440.0
-@export var block_height: float = 40.0
+@export var block_height: float = 48.0
 ## Extra chip width past the words. Zero keeps the script block as wide as its text.
 @export var display_extra: float = 0.0
 
@@ -55,7 +56,6 @@ var _tilt := 0.02
 var _wave_time := 0.0
 ## 1 while drifting, easing toward 0 while the pointer rests on the card.
 var _motion := 1.0
-var _shadow: Panel
 var _press_button := MOUSE_BUTTON_LEFT
 ## Right-button drags delete the block and the lines nested under it.
 var _drag_removes := false
@@ -121,6 +121,8 @@ func set_compact(compact: bool) -> void:
 
 func _ready() -> void:
 	_ready_done = true
+	# The title and the tooltip stay the English rune text, even when the game language is Thai.
+	auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	if theme == null:
 		theme = _THEME
 	_phase = randf() * TAU
@@ -132,8 +134,6 @@ func _ready() -> void:
 	_visual.layout_mode = 0
 	_highlight.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	_highlight.layout_mode = 0
-	_shadow = _make_plate(Color(0.12, 0.08, 0.04, 0.9), 14)
-	move_child(_shadow, _visual.get_index())
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
 	_apply()
@@ -216,7 +216,7 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 		line_pressed.emit(line_index)
 	var preview := _make_preview()
 	if _drag_removes:
-		preview.modulate = Color(1.0, 0.72, 0.68)
+		preview.modulate = UiPalette.DANGER.lightened(0.35)
 	if get_viewport().gui_is_dragging():
 		# The engine preview is drawn on the root canvas, under the portrait layer.
 		var ghost := Control.new()
@@ -239,11 +239,20 @@ func _apply() -> void:
 	var cost := _block.get_mb_cost() if _block else 0
 	var ram_pattern := LocaleText.resolve("ui.code_editor.ram_badge", "{cost} MB", "en")
 	_ram_label.text = ram_pattern.format({"cost": cost})
-	var condition := _block is ConditionBlock
+	var variation := "OtherCard"
+	if _block is ConditionBlock:
+		variation = "ConditionCard"
+	elif _block is ActionBlock:
+		variation = "ActionCard"
 	if _selected:
-		_visual.theme_type_variation = &"ConditionCardSelected" if condition else &"ActionCardSelected"
+		variation += "Selected"
+	_visual.theme_type_variation = variation
+	# Painted here so a stale book theme cannot flatten the two silhouettes.
+	var panel := _Builder.rune_panel(variation) as StyleBoxFlat
+	if panel == null:
+		_visual.remove_theme_stylebox_override(&"panel")
 	else:
-		_visual.theme_type_variation = &"ConditionCard" if condition else &"ActionCard"
+		_visual.add_theme_stylebox_override(&"panel", panel)
 	_sync_stack_order()
 	_sync_highlight()
 	var owned := not _show_count or _count > 0
@@ -307,7 +316,6 @@ func _place_visual(y_offset: float, rotation_radians: float, shown_scale: float,
 	_visual.pivot_offset = _visual.size * 0.5
 	_visual.rotation = rotation_radians
 	_visual.scale = Vector2(shown_scale, shown_scale)
-	_place_shadow(chip, y_offset, x_offset, rotation_radians)
 	_place_stock()
 
 
@@ -365,31 +373,6 @@ func _place_stock() -> void:
 	_count_badge.rotation = beat * 0.07
 
 
-func _place_shadow(chip: Rect2, y_offset: float, x_offset: float, rotation_radians: float) -> void:
-	if _shadow == null:
-		return
-	var risen := maxf(-y_offset, 0.0)
-	_shadow.size = chip.size
-	_shadow.pivot_offset = chip.size * 0.5
-	_shadow.position = chip.position + Vector2(3.0 + x_offset * 0.2, 6.0 + risen * 0.55)
-	_shadow.rotation = rotation_radians * 0.35
-	var closeness := clampf(1.0 - risen / 22.0, 0.84, 1.0)
-	_shadow.scale = Vector2(closeness, closeness)
-	_shadow.modulate = Color(1, 1, 1, clampf(0.5 - risen * 0.012, 0.2, 0.5))
-
-
-func _make_plate(color: Color, radius: int) -> Panel:
-	var plate := Panel.new()
-	plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	plate.layout_mode = 0
-	var style := StyleBoxFlat.new()
-	style.bg_color = color
-	style.set_corner_radius_all(radius)
-	plate.add_theme_stylebox_override(&"panel", style)
-	add_child(plate)
-	return plate
-
-
 func _sync_highlight() -> void:
 	if _highlight == null:
 		return
@@ -397,9 +380,9 @@ func _sync_highlight() -> void:
 	if not show:
 		_highlight.color = Color(0, 0, 0, 0)
 	elif _marked:
-		_highlight.color = Color(0.78, 0.1, 0.08, 0.42)
+		_highlight.color = UiPalette.tint(UiPalette.DANGER, 0.42)
 	else:
-		_highlight.color = Color(0.55, 0.38, 0.16, 0.22)
+		_highlight.color = UiPalette.tint(UiPalette.WARN, 0.22)
 	_highlight.position = Vector2.ZERO
 	_highlight.size = size
 

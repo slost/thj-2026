@@ -39,6 +39,8 @@ var _spawn_serial := 0
 
 
 func _enter_tree() -> void:
+	if Game:
+		Game.set_resources_unlimited(true)
 	var map := $TileMaps/Map as TileMapLayer
 	var template := $Unit as Unit2D
 	_hunt_program = _build_demo_program()
@@ -71,6 +73,11 @@ func _enter_tree() -> void:
 	for index in fleers.size():
 		_setup_unit(fleers[index], "Villager Flee %d" % (index + 1), Unit2D.Team.VILLAGER, _flee_program, 1, 1, map.map_to_local(_FLEE_CELLS[index]), Color(0.7, 0.85, 1.0), Unit2D.Race.VILLAGER_MELEE)
 		add_child.call_deferred(fleers[index])
+
+
+func _exit_tree() -> void:
+	if Game:
+		Game.set_resources_unlimited(false)
 
 
 func _ready() -> void:

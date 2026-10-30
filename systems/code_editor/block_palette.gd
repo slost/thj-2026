@@ -12,7 +12,7 @@ const _CARD := preload("res://systems/code_editor/block_card.tscn")
 enum SortMode { CONDITIONS, ACTIONS }
 
 @export var card_max_width: float = 440.0
-@export var card_height: float = 40.0
+@export var card_height: float = 48.0
 @export var grid_gap: Vector2 = Vector2(16, 18)
 @export var position_jitter: float = 0.0
 

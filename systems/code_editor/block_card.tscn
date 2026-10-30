@@ -4,7 +4,7 @@
 [ext_resource type="Theme" path="res://systems/code_editor/editor_theme.tres" id="2_theme"]
 
 [node name="BlockCard" type="Control"]
-custom_minimum_size = Vector2(0, 40)
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 0
@@ -21,7 +21,7 @@ visual_inset_y = 2.0
 indent_pad = 8.0
 indent_step = 32.0
 max_width = 440.0
-block_height = 40.0
+block_height = 48.0
 display_extra = 0.0
 
 [node name="Highlight" type="ColorRect" parent="."]
@@ -44,7 +44,7 @@ theme_type_variation = &"ActionCard"
 [node name="Row" type="HBoxContainer" parent="Visual"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 alignment = 1
 
 [node name="TitleSlot" type="Control" parent="Visual/Row"]
