@@ -105,6 +105,20 @@ func _ready() -> void:
 	_wire_health()
 	_bind_animation_player()
 	_begin_spawn()
+	_hide_enemy_meters()
+
+
+## Villagers keep the health bar. Think and animation meters stay off.
+func _hide_enemy_meters() -> void:
+	if team != Team.VILLAGER:
+		return
+	var container := get_node_or_null("ComponentContainer")
+	if container == null:
+		return
+	for child in container.get_children():
+		if str(child.name) == "HealthBarComponent" or not child.has_method("set_bar_visible"):
+			continue
+		child.set_bar_visible(false)
 
 
 func _physics_process(delta: float) -> void:
@@ -417,8 +431,12 @@ func set_status_bars_visible(show: bool) -> void:
 	if container == null:
 		return
 	for child in container.get_children():
-		if child.has_method("set_bar_visible"):
-			child.set_bar_visible(show)
+		if not child.has_method("set_bar_visible"):
+			continue
+		var allowed := show
+		if team == Team.VILLAGER and str(child.name) != "HealthBarComponent":
+			allowed = false
+		child.set_bar_visible(allowed)
 
 
 ## Health bar, think bar, animation bar, and the per-unit debug label stay off after death.

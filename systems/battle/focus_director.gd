@@ -79,7 +79,7 @@ func unfocus_target(target: FocusTargetComponent) -> void:
 
 ## Click focus. Stays until a click lands on empty space or another target.
 func select_target(target: FocusTargetComponent) -> void:
-	if not accepts_pointer or target == null or not target.can_focus():
+	if not accepts_pointer or target == null or not target.can_select():
 		return
 	_pinned = target
 	_refresh()
@@ -204,7 +204,7 @@ func _place_indicator(sprite: Node2D, host: Node2D, tint: Color) -> void:
 func _place_ranges(unit: Unit2D) -> void:
 	if _ranges == null:
 		return
-	if unit == null or unit.stats == null:
+	if unit == null or unit.stats == null or unit.team == Unit2D.Team.VILLAGER:
 		_ranges.visible = false
 		return
 	var tile := 128.0

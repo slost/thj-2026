@@ -39,13 +39,22 @@ func _inspected_unit() -> Unit2D:
 	var director := tree.get_first_node_in_group(FocusDirector.GROUP) as FocusDirector
 	if director == null or director.process_mode == Node.PROCESS_MODE_DISABLED:
 		return null
-	return director.get_inspected_unit()
+	var unit := director.get_inspected_unit()
+	if _shows_script(unit):
+		return unit
+	var pinned := director.get_selected_unit()
+	if _shows_script(pinned):
+		return pinned
+	return null
+
+
+func _shows_script(unit: Unit2D) -> bool:
+	return unit != null and unit.team != Unit2D.Team.VILLAGER
 
 
 func _render(unit: Unit2D) -> String:
 	var rows := PackedStringArray()
 	rows.append("[color=#9aa4b2]Script — %s[/color]" % _escape(_script_title(unit)))
-	rows.append("[color=#9aa4b2]Doing[/color]  %s" % _escape(_current_action(unit)))
 	var function := unit.runner.get_update_script() if unit.runner else null
 	var current := unit.runner.read_index if unit.runner else -1
 	if function == null or function.lines.is_empty():
@@ -66,10 +75,13 @@ func _render(unit: Unit2D) -> String:
 	rows.append("")
 	rows.append("[color=#9aa4b2]Targets[/color]  %s" % _escape(_target_list(unit)))
 	rows.append("[color=#9aa4b2]Queue[/color]  %s" % _escape(_queue_list(unit)))
+	rows.append("[color=#9aa4b2]CPU[/color]  %d    [color=#9aa4b2]GPU[/color]  %d" % [unit.get_cpu(), unit.get_gpu()])
+	var doing := "[color=#9aa4b2]Doing[/color]  %s" % _escape(_current_action(unit))
 	if unit.stats:
 		var pattern := LocaleText.resolve("ui.code_editor.ram", "RAM: {used}/{max} MB", "en")
 		var usage := pattern.format({"used": unit.get_ram_used(), "max": unit.stats.ram})
-		rows.append("[color=#9aa4b2]%s[/color]" % usage)
+		doing += "    [color=#9aa4b2]%s[/color]" % usage
+	rows.append(doing)
 	return "\n".join(rows)
 
 

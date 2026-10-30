@@ -36,7 +36,11 @@ var _map_tween: Tween
 
 const _Summoner := preload("res://systems/game/summoner.gd")
 const _CodeBook := preload("res://systems/code_editor/code_book.gd")
+const _OrderMove := preload("res://systems/blocks/order_move.gd")
 const _INDICATOR_TEXTURE := preload("res://placeholders/tex_indicator.png")
+
+## Right-click a pinned minion's destination while the camp is open.
+@export var direct_orders := true
 
 var _camp_director: FocusDirector
 
@@ -357,12 +361,31 @@ func _ensure_camp_focus() -> void:
 
 
 func _camp_indicator(node_name: String, z: int) -> Sprite2D:
-	var sprite := Sprite2D.new()
+	var sprite := HotSwapSprite.new()
 	sprite.name = node_name
 	sprite.z_index = z
 	sprite.visible = false
 	sprite.texture = _INDICATOR_TEXTURE
+	sprite.asset_id = "tex_indicator"
 	return sprite
+
+
+## Queues a walk on the camp yard. False outside camp or on a blocked cell.
+func issue_move_order(unit: Unit2D, world_pos: Vector2) -> bool:
+	if not direct_orders or current_state != State.CAMP:
+		return false
+	if unit == null or unit.team != Unit2D.Team.MINION or unit.state == Unit2D.State.DEAD:
+		return false
+	var grid := camp.get_node_or_null("GridNav") as GridNav if camp != null else null
+	if grid == null:
+		return false
+	var cell := grid.world_to_cell(world_pos)
+	if not grid.is_walkable_cell(cell):
+		return false
+	var order = _OrderMove.new()
+	order.goal = cell
+	unit.enqueue_order(order)
+	return true
 
 
 func summon_spot(world_pos: Vector2) -> Dictionary:

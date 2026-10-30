@@ -945,6 +945,18 @@ func _test_raid_spawns_roster() -> void:
 			_fail("fresh raid script was marked old")
 		if not text.contains("Doing"):
 			_fail("script preview does not show the current action")
+		var cpu_with_gpu := false
+		for line in text.split("\n"):
+			if line.contains("CPU") and line.contains("GPU"):
+				cpu_with_gpu = true
+		if not cpu_with_gpu:
+			_fail("CPU and GPU are not on the same line")
+		var doing_beside_ram := false
+		for line in text.split("\n"):
+			if line.contains("Doing") and line.contains("RAM"):
+				doing_beside_ram = true
+		if not doing_beside_ram:
+			_fail("current action is not beside RAM")
 		var live := slot.get_update_function()
 		if live and not live.lines.is_empty():
 			live.lines.append(live.lines[0].duplicate())

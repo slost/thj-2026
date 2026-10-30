@@ -37,6 +37,11 @@ func can_focus() -> bool:
 	return is_enabled() and get_host() is Node2D
 
 
+## Pin. Enemies stay out of this so a click cannot take the selection off a minion.
+func can_select() -> bool:
+	return can_focus()
+
+
 func get_focus_position() -> Vector2:
 	var host := get_host() as Node2D
 	if host == null:

@@ -80,6 +80,8 @@ func _ready() -> void:
 	set_state(State.FIELD)
 	_set_city_chrome(true)
 	_refresh_city_progress()
+	if _is_raid_scene():
+		declare_victory_if_clear()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -103,6 +105,26 @@ func _process(_delta: float) -> void:
 		return
 	if ratio <= 0.0:
 		_open_stage_end()
+
+
+## A raid with nobody left to fight is already won. The town takes no stake damage.
+func declare_victory_if_clear() -> void:
+	if _stage_ended or _living_enemy():
+		return
+	_open_stage_end(false)
+
+
+func _living_enemy() -> bool:
+	var tree := get_tree()
+	if tree == null:
+		return false
+	for node in tree.get_nodes_in_group(Unit2D.GROUP):
+		var unit := node as Unit2D
+		if unit == null or unit.state == Unit2D.State.DEAD:
+			continue
+		if unit.team == Unit2D.Team.VILLAGER:
+			return true
+	return false
 
 
 func _on_retreat_pressed() -> void:
@@ -150,12 +172,12 @@ func _exit_tree() -> void:
 	_set_city_chrome(false)
 
 
-func _open_stage_end() -> void:
+func _open_stage_end(city_fallen := true) -> void:
 	if _stage_ended:
 		return
 	_stage_ended = true
 	var bar := _city_bar()
-	if bar:
+	if city_fallen and bar:
 		bar.value = 0.0
 	if _stage_end:
 		_stage_end.visible = true

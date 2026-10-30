@@ -274,6 +274,22 @@ func _test_scenes_open() -> void:
 	var yard := world.get_node(^"Camp/Map") as TileMapLayer
 	if yard == null or yard.get_cell_source_id(yard.local_to_map(Vector2.ZERO)) == -1:
 		_fail("camp yard was not painted")
+	var hover := world.get_node_or_null(^"Camp/CampHover")
+	if hover == null or str(hover.get("asset_id")) != "tex_indicator":
+		_fail("camp indicator is not the shared marker")
+	var camp_grid := world.get_node_or_null(^"Camp/GridNav") as GridNav
+	if camp_grid == null:
+		_fail("camp has no walk grid")
+	else:
+		var home := camp_grid.world_to_cell(yard.to_global(Vector2.ZERO))
+		var goal := home + Vector2i(2, 0)
+		var camper := _walker(world.get_node(^"Camp"), camp_grid, home)
+		if not camp_grid.is_walkable_cell(goal):
+			_fail("camp goal cell is blocked")
+		elif not bool(world.call("issue_move_order", camper, camp_grid.cell_to_world(goal))):
+			_fail("camp did not accept a walk order")
+		elif camper.queue_actions.is_empty() or camper.queue_actions[0].goal != goal:
+			_fail("camp walk order lost its cell")
 	world.set_state(map_script.State.CODE)
 	for _frame in 5:
 		await process_frame
@@ -356,6 +372,19 @@ func _test_scenes_open() -> void:
 		_fail("field camera zoom was not restored")
 	game.set("current_stage", null)
 	battle.queue_free()
+	await process_frame
+	var clear := (load("res://systems/battle/battle.tscn") as PackedScene).instantiate() as Node2D
+	root.add_child(clear)
+	await process_frame
+	clear.call("declare_victory_if_clear")
+	var end := clear.get_node_or_null(^"CanvasLayer/StageEndScreen") as CanvasItem
+	if end == null or not end.visible:
+		_fail("empty battle did not end")
+	var city_after := root.get_node_or_null(^"GUI/CityProgress") as ProgressBar
+	if city_after != null and city_after.value < 0.99:
+		_fail("empty battle damaged the city")
+	paused = false
+	clear.queue_free()
 
 
 func _check_orders_and_summon(battle: Node2D) -> void:
@@ -402,6 +431,23 @@ func _check_orders_and_summon(battle: Node2D) -> void:
 	var director := FocusDirector.new()
 	battle.add_child(director)
 	await process_frame
+	var foe_focus := foe.get_node(^"ComponentContainer/UnitFocusComponent") as FocusTargetComponent
+	director.select_target(foe_focus)
+	await process_frame
+	if director.get_selected_unit() == foe:
+		_fail("enemy could be selected")
+	var think := foe.get_node_or_null(^"ComponentContainer/ThinkBarComponent")
+	var health := foe.get_node_or_null(^"ComponentContainer/HealthBarComponent")
+	if think != null and think.get_child_count() > 0 and (think.get_child(0) as CanvasItem).visible:
+		_fail("enemy think bar stayed visible")
+	if health == null or health.get_child_count() == 0 or not (health.get_child(0) as CanvasItem).visible:
+		_fail("enemy health bar was hidden")
+	var ranges := battle.get_node_or_null(^"FocusRanges") as CanvasItem
+	if ranges == null or ranges.visible:
+		_fail("villager ranges stayed visible")
+	var preview := root.get_node_or_null(^"GUI/ScriptPreview/Body") as RichTextLabel
+	if preview != null and not preview.text.contains("No unit focused"):
+		_fail("villager script stayed on screen")
 	var focus := minion.get_node(^"ComponentContainer/UnitFocusComponent") as FocusTargetComponent
 	director.select_target(focus)
 	await process_frame

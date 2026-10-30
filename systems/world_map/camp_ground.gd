@@ -10,6 +10,10 @@ const _Map := preload("res://systems/battle/map_generator.gd")
 func _ready() -> void:
 	_paint_ground()
 	_build_nav()
+	if get_node_or_null("GridNav") == null:
+		var grid := GridNav.new()
+		grid.name = "GridNav"
+		add_child(grid)
 
 
 func contains_world(world_pos: Vector2) -> bool:
