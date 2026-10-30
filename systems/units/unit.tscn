@@ -62,8 +62,9 @@ animations = [{
 "speed": 5.0
 }]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_eqkan"]
-radius = 64.0
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_28mv0"]
+radius = 68.0
+height = 256.0
 
 [node name="Unit" type="CharacterBody2D" unique_id=895876733 node_paths=PackedStringArray("anim_player")]
 script = ExtResource("1_5cw0r")
@@ -87,10 +88,11 @@ sprite_frames = SubResource("SpriteFrames_51ode")
 frame = 1
 frame_progress = 0.981323
 
-[node name="Visual" parent="." instance=ExtResource("12_zombie")]
+[node name="Visual" parent="." unique_id=113619067 instance=ExtResource("12_zombie")]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1653890286]
-shape = SubResource("CircleShape2D_eqkan")
+position = Vector2(0, -134)
+shape = SubResource("CapsuleShape2D_28mv0")
 
 [node name="ComponentContainer" type="Node" parent="." unique_id=1042653082]
 script = ExtResource("6_cgeqx")
