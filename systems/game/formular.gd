@@ -24,7 +24,7 @@ static func calculate_attack_duration(gpu: int) -> float:
 
 ## Seconds spent reading one script line. A higher CPU reaches the next line sooner.
 static func calculate_think_interval(cpu: int) -> float:
-	return 16 / float(maxi(cpu, 1))
+	return 4.0 / float(maxi(cpu, 1))
 
 
 ## RAM added by one remembered target or one queued action.

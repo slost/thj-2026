@@ -368,6 +368,7 @@ func _flash_ram() -> void:
 func _on_slot_button(index: int) -> void:
 	if _switching or index == _slot:
 		return
+	Sfx.play_ui("general.page_turn")
 	_show_slot(index)
 
 
@@ -382,6 +383,7 @@ func _on_place(block: CodeBlock, index: int, indent: int) -> void:
 	if not Game.block_inventory.remove(block, 1):
 		return
 	ScriptEditing.insert_line(function.lines, index, indent, block)
+	Sfx.play_ui("general.write")
 	_script.refresh()
 	_show_ram()
 
@@ -391,6 +393,7 @@ func _on_move(from_index: int, index: int, indent: int) -> void:
 	if slot == null:
 		return
 	if ScriptEditing.move_lines(slot.get_update_function().lines, from_index, index, indent):
+		Sfx.play_ui("general.write")
 		_script.refresh()
 
 
@@ -401,6 +404,8 @@ func _on_remove(index: int) -> void:
 	var block := ScriptEditing.remove_line(slot.get_update_function().lines, index)
 	if block and Game.block_inventory:
 		Game.block_inventory.add(block, 1)
+	if block:
+		Sfx.play_ui("general.write")
 	_script.refresh()
 	_show_ram()
 
@@ -449,7 +454,8 @@ func _on_indent(index: int, delta: int) -> void:
 	var slot := _current_slot()
 	if slot == null:
 		return
-	ScriptEditing.nudge_indent(slot.get_update_function().lines, index, delta)
+	if ScriptEditing.nudge_indent(slot.get_update_function().lines, index, delta):
+		Sfx.play_ui("general.write")
 	_script.refresh()
 
 

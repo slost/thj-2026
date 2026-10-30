@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="AssetEntry" format=3 uid="uid://b2cak48e6x5nl"]
+
+[ext_resource type="Script" uid="uid://bv4b2q86fgm3w" path="res://addons/lost_framework/modules/asset_manager/asset_entry.gd" id="1_4akll"]
+[ext_resource type="AudioStream" uid="uid://us6g3u08fmkw" path="res://contents/audio/bgm_battle.ogg" id="1_8b4hr"]
+
+[resource]
+script = ExtResource("1_4akll")
+key = "bgm.battle"
+category = "audio"
+uid = "7466419781_3177979290"
+resource = ExtResource("1_8b4hr")

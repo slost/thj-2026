@@ -149,7 +149,7 @@ func _confirm_retreat() -> void:
 	var game := _game()
 	if game and game.has_method("abandon_army"):
 		game.abandon_army()
-	_on_button_pressed()
+	_open_stage_end(false, Game.BGM_BATTLE_RETREAT)
 
 
 func _on_button_pressed() -> void:
@@ -172,16 +172,46 @@ func _exit_tree() -> void:
 	_set_city_chrome(false)
 
 
-func _open_stage_end(city_fallen := true) -> void:
+func _open_stage_end(city_fallen := true, sting_key := "") -> void:
 	if _stage_ended:
 		return
 	_stage_ended = true
+	var game := _game()
+	if game and game.has_method("play_battle_sting"):
+		var key := sting_key if sting_key != "" else Game.BGM_BATTLE_WIN
+		game.play_battle_sting(key)
+		if key == Game.BGM_BATTLE_WIN:
+			Sfx.play_laugh(1.0, true)
 	var bar := _city_bar()
 	if city_fallen and bar:
 		bar.value = 0.0
 	if _stage_end:
 		_stage_end.visible = true
+		var reveal := _stage_end.get_node_or_null("RewardReveal")
+		if reveal and reveal.has_method("play"):
+			reveal.call("play", _received_rewards())
 	get_tree().paused = true
+
+
+## Amounts this raid pays. Same split the map grants when the battle closes.
+func _received_rewards() -> Array:
+	var game := _game()
+	if game == null:
+		return []
+	var lost := clampf(1.0 - _villager_ratio(), 0.0, 1.0)
+	var source: Array = game.get("raid_rewards")
+	var lines: Array = []
+	for entry in source:
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		var amount := Formular.raid_reward_payout(int(entry.get("amount", 0)), lost)
+		if amount <= 0:
+			continue
+		lines.append({
+			"resource_type": int(entry.get("resource_type", 0)),
+			"amount": amount,
+		})
+	return lines
 
 
 func _city_bar() -> ProgressBar:
@@ -441,6 +471,7 @@ func accepts_field_pointer() -> bool:
 
 
 func set_state(new_state: State = State.FIELD) -> void:
+	var entering_code := new_state == State.CODE and current_state != State.CODE
 	current_state = new_state
 	_CodeBook.set_open(book, code_editor, current_state == State.CODE)
 	_update_state_buttons()
@@ -452,6 +483,8 @@ func set_state(new_state: State = State.FIELD) -> void:
 		set_summon_preview(false)
 	if GUI:
 		GUI.update_portrait()
+	if entering_code:
+		Sfx.play_ui("general.page_turn")
 
 
 func set_summon_preview(active: bool) -> void:

@@ -128,6 +128,8 @@ func _physics_process(delta: float) -> void:
 	if is_ram_full():
 		_freeze_overloaded()
 		return
+	if state == State.IDLE:
+		Sfx.play_unit(self, &"idle")
 	if _cooldown_left > 0.0:
 		_cooldown_left = maxf(_cooldown_left - delta, 0.0)
 	var acting := state == State.IDLE or state == State.MOVING or state == State.ATTACKING
@@ -281,6 +283,7 @@ func _bind_animation_player() -> void:
 
 
 func _begin_spawn() -> void:
+	Sfx.play_unit(self, &"spawn")
 	if _play_clip(&"spawn"):
 		return
 	_on_spawn_finished()
@@ -384,7 +387,9 @@ func take_damage(amount: int, attacker: Node = null) -> void:
 	if stats.hp <= 0:
 		die()
 	else:
+		# Units with a HealthComponent return above, so this hit is not also handled in _on_health_damaged.
 		_play_hurt()
+		Sfx.play_unit(self, &"hurt")
 
 
 func _on_health_damaged(_amount: float, current_health: float) -> void:
@@ -396,6 +401,7 @@ func _on_health_damaged(_amount: float, current_health: float) -> void:
 		runner.fire(EventGraph.Event.ON_HIT, attacker)
 	if current_health > 0.0:
 		_play_hurt()
+		Sfx.play_unit(self, &"hurt")
 
 
 func _on_health_died() -> void:
@@ -406,6 +412,7 @@ func die() -> void:
 	if state == State.DEAD or _dying:
 		return
 	_dying = true
+	Sfx.play_unit(self, &"dead")
 	if runner:
 		runner.fire(EventGraph.Event.ON_DEATH)
 	set_state(State.DEAD)
@@ -759,6 +766,7 @@ func attack(target: Unit2D) -> void:
 
 ## Stay in ATTACKING for the attack animation, or for Formular.calculate_attack_duration.
 func _begin_attack_hold() -> void:
+	Sfx.play_unit(self, &"attack")
 	if _play_clip(&"attack"):
 		_attack_waits_for_animation = true
 		_attack_duration = 0.0

@@ -204,6 +204,7 @@ func is_coding() -> bool:
 
 
 func set_state(new_state: State = State.MAP) -> void:
+	var entering_code := new_state == State.CODE and current_state != State.CODE
 	var keeps_selection := new_state == State.FOCUS or new_state == State.PINNED
 	if _is_selected and not keeps_selection:
 		_is_selected = false
@@ -217,6 +218,8 @@ func set_state(new_state: State = State.MAP) -> void:
 	_update_buttons()
 	_update_state()
 	GUI.update_portrait()
+	if entering_code:
+		Sfx.play_ui("general.page_turn")
 
 
 func _select_location(location: TownLocation) -> void:
