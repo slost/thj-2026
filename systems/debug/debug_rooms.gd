@@ -2,7 +2,11 @@ extends Control
 
 
 func _on_world_map_button_button_down():
-	get_tree().change_scene_to_file("res://systems/world_map/world_map.tscn")
+	Game.begin_play()
+
+
+func _on_tutorial_button_pressed() -> void:
+	get_tree().change_scene_to_file(Game.TUTORIAL_SCENE)
 
 
 func _on_battle_button_pressed():

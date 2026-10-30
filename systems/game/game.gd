@@ -24,6 +24,7 @@ const BGM_BATTLE_WIN := "bgm.battle.win"
 const BGM_BATTLE_RETREAT := "bgm.battle.retreat"
 const _BATTLE_SCRIPT := "res://systems/battle/battle.gd"
 const _TITLE_SCENE := "res://systems/debug/debug_rooms.tscn"
+const TUTORIAL_SCENE := "res://systems/tutorial/tutorial.tscn"
 
 # States
 var raid_target_id := "" ## Save key of the town that was raided.
@@ -62,6 +63,8 @@ var unlocked_races: Array[int] = []
 var army: Array[ArmyMember] = []
 ## False until the map save has been read once this session.
 var _army_loaded := false
+## Set when the guided battle is finished or skipped, and stored on the map save.
+var tutorial_done := false
 ## True while a win or retreat sting should hand back to the battle bed.
 var _resume_battle_bed := false
 
@@ -202,6 +205,7 @@ func _write_army() -> void:
 	SaveManager.set_metadata_value("army", _Summoner.army_to_data(army))
 	SaveManager.set_metadata_value("unlocked_races", unlocked_races.duplicate())
 	SaveManager.set_metadata_value("spells", _spell_specs_to_data())
+	SaveManager.set_metadata_value("tutorial_done", tutorial_done)
 
 
 func _replace_army(loaded: Array) -> void:
@@ -383,6 +387,7 @@ func apply_saved_progress(meta: Dictionary) -> void:
 		_apply_spell_specs(meta.get("spells"))
 	else:
 		_reset_spell_specs()
+	tutorial_done = bool(meta.get("tutorial_done", false))
 
 
 func change_resource(resource_type: ResourceType, amount: int) -> void:
@@ -402,6 +407,91 @@ func change_resource(resource_type: ResourceType, amount: int) -> void:
 
 func _capped(value: int) -> int:
 	return clampi(value, 0, RESOURCE_CAP)
+
+
+## Opens the tutorial until it has been finished or skipped, then the world map.
+func begin_play() -> void:
+	var meta := SaveManager.get_slot_metadata(MAP_SAVE_SLOT)
+	tutorial_done = bool(meta.get("tutorial_done", tutorial_done))
+	var next := MAP_SCENE if tutorial_done else TUTORIAL_SCENE
+	get_tree().change_scene_to_file(next)
+
+
+## Skip and the tutorial's Back button both come through here.
+## [param travel] stays false in tests that only need the saved starting state.
+func finish_tutorial(travel: bool = true) -> void:
+	tutorial_done = true
+	_seed_new_game_state()
+	_army_loaded = true
+	if get_tree().paused:
+		get_tree().paused = false
+	_write_army()
+	_save_tutorial_result()
+	if travel:
+		get_tree().change_scene_to_file(MAP_SCENE)
+
+
+func skip_tutorial(travel: bool = true) -> void:
+	finish_tutorial(travel)
+
+
+func set_wallet(next_corpse: int, next_bone: int, next_weapon: int, next_collar: int, next_gore: int) -> void:
+	corpse = _capped(next_corpse)
+	bone = _capped(next_bone)
+	weapon = _capped(next_weapon)
+	collar = _capped(next_collar)
+	gore = _capped(next_gore)
+	resource_changed.emit()
+
+
+## Writes the seeded army and tutorial flag without replacing town data.
+## The battle scene has no town participants, so a normal save would blank the map.
+func _save_tutorial_result() -> void:
+	var path := "user://saves/slot_%d.json" % MAP_SAVE_SLOT
+	var payload := {
+		"meta": {},
+		"data": {},
+		"runtime_instances": [],
+	}
+	if FileAccess.file_exists(path):
+		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if typeof(parsed) == TYPE_DICTIONARY:
+			payload = parsed
+	var meta: Dictionary = payload.get("meta", {})
+	meta["tutorial_done"] = tutorial_done
+	meta["army"] = _Summoner.army_to_data(army)
+	meta["unlocked_races"] = unlocked_races.duplicate()
+	meta["spells"] = _spell_specs_to_data()
+	meta["slot_id"] = MAP_SAVE_SLOT
+	meta["saved_at_unix"] = Time.get_unix_time_from_system()
+	payload["meta"] = meta
+	if not payload.has("data"):
+		payload["data"] = {}
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file == null:
+		push_error("Game: could not write the tutorial result")
+		return
+	file.store_string(JSON.stringify(payload, "\t"))
+
+
+func _seed_new_game_state() -> void:
+	_clear_raid_request()
+	army.clear()
+	set_wallet(0, 0, 0, 0, 0)
+	if block_inventory == null:
+		block_inventory = BlockInventory.new()
+	block_inventory.fill_starter()
+	_seed_unlocked_races()
+	for index in spells.size():
+		var spell := spells[index]
+		spell.base_ram = _SEED_RAM[index] if index < _SEED_RAM.size() else 8
+		spell.race = Unit2D.Race.ZOMBIE
+		spell.corpse_amount = 1
+		spell.gore_amount = 1
+		spell.program = SummonSpell.blank_program()
+		if spell.def != null:
+			spell.def.starting_program = spell.program
+		spell.build_def()
 
 
 func _seed_spells_if_empty() -> void:

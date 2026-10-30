@@ -71,7 +71,7 @@ func _should_show() -> bool:
 func _refresh_buttons() -> void:
 	for index in _buttons.size():
 		var button := _buttons[index]
-		if index >= Game.spells.size():
+		if index >= Game.spells.size() or not _stage_shows_spell(index):
 			button.visible = false
 			continue
 		button.visible = true
@@ -79,7 +79,9 @@ func _refresh_buttons() -> void:
 		button.text = spell.display_name()
 		button.clip_text = true
 		RaceProfiles.mount_slot_icon(button, spell.race)
-		var affordable := _Summoner.can_afford(spell)
+		var open := _stage_allows_spell(index)
+		button.disabled = not open
+		var affordable := open and _Summoner.can_afford(spell)
 		button.modulate = Color.WHITE if affordable else Game.DISABLED_COLOR
 		button.tooltip_text = "" if affordable else _Summoner.deny_reason(spell)
 		_fill_costs(button, spell)
@@ -155,6 +157,27 @@ func _on_mouse(mouse: InputEventMouseButton) -> void:
 	get_viewport().set_input_as_handled()
 
 
+func _stage_shows_spell(index: int) -> bool:
+	var stage := Game.current_stage
+	if stage != null and stage.has_method("shows_spell"):
+		return bool(stage.call("shows_spell", index))
+	return _stage_allows_spell(index)
+
+
+func _stage_allows_spell(index: int) -> bool:
+	var stage := Game.current_stage
+	if stage != null and stage.has_method("allows_spell"):
+		return bool(stage.call("allows_spell", index))
+	return true
+
+
+func _stage_allows_summon(index: int) -> bool:
+	var stage := Game.current_stage
+	if stage != null and stage.has_method("allows_summon"):
+		return bool(stage.call("allows_summon", index))
+	return true
+
+
 func _digit(keycode: Key) -> int:
 	if keycode >= KEY_1 and keycode <= KEY_8:
 		return keycode - KEY_1
@@ -165,6 +188,8 @@ func _digit(keycode: Key) -> int:
 
 func _select(index: int) -> void:
 	if index < 0 or index >= Game.spells.size():
+		return
+	if not _stage_allows_spell(index) or not _stage_allows_summon(index):
 		return
 	var spell := Game.spells[index]
 	if not _Summoner.can_afford(spell):
@@ -184,11 +209,15 @@ func _confirm() -> void:
 	var spot := _spot(_mouse_world())
 	if not bool(spot.get("ok", false)):
 		return
+	if not _stage_allows_summon(_spell_index):
+		return
 	var spell := Game.spells[_spell_index]
 	var host := _summon_root()
 	if host == null or _Summoner.summon(spell, host, spot.get("pos", Vector2.ZERO)) == null:
 		_flash(_Summoner.deny_reason(spell))
 		return
+	if host.has_method("note_summon"):
+		host.note_summon()
 	_cancel_placement()
 	_refresh_buttons()
 

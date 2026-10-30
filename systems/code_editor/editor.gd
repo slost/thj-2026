@@ -8,6 +8,8 @@
 extends Node2D
 
 signal closed
+signal opened
+signal page_changed(page: int)
 
 enum Page { SPEC, SCRIPT }
 
@@ -122,6 +124,7 @@ func open() -> void:
 		_pan = null
 		_pan_captured = false
 		_capture_pan()
+		opened.emit()
 	refresh()
 	_has_fit = false
 	_fit_pages_if_needed()
@@ -425,9 +428,9 @@ func _apply_page() -> void:
 
 func _refresh_page_buttons() -> void:
 	if _spec_page_button:
-		_spec_page_button.text = LocaleText.resolve("ui.spec.page", "Spec")
+		_spec_page_button.text = LocaleText.resolve("ui.spec.page", "Summoning")
 	if _script_page_button:
-		_script_page_button.text = LocaleText.resolve("ui.spec.script", "Script")
+		_script_page_button.text = LocaleText.resolve("ui.spec.script", "Thinking")
 
 
 func _on_page_button(page: Page) -> void:
@@ -442,6 +445,7 @@ func _on_page_button(page: Page) -> void:
 			slot.build_def()
 			_spec.bind(slot)
 	_refresh_header()
+	page_changed.emit(_page)
 
 
 func _on_spec_race(race_value: int) -> void:

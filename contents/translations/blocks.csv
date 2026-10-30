@@ -58,7 +58,7 @@ code.forget_all_actions.desc,Drop every plan you were going to do.,ลืมท�
 code.forget_everything.name,Forget everything,ลืมทุกอย่าง
 code.forget_everything.desc,Let go of every person and every plan.,ลืมทั้งคนที่จำไว้และทุกแผน
 code.stop_thinking.name,Stop thinking,หยุดคิด
-code.stop_thinking.desc,Stop reading the script and start over from the top next time.,เลิกอ่านสคริปต์ แล้วเริ่มอ่านจากบรรทัดแรกในรอบหน้า
+code.stop_thinking.desc,Stop reading and start over from the top next time.,เลิกอ่านสคริปต์ แล้วเริ่มอ่านจากบรรทัดแรกในรอบหน้า
 data.spell_1.name,Spell 1,เวท 1
 data.spell_2.name,Spell 2,เวท 2
 data.spell_3.name,Spell 3,เวท 3

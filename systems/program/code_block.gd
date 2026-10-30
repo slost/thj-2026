@@ -16,7 +16,7 @@ func _domain_id() -> StringName:
 
 
 func get_block_label() -> String:
-	return name if not name.is_empty() else "block"
+	return name if not name.is_empty() else "rune"
 
 
 func get_mb_cost() -> int:

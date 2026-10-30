@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://systems/battle/battle.tscn" id="1_battle"]
+[ext_resource type="Script" path="res://systems/tutorial/tutorial_director.gd" id="2_director"]
+
+[node name="Tutorial" instance=ExtResource("1_battle")]
+tutorial_mode = true
+
+[node name="TutorialDirector" type="Node" parent="."]
+script = ExtResource("2_director")
