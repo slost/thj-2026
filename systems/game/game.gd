@@ -46,6 +46,20 @@ var raid_garrison: Array = []
 var raid_rewards: Array = []
 ## Share of the town's villagers lost, stored with the outcome so rewards can be paid on the map.
 var pending_raid_lost_ratio := 0.0
+## Restore points of the raided town, copied in raid_to before the map unloads.
+var raid_target_points := 0.0
+## True when the raided town is the capital.
+var raid_target_is_capital := false
+## True when that capital had already fallen before this raid.
+var raid_target_destroyed := false
+## Set when the capital falls. Stored on the map save.
+var game_won := false
+## The next map load should leave for the ending cutscene if the capital fell.
+var ending_after_map := false
+## Title menu plays the ending cutscene once, then returns to the menu.
+var play_ending_on_title := false
+## Next world map marks every non-capital town destroyed.
+var debug_unlock_capital := false
 var current_stage: Node
 
 # Hard-coded resources
@@ -145,6 +159,9 @@ func _is_battle_stage(stage: Node) -> bool:
 func raid_to(location: TownLocation, slots: Array[int] = []) -> void:
 	raid_target_id = location.get_save_key()
 	raid_target_max_points = location.def.max_restore_points if location.def != null else 0.0
+	raid_target_points = location.restore_points
+	raid_target_is_capital = location.def != null and location.def.is_capital
+	raid_target_destroyed = location.has_been_destroyed
 	raid_garrison = location.def.garrison_snapshot() if location.def != null else []
 	raid_rewards = location.def.reward_snapshot() if location.def != null else []
 	pending_raid_lost_ratio = 0.0
@@ -176,6 +193,66 @@ func _normalize_raid_slots(slots: Array[int]) -> Array[int]:
 func back_to_map() -> void:
 	_Summoner.stash_army()
 	get_tree().change_scene_to_file(MAP_SCENE)
+
+
+## Stage-end exit. A capital that falls here plays the ending instead of the map.
+func return_from_battle() -> void:
+	prepare_battle_exit()
+	back_to_map()
+
+
+## Arms the ending when this raid destroys the capital. Does not change the scene.
+func prepare_battle_exit() -> bool:
+	ending_after_map = capital_falls_from_pending()
+	return ending_after_map
+
+
+## True when this raid's stored damage drops the capital under the destroyed line.
+func capital_falls_from_pending() -> bool:
+	if not raid_target_is_capital or raid_target_destroyed:
+		return false
+	if not raid_outcome_pending and pending_raid_damage <= 0.0:
+		return false
+	return _points_destroy_town(raid_target_points - pending_raid_damage, raid_target_max_points)
+
+
+func _points_destroy_town(points: float, maximum: float) -> bool:
+	return points < DESTROYED_RATIO * maximum
+
+
+## Called after the map applies the raid. Sets game_won when the capital is newly fallen.
+func mark_capital_fallen(location: TownLocation) -> void:
+	if location == null or location.def == null or not location.def.is_capital:
+		return
+	if raid_target_destroyed or not location.has_been_destroyed:
+		return
+	game_won = true
+
+
+## True once, when this map load should hand off to the ending cutscene.
+func take_victory_exit() -> bool:
+	var play := ending_after_map and game_won
+	ending_after_map = false
+	if play:
+		play_ending_on_title = true
+	return play
+
+
+func go_to_title_for_ending() -> void:
+	play_ending_on_title = true
+	get_tree().change_scene_to_file(_TITLE_SCENE)
+
+
+func consume_play_ending() -> bool:
+	var play := play_ending_on_title
+	play_ending_on_title = false
+	return play
+
+
+func unlock_capital_for_debug() -> void:
+	debug_unlock_capital = true
+	if is_instance_valid(world_map) and world_map.has_method("apply_debug_capital_unlock"):
+		world_map.apply_debug_capital_unlock()
 
 
 ## Retreat throws the whole army away. Survivors are not kept.
@@ -219,6 +296,7 @@ func _write_army() -> void:
 	SaveManager.set_metadata_value("unlocked_races", unlocked_races.duplicate())
 	SaveManager.set_metadata_value("spells", _spell_specs_to_data())
 	SaveManager.set_metadata_value("tutorial_done", tutorial_done)
+	SaveManager.set_metadata_value("game_won", game_won)
 	if save_slot == SANDBOX_SAVE_SLOT:
 		SaveManager.set_metadata_value("wallet", [corpse, bone, weapon, collar, gore])
 
@@ -239,9 +317,14 @@ func _apply_pending_raid_damage() -> void:
 	var finished := raid_outcome_pending
 	var lost_ratio := pending_raid_lost_ratio
 	var rewards: Array = raid_rewards.duplicate()
+	var capital_raid := raid_target_is_capital
+	var already_fallen := raid_target_destroyed
 	pending_raid_damage = 0.0
 	pending_raid_lost_ratio = 0.0
 	raid_outcome_pending = false
+	raid_target_is_capital = false
+	raid_target_destroyed = false
+	raid_target_points = 0.0
 	raid_garrison.clear()
 	raid_rewards.clear()
 	if world_map == null or raid_target_id.is_empty():
@@ -254,6 +337,9 @@ func _apply_pending_raid_damage() -> void:
 
 	if damage > 0.0:
 		world_map.deal_damage_to(location, damage)
+	if capital_raid and not already_fallen:
+		raid_target_destroyed = false
+		mark_capital_fallen(location)
 	if finished:
 		_grant_raid_rewards(rewards, lost_ratio)
 		var rng := RandomNumberGenerator.new()
@@ -264,6 +350,9 @@ func _apply_pending_raid_damage() -> void:
 
 func restart() -> void:
 	_clear_raid_request()
+	game_won = false
+	play_ending_on_title = false
+	debug_unlock_capital = false
 	army.clear()
 	_army_loaded = true
 	_seed_unlocked_races()
@@ -275,6 +364,9 @@ func restart() -> void:
 
 func delete_save() -> void:
 	_clear_raid_request()
+	game_won = false
+	play_ending_on_title = false
+	debug_unlock_capital = false
 	army.clear()
 	_army_loaded = true
 	_seed_unlocked_races()
@@ -287,6 +379,10 @@ func delete_save() -> void:
 func _clear_raid_request() -> void:
 	raid_target_id = ""
 	raid_target_max_points = 0.0
+	raid_target_points = 0.0
+	raid_target_is_capital = false
+	raid_target_destroyed = false
+	ending_after_map = false
 	raid_slots.clear()
 	raid_garrison.clear()
 	raid_rewards.clear()
@@ -398,6 +494,7 @@ func capture_progress() -> Dictionary:
 	return {
 		"unlocked_races": unlocked_races.duplicate(),
 		"spells": _spell_specs_to_data(),
+		"game_won": game_won,
 	}
 
 
@@ -412,6 +509,7 @@ func apply_saved_progress(meta: Dictionary) -> void:
 	else:
 		_reset_spell_specs()
 	tutorial_done = bool(meta.get("tutorial_done", false))
+	game_won = bool(meta.get("game_won", false))
 
 
 func change_resource(resource_type: ResourceType, amount: int) -> void:
@@ -475,6 +573,7 @@ func _capture_session() -> Dictionary:
 		"army": _Summoner.army_to_data(army),
 		"races": unlocked_races.duplicate(),
 		"tutorial_done": tutorial_done,
+		"game_won": game_won,
 		"army_loaded": _army_loaded,
 		"wallet": [corpse, bone, weapon, collar, gore],
 		"blocks": _block_counts(),
@@ -488,6 +587,7 @@ func _restore_session(hold: Dictionary) -> void:
 	_apply_wallet(wallet)
 	_set_unlocked(hold.get("races", []))
 	tutorial_done = bool(hold.get("tutorial_done", false))
+	game_won = bool(hold.get("game_won", false))
 	_apply_spell_specs(hold.get("specs", []))
 	_replace_army(_Summoner.army_from_data(hold.get("army", [])))
 	_apply_block_counts(hold.get("blocks", {}))
@@ -574,6 +674,7 @@ func _save_tutorial_result() -> void:
 			payload = parsed
 	var meta: Dictionary = payload.get("meta", {})
 	meta["tutorial_done"] = tutorial_done
+	meta["game_won"] = game_won
 	meta["army"] = _Summoner.army_to_data(army)
 	meta["unlocked_races"] = unlocked_races.duplicate()
 	meta["spells"] = _spell_specs_to_data()
@@ -591,6 +692,7 @@ func _save_tutorial_result() -> void:
 
 func _seed_new_game_state() -> void:
 	_clear_raid_request()
+	game_won = false
 	army.clear()
 	set_wallet(0, 0, 0, 0, 0)
 	if block_inventory == null:

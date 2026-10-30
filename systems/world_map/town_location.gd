@@ -2,6 +2,23 @@ extends Area2D
 class_name TownLocation
 
 
+const _WHOLE: Array[Texture2D] = [
+	preload("res://contents/assets/tex_village_1.png"),
+	preload("res://contents/assets/tex_village_2.png"),
+	preload("res://contents/assets/tex_village_3.png"),
+	preload("res://contents/assets/tex_village_4.png"),
+	preload("res://contents/assets/tex_village_5.png"),
+]
+const _RUINED: Array[Texture2D] = [
+	preload("res://contents/assets/tex_village_destroyed_1.png"),
+	preload("res://contents/assets/tex_village_destroyed_2.png"),
+	preload("res://contents/assets/tex_village_destroyed_3.png"),
+	preload("res://contents/assets/tex_village_destroyed_4.png"),
+	preload("res://contents/assets/tex_village_destroyed_5.png"),
+]
+const _CAPITAL := preload("res://contents/assets/tex_capital.png")
+const _CAPITAL_RUINED := preload("res://contents/assets/tex_capital_destroyed.png")
+
 @export var def: TownDef
 @export var required_locations: Array[Area2D] # The locations that are required to be completed before the village can be unlocked.
 
@@ -10,6 +27,8 @@ class_name TownLocation
 
 var restore_points := 100.0 ## The amount of restore points the village has.
 var has_been_destroyed: bool = false
+var _visual_ready := false
+var _was_ruined := false
 
 
 func _enter_tree() -> void:
@@ -115,29 +134,107 @@ func is_locked() -> bool:
 	return false
 
 
+func lock_reason() -> String:
+	if not is_locked():
+		return ""
+	if def != null and def.is_capital:
+		return LocaleText.resolve("ui.town.capital_locked", "Destroy every other town.")
+	return LocaleText.resolve("ui.town.locked_reason", "Clear the earlier towns first.")
+
+
 func refresh_visual() -> void:
 	_update_visual()
 
 
+## Ruined art. A fallen town refills its points, so has_been_destroyed is the usual case.
+func shows_ruined() -> bool:
+	if has_been_destroyed:
+		return true
+	var maximum := def.max_restore_points if def != null else 0.0
+	if maximum <= 0.0:
+		return false
+	return restore_points / maximum <= Formular.town_ruined_ratio()
+
+
 func _update_visual() -> void:
-	if is_locked():
-		modulate = Color.LIGHT_GRAY
-	elif is_destroyed():
-		modulate = Color.RED
+	var ruined := shows_ruined()
+	var sprite := _sprite()
+	var tint_fallback := false
+	if sprite != null:
+		if sprite is HotSwapSprite:
+			(sprite as HotSwapSprite).asset_id = ""
+		if def != null and def.is_capital:
+			if ruined and _CAPITAL_RUINED != null:
+				sprite.texture = _CAPITAL_RUINED
+			else:
+				sprite.texture = _CAPITAL
+				tint_fallback = ruined
+		else:
+			sprite.texture = _village_texture(ruined)
+	if is_locked() or tint_fallback:
+		modulate = UiPalette.dim(Color.WHITE)
 	else:
 		modulate = Color.WHITE
+	if _visual_ready and ruined and not _was_ruined:
+		_play_ruin_feedback()
+	_was_ruined = ruined
+	_visual_ready = true
+
+
+func _sprite() -> Sprite2D:
+	var sprite := get_node_or_null("Visual/HotSwapSprite") as Sprite2D
+	if sprite != null:
+		return sprite
+	return get_node_or_null("Visual/PlaceholderSprite") as Sprite2D
+
+
+func _village_texture(ruined: bool) -> Texture2D:
+	var index := 0
+	if def != null:
+		index = clampi(def.art_variant, 1, 5) - 1
+	if ruined:
+		return _RUINED[index]
+	return _WHOLE[index]
+
+
+func _play_ruin_feedback() -> void:
+	if _squash != null and is_instance_valid(_squash):
+		_squash.play()
+		var tree := get_tree()
+		if tree != null:
+			tree.create_timer(0.34).timeout.connect(_release_ruin_squash)
+
+
+func _release_ruin_squash() -> void:
+	if _squash != null and is_instance_valid(_squash):
+		_squash.release()
+	var library := Sfx.library
+	if library != null and library.get_cue("general.dust") != null:
+		Sfx.play("general.dust")
 
 
 #region Signals
 func _on_mouse_entered() -> void:
 	_squash.play()
-	if not is_locked():
-		Game.world_map.focus_location_on(self)
+	var map := _world_map()
+	if map != null and not is_locked():
+		map.focus_location_on(self)
 
 
 func _on_mouse_exited() -> void:
-	if Game.world_map.focus_location == self and not Game.world_map.is_location_selected():
-		Game.world_map.unfocus_location()
+	var map := _world_map()
+	if map != null and map.focus_location == self and not map.is_location_selected():
+		map.unfocus_location()
 	_squash.release()
+
+
+func _world_map() -> WorldMap:
+	var tree := get_tree()
+	if tree == null:
+		return null
+	var game := tree.root.get_node_or_null(^"Game")
+	if game == null:
+		return null
+	return game.get("world_map") as WorldMap
 
 

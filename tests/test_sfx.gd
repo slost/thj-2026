@@ -45,6 +45,8 @@ func _test_aliases() -> void:
 		Unit2D.Race.WARDOG: "dog",
 		Unit2D.Race.VILLAGER_MELEE: "villager",
 		Unit2D.Race.VILLAGER_RANGED: "villager",
+		Unit2D.Race.HERO_MELEE: "villager",
+		Unit2D.Race.HERO_RANGED: "villager",
 	}
 	if expected.size() != Unit2D.Race.size():
 		_fail("alias table covers %d races, enum has %d" % [expected.size(), Unit2D.Race.size()])

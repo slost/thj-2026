@@ -62,3 +62,10 @@ static func hex(color: Color) -> String:
 
 static func tint(color: Color, alpha: float) -> Color:
 	return Color(color.r, color.g, color.b, alpha)
+
+
+## Flat locked/ruined tint: mostly gray, pulled toward the disabled panel fill.
+static func dim(color: Color) -> Color:
+	var gray := color.r * 0.299 + color.g * 0.587 + color.b * 0.114
+	var neutral := Color(gray, gray, gray, color.a)
+	return color.lerp(neutral, 0.85).lerp(DISABLED_FILL, 0.45)

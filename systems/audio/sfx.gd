@@ -27,6 +27,8 @@ const RACE_FOLDER := {
 	Unit2D.Race.WARDOG: "dog",
 	Unit2D.Race.VILLAGER_MELEE: "villager",
 	Unit2D.Race.VILLAGER_RANGED: "villager",
+	Unit2D.Race.HERO_MELEE: "villager",
+	Unit2D.Race.HERO_RANGED: "villager",
 }
 
 ## Used when the body has no tool sprite yet. Villager tools override this.
@@ -35,6 +37,8 @@ const RACE_WEAPON := {
 	Unit2D.Race.SKELETON_RANGED: "weapon.bow",
 	Unit2D.Race.VILLAGER_MELEE: "weapon.fork",
 	Unit2D.Race.VILLAGER_RANGED: "weapon.bow",
+	Unit2D.Race.HERO_MELEE: "weapon.sword",
+	Unit2D.Race.HERO_RANGED: "weapon.bow",
 }
 
 static var library: SfxLibrary

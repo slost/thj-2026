@@ -22,13 +22,33 @@ func inspector_line() -> String:
 	return "%s (%s)" % [line, LocaleText.resolve(manner_key, manner_fallback)]
 
 
+func unit_name_key() -> String:
+	return _name_key()
+
+
 func _name_key() -> String:
-	if race == Unit2D.Race.VILLAGER_RANGED:
-		return "ui.town.villager_ranged"
-	return "ui.town.villager"
+	match race:
+		Unit2D.Race.VILLAGER_RANGED:
+			return "ui.town.villager_ranged"
+		Unit2D.Race.WARDOG:
+			return "unit.wardog"
+		Unit2D.Race.HERO_MELEE:
+			return "unit.hero_melee"
+		Unit2D.Race.HERO_RANGED:
+			return "unit.hero_ranged"
+		_:
+			return "ui.town.villager"
 
 
 func _name_fallback() -> String:
-	if race == Unit2D.Race.VILLAGER_RANGED:
-		return "Ranged villager"
-	return "Villager"
+	match race:
+		Unit2D.Race.VILLAGER_RANGED:
+			return "Ranged villager"
+		Unit2D.Race.WARDOG:
+			return "War dog"
+		Unit2D.Race.HERO_MELEE:
+			return "Hero"
+		Unit2D.Race.HERO_RANGED:
+			return "Hero archer"
+		_:
+			return "Villager"

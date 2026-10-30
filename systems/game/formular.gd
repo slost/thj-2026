@@ -109,6 +109,116 @@ static func spec_gpu(base_gpu: int, gore_amount: int) -> int:
 	return base_gpu + (gore - 1) * spec_gpu_per_gore()
 
 
+## Share of max restore points at or below which a town draws its ruined art.
+static func town_ruined_ratio() -> float:
+	return 0.25
+
+
+## How much one garrison body counts in the raid's lost ratio.
+## Villagers and war dogs are 1. A hero is 3.
+static func garrison_weight(race: Unit2D.Race) -> float:
+	match race:
+		Unit2D.Race.HERO_MELEE, Unit2D.Race.HERO_RANGED:
+			return 3.0
+		_:
+			return 1.0
+
+
+## HP before the difficulty step. Difficulty 1 keeps this number.
+static func garrison_base_hp(race: Unit2D.Race) -> int:
+	match race:
+		Unit2D.Race.VILLAGER_RANGED:
+			return 12
+		Unit2D.Race.WARDOG:
+			return 9
+		Unit2D.Race.HERO_MELEE:
+			return 46
+		Unit2D.Race.HERO_RANGED:
+			return 26
+		_:
+			return 16
+
+
+static func garrison_base_damage(race: Unit2D.Race) -> int:
+	match race:
+		Unit2D.Race.WARDOG:
+			return 2
+		Unit2D.Race.HERO_MELEE:
+			return 8
+		Unit2D.Race.HERO_RANGED:
+			return 5
+		_:
+			return 3
+
+
+## Added to HP for each difficulty step above 1.
+static func garrison_hp_per_difficulty() -> int:
+	return 4
+
+
+## Added to damage for each difficulty step above 1.
+static func garrison_damage_per_difficulty() -> int:
+	return 1
+
+
+static func garrison_hp(race: Unit2D.Race, difficulty: int) -> int:
+	var steps := maxi(difficulty, 1) - 1
+	return garrison_base_hp(race) + steps * garrison_hp_per_difficulty()
+
+
+static func garrison_damage(race: Unit2D.Race, difficulty: int) -> int:
+	var steps := maxi(difficulty, 1) - 1
+	return maxi(garrison_base_damage(race) + steps * garrison_damage_per_difficulty(), 1)
+
+
+## Move and animation pace. War dogs are fast, so their attack clip is short too.
+static func garrison_gpu(race: Unit2D.Race) -> int:
+	if race == Unit2D.Race.WARDOG:
+		return 5
+	return 2
+
+
+static func garrison_cpu(race: Unit2D.Race) -> int:
+	if race == Unit2D.Race.WARDOG:
+		return 3
+	return 2
+
+
+static func garrison_attack_range(race: Unit2D.Race) -> int:
+	if race == Unit2D.Race.VILLAGER_RANGED or race == Unit2D.Race.HERO_RANGED:
+		return 4
+	return 1
+
+
+static func garrison_attack_cooldown(race: Unit2D.Race) -> float:
+	match race:
+		Unit2D.Race.WARDOG:
+			return 0.45
+		Unit2D.Race.HERO_MELEE:
+			return 0.95
+		Unit2D.Race.HERO_RANGED:
+			return 1.25
+		Unit2D.Race.VILLAGER_RANGED:
+			return 1.2
+		_:
+			return 1.0
+
+
+static func garrison_detect_range(race: Unit2D.Race) -> int:
+	match race:
+		Unit2D.Race.WARDOG:
+			return 8
+		Unit2D.Race.HERO_RANGED, Unit2D.Race.VILLAGER_RANGED:
+			return 7
+		_:
+			return 6
+
+
+## A ranged hero backs away when a minion is this many tiles away or closer.
+static func garrison_kite_tiles() -> int:
+	return 2
+
+
 ## Slot RAM after the race bonus, plus 4 per extra CPU and 2 per extra GPU. Never below 1.
 static func spec_ram(base_ram: int, corpse_amount: int, gore_amount: int) -> int:
 	var corpse := clampi(corpse_amount, spec_min_ingredient(), spec_max_ingredient())

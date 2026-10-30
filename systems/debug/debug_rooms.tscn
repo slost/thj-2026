@@ -112,6 +112,16 @@ custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 text = "Credits"
 
+[node name="EndingButton" type="Button" parent="DebugRooms/VBoxContainer"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+text = "Ending"
+
+[node name="UnlockCapitalButton" type="Button" parent="DebugRooms/VBoxContainer"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+text = "Unlock Capital"
+
 [node name="SettingsScreen" parent="DebugRooms" unique_id=911303317 instance=ExtResource("9_settings")]
 visible = false
 
@@ -167,4 +177,6 @@ max_offset = Vector2(120, 60)
 [connection signal="pressed" from="DebugRooms/VBoxContainer/AnimationButton" to="DebugRooms" method="_on_animation_button_pressed"]
 [connection signal="pressed" from="DebugRooms/VBoxContainer/SettingButton" to="DebugRooms" method="_on_setting_button_pressed"]
 [connection signal="pressed" from="DebugRooms/VBoxContainer/CreditsButton" to="DebugRooms" method="_on_credits_button_pressed"]
+[connection signal="pressed" from="DebugRooms/VBoxContainer/EndingButton" to="DebugRooms" method="_on_ending_button_pressed"]
+[connection signal="pressed" from="DebugRooms/VBoxContainer/UnlockCapitalButton" to="DebugRooms" method="_on_unlock_capital_pressed"]
 [connection signal="pressed" from="DebugRooms/Credits/BackButton" to="DebugRooms" method="_on_credits_back_pressed"]

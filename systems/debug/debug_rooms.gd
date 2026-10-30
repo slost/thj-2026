@@ -21,7 +21,9 @@ func _ready() -> void:
 	_video.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer = 100
 	_set_game_gui_visible(false)
-	if _is_boot_menu() and not Game.opening_played:
+	if Game.consume_play_ending():
+		_play_cutscene(ENDING_VIDEO, false)
+	elif _is_boot_menu() and not Game.opening_played:
 		_play_cutscene(OPENING_VIDEO, true)
 
 
@@ -73,6 +75,14 @@ func _on_settings_closed() -> void:
 
 func _on_credits_button_pressed() -> void:
 	_play_cutscene(ENDING_VIDEO, false)
+
+
+func _on_ending_button_pressed() -> void:
+	_play_cutscene(ENDING_VIDEO, false)
+
+
+func _on_unlock_capital_pressed() -> void:
+	Game.unlock_capital_for_debug()
 
 
 func _play_cutscene(path: String, opening: bool) -> void:

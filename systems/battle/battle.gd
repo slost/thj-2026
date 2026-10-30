@@ -184,6 +184,9 @@ func _on_button_pressed() -> void:
 	if get_tree().paused:
 		get_tree().paused = false
 	var game := _game()
+	if game and game.has_method("return_from_battle"):
+		game.return_from_battle()
+		return
 	if game:
 		game.back_to_map()
 
@@ -269,7 +272,8 @@ func _refresh_city_progress() -> float:
 	return ratio
 
 
-## Living villager HP over the max HP of every villager seen in this battle.
+## Living defender HP over the max HP of every defender seen in this battle.
+## A hero weighs more than a villager or a war dog. See Formular.garrison_weight.
 func _villager_ratio() -> float:
 	var tree := get_tree()
 	if tree == null:
@@ -279,11 +283,12 @@ func _villager_ratio() -> float:
 		var unit := node as Unit2D
 		if unit == null or unit.team != Unit2D.Team.VILLAGER:
 			continue
+		var weight := Formular.garrison_weight(unit.race)
 		var id := unit.get_instance_id()
 		if not _villager_max.has(id):
-			_villager_max[id] = _max_hp_of(unit)
+			_villager_max[id] = _max_hp_of(unit) * weight
 		if unit.state != Unit2D.State.DEAD:
-			current += _current_hp_of(unit)
+			current += _current_hp_of(unit) * weight
 	var total := 0.0
 	for value in _villager_max.values():
 		total += float(value)
@@ -847,15 +852,17 @@ func _defender_def(row: Dictionary, race: Unit2D.Race, flees: bool) -> UnitDef:
 	var def := UnitDef.new()
 	def.team = Unit2D.Team.VILLAGER
 	def.race = race
-	def.max_hp = maxi(int(row.get("max_hp", 16)), 1)
-	def.damage = maxi(int(row.get("damage", 3)), 0)
-	def.speed = 110.0 if flees else 80.0
-	def.detect_range = 7
-	def.attack_range = 4 if race == Unit2D.Race.VILLAGER_RANGED else 1
-	def.cpu = 2
-	def.gpu = 2
+	def.max_hp = maxi(int(row.get("max_hp", Formular.garrison_hp(race, 1))), 1)
+	def.damage = maxi(int(row.get("damage", Formular.garrison_damage(race, 1))), 0)
+	def.detect_range = Formular.garrison_detect_range(race)
+	def.attack_range = Formular.garrison_attack_range(race)
+	def.attack_cooldown = Formular.garrison_attack_cooldown(race)
+	def.cpu = Formular.garrison_cpu(race)
+	def.gpu = Formular.garrison_gpu(race)
+	def.speed = Formular.calculate_move_speed(def.gpu, def.cpu)
 	def.ram = 12
-	def.starting_program = _VillagerBrain.program(flees)
+	var runs := flees and not Unit2D.race_never_flees(race)
+	def.starting_program = _VillagerBrain.program_for(race, runs)
 	var events: Array[EventGraph.Event] = []
 	events.append(EventGraph.Event.ON_UPDATE)
 	def.allowed_events = events

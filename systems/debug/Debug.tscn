@@ -32,6 +32,12 @@ layout_mode = 2
 text = "Back to Test Rooms"
 metadata/_edit_use_anchors_ = true
 
+[node name="UnlockCapitalButton" type="Button" parent="HBoxContainer"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "Unlock Capital"
+
 [connection signal="pressed" from="HBoxContainer/RestartButton" to="." method="_on_restart_button_pressed"]
 [connection signal="pressed" from="HBoxContainer/DeleteSaveButton" to="." method="_on_delete_save_button_pressed"]
 [connection signal="pressed" from="HBoxContainer/RoomsButton" to="." method="_on_rooms_button_pressed"]
+[connection signal="pressed" from="HBoxContainer/UnlockCapitalButton" to="." method="_on_unlock_capital_pressed"]
