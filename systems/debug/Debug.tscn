@@ -4,6 +4,7 @@
 
 [node name="CanvasLayer" type="CanvasLayer" unique_id=845550041]
 layer = 99
+visible = false
 script = ExtResource("1_a8e4d")
 
 [node name="HBoxContainer" type="VBoxContainer" parent="." unique_id=96875597]

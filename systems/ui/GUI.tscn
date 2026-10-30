@@ -7,7 +7,6 @@
 [ext_resource type="Script" uid="uid://bgit4iapmj1bm" path="res://addons/lost_framework/modules/asset_manager/hot_swap_sprite.gd" id="4_fc8et"]
 [ext_resource type="Texture2D" uid="uid://cr2lb1v5v0igi" path="res://systems/ui/tex_portrait_idle_book.png" id="6_ck3vr"]
 [ext_resource type="PackedScene" path="res://systems/ui/summon_hotbar.tscn" id="7_hotbar"]
-
 [ext_resource type="Script" uid="uid://csyu27param8" path="res://systems/battle/script_debug_panel.gd" id="8_script"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_a8e4d"]
@@ -124,7 +123,7 @@ script = ExtResource("4_fc8et")
 asset_id = "tex_portrait_focus"
 metadata/_custom_type_script = "uid://bgit4iapmj1bm"
 
-[node name="CityLabel" type="Label" parent="."]
+[node name="CityLabel" type="Label" parent="." unique_id=925341434]
 visible = false
 anchors_preset = 5
 anchor_left = 0.5
@@ -135,10 +134,10 @@ offset_right = -190.0
 offset_bottom = 132.0
 grow_horizontal = 2
 theme_override_font_sizes/font_size = 28
-vertical_alignment = 1
 text = "City"
+vertical_alignment = 1
 
-[node name="CityProgress" type="ProgressBar" parent="."]
+[node name="CityProgress" type="ProgressBar" parent="." unique_id=775547245]
 visible = false
 anchors_preset = 5
 anchor_left = 0.5
@@ -153,10 +152,10 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_city_fill")
 max_value = 1.0
 step = 0.0
 value = 1.0
-fill_mode = 0
 show_percentage = false
 
-[node name="ScriptPreview" type="Control" parent="."]
+[node name="ScriptPreview" type="Control" parent="." unique_id=843858237]
+layout_mode = 3
 anchors_preset = 0
 offset_left = 24.0
 offset_top = 24.0
@@ -165,7 +164,7 @@ offset_bottom = 460.0
 mouse_filter = 2
 script = ExtResource("8_script")
 
-[node name="Body" type="RichTextLabel" parent="ScriptPreview"]
+[node name="Body" type="RichTextLabel" parent="ScriptPreview" unique_id=503177265]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -174,9 +173,9 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 bbcode_enabled = true
-scroll_active = true
 
-[node name="SacrificeButton" type="Button" parent="."]
+[node name="SacrificeButton" type="Button" parent="." unique_id=212073761]
+visible = false
 anchors_preset = 6
 anchor_left = 1.0
 anchor_top = 0.5

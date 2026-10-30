@@ -98,6 +98,6 @@ theme_override_font_sizes/font_size = 18
 [node name="Back" type="Button" parent="UI/Panel/Margin/Column" unique_id=338120994]
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-text = "Back to Test Rooms"
+text = "Back to main menu"
 
 [connection signal="pressed" from="UI/Panel/Margin/Column/Back" to="." method="_on_back_pressed"]

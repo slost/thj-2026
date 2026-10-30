@@ -18,6 +18,10 @@ boot_splash/bg_color=Color(0, 0, 0, 1)
 boot_splash/image="uid://c4yc0juuf0jn4"
 config/icon="res://icon.svg"
 
+[audio]
+
+buses/default_bus_layout="uid://belytm46t0wry"
+
 [autoload]
 
 Refs="*res://addons/lost_framework/core/autoloads/refs.gd"

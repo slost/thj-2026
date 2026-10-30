@@ -15,6 +15,9 @@ const BATTLE_SCENE: String = "res://systems/battle/battle.tscn"
 const MAP_SCENE: String = "res://systems/world_map/world_map.tscn"
 const DESTROYED_RATIO: float = 0.5 # The ratio of the town's restore points to be destroyed.
 const MAP_SAVE_SLOT := 0
+## Sandbox writes here so a test battle cannot replace the campaign save.
+const SANDBOX_SAVE_SLOT := 1
+const BATTLE_TEST_SCENE := "res://systems/battle/battle_test.tscn"
 const DISABLED_COLOR: Color = Color.DIM_GRAY
 const RESOURCE_CAP := 99
 const BGM_TITLE := "bgm.title"
@@ -63,6 +66,12 @@ var unlocked_races: Array[int] = []
 var army: Array[ArmyMember] = []
 ## False until the map save has been read once this session.
 var _army_loaded := false
+## The boot cutscene plays once, before the title menu.
+var opening_played := false
+## Slot used by load_map_state and save_map_state. The campaign stays on slot 0.
+var save_slot := MAP_SAVE_SLOT
+var _sandbox_open := false
+var _campaign_hold: Dictionary = {}
 ## Set when the guided battle is finished or skipped, and stored on the map save.
 var tutorial_done := false
 ## True while a win or retreat sting should hand back to the battle bed.
@@ -178,17 +187,19 @@ func abandon_army() -> void:
 
 
 func load_map_state() -> void:
-	if SaveManager.has_slot(MAP_SAVE_SLOT):
-		SaveManager.load_slot(MAP_SAVE_SLOT)
+	if SaveManager.has_slot(save_slot):
+		SaveManager.load_slot(save_slot)
 
-	if world_map != null:
+	if is_instance_valid(world_map):
 		world_map.refresh_locations()
 
 	if not _army_loaded:
-		var meta := SaveManager.get_slot_metadata(MAP_SAVE_SLOT)
+		var meta := SaveManager.get_slot_metadata(save_slot)
 		_replace_army(_Summoner.army_from_data(meta.get("army", [])))
-		if SaveManager.has_slot(MAP_SAVE_SLOT):
+		if SaveManager.has_slot(save_slot):
 			apply_saved_progress(meta)
+			if save_slot == SANDBOX_SAVE_SLOT:
+				_apply_wallet(meta.get("wallet", []))
 		_army_loaded = true
 	else:
 		_write_army()
@@ -198,7 +209,7 @@ func load_map_state() -> void:
 
 func save_map_state() -> void:
 	_write_army()
-	SaveManager.save_slot(MAP_SAVE_SLOT)
+	SaveManager.save_slot(save_slot)
 
 
 func _write_army() -> void:
@@ -206,6 +217,8 @@ func _write_army() -> void:
 	SaveManager.set_metadata_value("unlocked_races", unlocked_races.duplicate())
 	SaveManager.set_metadata_value("spells", _spell_specs_to_data())
 	SaveManager.set_metadata_value("tutorial_done", tutorial_done)
+	if save_slot == SANDBOX_SAVE_SLOT:
+		SaveManager.set_metadata_value("wallet", [corpse, bone, weapon, collar, gore])
 
 
 func _replace_army(loaded: Array) -> void:
@@ -409,6 +422,92 @@ func _capped(value: int) -> int:
 	return clampi(value, 0, RESOURCE_CAP)
 
 
+## Keeps the campaign in memory, then loads or starts the sandbox slot.
+func enter_sandbox() -> void:
+	if not _sandbox_open:
+		_campaign_hold = _capture_session()
+		_sandbox_open = true
+	save_slot = SANDBOX_SAVE_SLOT
+	_army_loaded = false
+	if SaveManager.has_slot(SANDBOX_SAVE_SLOT):
+		load_map_state()
+	else:
+		_seed_new_game_state()
+		tutorial_done = true
+		_army_loaded = true
+	if block_inventory:
+		block_inventory.fill_starter()
+	get_tree().change_scene_to_file(BATTLE_TEST_SCENE)
+
+
+## Writes the sandbox slot, puts the campaign back, and returns to the title.
+func leave_sandbox() -> void:
+	if get_tree().paused:
+		get_tree().paused = false
+	if _sandbox_open:
+		save_map_state()
+		save_slot = MAP_SAVE_SLOT
+		_restore_session(_campaign_hold)
+		_campaign_hold = {}
+		_sandbox_open = false
+	get_tree().change_scene_to_file(_TITLE_SCENE)
+
+
+func _capture_session() -> Dictionary:
+	return {
+		"specs": _spell_specs_to_data(),
+		"army": _Summoner.army_to_data(army),
+		"races": unlocked_races.duplicate(),
+		"tutorial_done": tutorial_done,
+		"army_loaded": _army_loaded,
+		"wallet": [corpse, bone, weapon, collar, gore],
+		"blocks": _block_counts(),
+	}
+
+
+func _restore_session(hold: Dictionary) -> void:
+	if hold.is_empty():
+		return
+	var wallet: Variant = hold.get("wallet", [])
+	_apply_wallet(wallet)
+	_set_unlocked(hold.get("races", []))
+	tutorial_done = bool(hold.get("tutorial_done", false))
+	_apply_spell_specs(hold.get("specs", []))
+	_replace_army(_Summoner.army_from_data(hold.get("army", [])))
+	_apply_block_counts(hold.get("blocks", {}))
+	_army_loaded = bool(hold.get("army_loaded", false))
+
+
+func _apply_wallet(raw: Variant) -> void:
+	if raw is not Array or raw.size() < 5:
+		return
+	set_wallet(int(raw[0]), int(raw[1]), int(raw[2]), int(raw[3]), int(raw[4]))
+
+
+func _block_counts() -> Dictionary:
+	var counts := {}
+	if block_inventory == null:
+		return counts
+	for block in block_inventory.get_all():
+		if block == null or block.resource_path.is_empty():
+			continue
+		counts[block.resource_path] = block_inventory.get_count(block)
+	return counts
+
+
+func _apply_block_counts(counts: Variant) -> void:
+	if block_inventory == null or counts is not Dictionary:
+		return
+	block_inventory.clear_counts()
+	for path in counts.keys():
+		var amount := int(counts[path])
+		if amount <= 0:
+			continue
+		var block := load(str(path)) as CodeBlock
+		if block:
+			block_inventory.add(block, amount)
+
+
 ## Opens the tutorial until it has been finished or skipped, then the world map.
 func begin_play() -> void:
 	var meta := SaveManager.get_slot_metadata(MAP_SAVE_SLOT)
@@ -539,6 +638,7 @@ func _spell_specs_to_data() -> Array:
 			"race": int(spell.race),
 			"corpse_amount": spell.corpse_amount,
 			"gore_amount": spell.gore_amount,
+			"functions": _Summoner._functions_to_data(spell.get_program()),
 		})
 	return rows
 
@@ -579,4 +679,6 @@ func _apply_spell_specs(raw: Variant) -> void:
 		spell.race = race
 		spell.corpse_amount = int(row.get("corpse_amount", 1))
 		spell.gore_amount = int(row.get("gore_amount", 1))
+		if row.has("functions"):
+			spell.program = _Summoner._program_from_data(row.get("functions"))
 		spell.build_def()
