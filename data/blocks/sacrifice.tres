@@ -1,0 +1,10 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://systems/blocks/sacrifice.gd" id="1_block"]
+
+[resource]
+script = ExtResource("1_block")
+id = &"sacrifice"
+name = "Sacrifice"
+description = "Give this minion up. Half the summoning cost comes back, chosen at random."
+mb_cost = 1

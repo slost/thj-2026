@@ -81,7 +81,15 @@ var _agent: NavigationAgent2D
 var _avoidance_frames: int = 0
 var _tint: Color = Color.WHITE
 var _corpse_time: float = 0.0
+## Last cardinal step. Right until the unit actually walks.
+var facing := Vector2i.RIGHT
+var _faced_cell := Vector2i.ZERO
+var _faced_cell_valid := false
 
+## What this body cost to summon. Cleared once that cost has been partly returned.
+var summon_paid: Array = []
+## Spell slot this body was copied from. -1 for villagers and loose test units.
+var spell_slot := -1
 ## Remembered units. Only forget-commands remove entries.
 var targets: Array[Unit2D] = []
 ## Actions read from the script, performed front to back.
@@ -121,6 +129,7 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector2.ZERO
 	_face_velocity()
 	move_and_slide()
+	_remember_step()
 
 
 func set_state(new_state: State) -> void:
@@ -205,6 +214,7 @@ func _mount_race_visual() -> void:
 		anim_player = existing.get_node_or_null("AnimationPlayer") as AnimationPlayer
 		if is_villager_race(race):
 			randomize_villager_sprites(existing)
+		_seat_visual(existing)
 		return
 	if existing:
 		if anim_player and anim_player.animation_finished.is_connected(_on_animation_finished):
@@ -219,8 +229,17 @@ func _mount_race_visual() -> void:
 	add_child(visual)
 	move_child(visual, 0)
 	anim_player = visual.get_node_or_null("AnimationPlayer") as AnimationPlayer
+	_seat_visual(visual)
 	if is_villager_race(race):
 		randomize_villager_sprites(visual)
+
+
+const _VISUAL_DROP := 64.0
+
+
+func _seat_visual(visual: Node2D) -> void:
+	if visual:
+		visual.position.y = _VISUAL_DROP
 
 
 static func randomize_villager_sprites(visual: Node) -> void:
@@ -507,6 +526,32 @@ func is_in_attack_range(target: Node2D) -> bool:
 	return global_position.distance_to(target.global_position) <= max_dist
 
 
+## Nearest living enemy on the line of the last step, within attack range.
+func enemy_along_facing() -> Unit2D:
+	if stats == null or facing == Vector2i.ZERO:
+		return null
+	var here := _cell_of(global_position)
+	var reach := maxi(stats.attack_range, 1)
+	var best: Unit2D = null
+	var best_steps := reach + 1
+	var tree := get_tree()
+	if tree == null:
+		return null
+	for node in tree.get_nodes_in_group(GROUP):
+		var other := node as Unit2D
+		if other == null or other.state == State.DEAD or other._dying or not is_enemy(other):
+			continue
+		var delta := _cell_of(other.global_position) - here
+		if not _lies_along(delta, facing):
+			continue
+		var steps := maxi(absi(delta.x), absi(delta.y))
+		if steps < 1 or steps > reach or steps >= best_steps:
+			continue
+		best = other
+		best_steps = steps
+	return best
+
+
 func is_enemy(other: Unit2D) -> bool:
 	if other == null or other == self:
 		return false
@@ -593,9 +638,28 @@ func forget_everything() -> void:
 func enqueue_action(action: ActionBlock) -> void:
 	if action == null or _queue_has_same(action):
 		return
+	_append_action(action)
+
+
+## A click order. Unlike a script action, a second order of the same kind still queues.
+## Runtime fields such as the attack target are not exported, so they are copied by hand.
+func enqueue_order(action: ActionBlock) -> void:
+	_append_action(action, true)
+
+
+func _append_action(action: ActionBlock, keep_script_state: bool = false) -> void:
+	if action == null:
+		return
 	var copy := action.duplicate() as ActionBlock
 	if copy == null:
 		return
+	if keep_script_state:
+		for prop in action.get_property_list():
+			var usage := int(prop.get("usage", 0))
+			if (usage & PROPERTY_USAGE_SCRIPT_VARIABLE) == 0:
+				continue
+			var prop_name := StringName(prop.name)
+			copy.set(prop_name, action.get(prop_name))
 	queue_actions.append(copy)
 
 
@@ -932,6 +996,37 @@ func get_debug_waypoints() -> PackedVector2Array:
 	return _agent.get_current_navigation_path()
 
 
+## The path still ahead of this unit. The line starts at the body.
+func get_shown_path() -> PackedVector2Array:
+	var raw := get_debug_waypoints()
+	if raw.size() < 2:
+		if _has_move_goal:
+			return PackedVector2Array([global_position, _move_goal])
+		return PackedVector2Array()
+	var start := 0
+	var closest := INF
+	for index in raw.size():
+		var dist := global_position.distance_squared_to(raw[index])
+		if dist < closest:
+			closest = dist
+			start = index
+	if start < raw.size() - 1:
+		var ahead := raw[start + 1] - global_position
+		var back := raw[start] - global_position
+		if back.dot(ahead) <= 0.0:
+			start += 1
+	var rest := PackedVector2Array()
+	rest.append(global_position)
+	for index in range(start, raw.size()):
+		var point := raw[index]
+		if rest.size() == 1 and global_position.distance_squared_to(point) < 16.0:
+			continue
+		rest.append(point)
+	if rest.size() < 2 and _has_move_goal:
+		rest.append(_move_goal)
+	return rest
+
+
 func _ensure_agent() -> NavigationAgent2D:
 	if _agent != null and is_instance_valid(_agent):
 		return _agent
@@ -1010,6 +1105,43 @@ func _face_toward(world_pos: Vector2) -> void:
 		visual.scale.x = -absf(visual.scale.x)
 	elif dx > 1.0:
 		visual.scale.x = absf(visual.scale.x)
+
+
+func _remember_step() -> void:
+	var cell := _cell_of(global_position)
+	if not _faced_cell_valid:
+		_faced_cell = cell
+		_faced_cell_valid = true
+		return
+	if cell == _faced_cell:
+		return
+	_note_facing(cell - _faced_cell)
+	_faced_cell = cell
+
+
+func _note_facing(delta: Vector2i) -> void:
+	var card := _cardinal(delta)
+	if card == Vector2i.ZERO:
+		return
+	facing = card
+	if card.x != 0:
+		_face_toward(global_position + Vector2(card))
+
+
+func _cardinal(delta: Vector2i) -> Vector2i:
+	if delta == Vector2i.ZERO:
+		return Vector2i.ZERO
+	if absi(delta.x) >= absi(delta.y):
+		return Vector2i(signi(delta.x), 0)
+	return Vector2i(0, signi(delta.y))
+
+
+func _lies_along(delta: Vector2i, direction: Vector2i) -> bool:
+	if direction == Vector2i.ZERO or delta == Vector2i.ZERO:
+		return false
+	if direction.x != 0:
+		return delta.y == 0 and signi(delta.x) == signi(direction.x)
+	return delta.x == 0 and signi(delta.y) == signi(direction.y)
 
 
 func _facing_node() -> Node2D:

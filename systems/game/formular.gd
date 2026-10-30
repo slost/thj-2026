@@ -24,7 +24,7 @@ static func calculate_attack_duration(gpu: int) -> float:
 
 ## Seconds spent reading one script line. A higher CPU reaches the next line sooner.
 static func calculate_think_interval(cpu: int) -> float:
-	return 0.5 / float(maxi(cpu, 1))
+	return 16 / float(maxi(cpu, 1))
 
 
 ## RAM added by one remembered target or one queued action.
@@ -58,3 +58,12 @@ static func town_recover_max_ratio() -> float:
 static func town_recover_amount(town_max_points: float, rng: RandomNumberGenerator) -> float:
 	var ratio := rng.randf_range(town_recover_min_ratio(), town_recover_max_ratio())
 	return town_max_points * ratio
+
+
+## Whole resources paid for one reward line. lost_ratio 0 pays nothing, 1 pays the full amount.
+## Halves round away from zero.
+static func raid_reward_payout(amount: int, lost_ratio: float) -> int:
+	if amount <= 0:
+		return 0
+	var scaled := float(amount) * clampf(lost_ratio, 0.0, 1.0)
+	return maxi(roundi(scaled), 0)

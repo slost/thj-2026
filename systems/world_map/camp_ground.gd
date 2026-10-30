@@ -1,12 +1,14 @@
-## Placeholder camp floor. Summoned minions stand inside bounds.
+## Camp yard. Summoned minions stand inside bounds.
 extends Node2D
 
+
+const _Map := preload("res://systems/battle/map_generator.gd")
 
 @export var bounds: Rect2 = Rect2(-900, -500, 1800, 900)
 
 
 func _ready() -> void:
-	_build_floor()
+	_paint_ground()
 	_build_nav()
 
 
@@ -26,22 +28,15 @@ func muster_points(count: int) -> Array[Vector2]:
 	return spots
 
 
-func _build_floor() -> void:
-	if get_node_or_null("Floor") != null:
+func _paint_ground() -> void:
+	var map := get_node_or_null("Map") as TileMapLayer
+	if map == null:
 		return
-	var poly := Polygon2D.new()
-	poly.name = "Floor"
-	poly.color = Color(0.16, 0.12, 0.11, 1)
-	var origin := bounds.position
-	var size := bounds.size
-	poly.polygon = PackedVector2Array([
-		origin,
-		origin + Vector2(size.x, 0.0),
-		origin + size,
-		origin + Vector2(0.0, size.y),
-	])
-	add_child(poly)
-	move_child(poly, 0)
+	var top_left := map.local_to_map(bounds.position)
+	var bottom_right := map.local_to_map(bounds.end - Vector2.ONE)
+	var origin := Vector2i(mini(top_left.x, bottom_right.x), mini(top_left.y, bottom_right.y))
+	var end := Vector2i(maxi(top_left.x, bottom_right.x), maxi(top_left.y, bottom_right.y))
+	_Map.generate_yard(map, origin, end - origin + Vector2i.ONE)
 
 
 func _build_nav() -> void:

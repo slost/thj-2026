@@ -71,9 +71,17 @@ func _on_input_event(viewport: Node, event: InputEvent, _shape_idx: int) -> void
 	if event is not InputEventMouseButton:
 		return
 	var mouse := event as InputEventMouseButton
-	if not mouse.pressed or mouse.button_index != MOUSE_BUTTON_LEFT:
+	if not mouse.pressed:
 		return
 	var director := _director()
+	if mouse.button_index == MOUSE_BUTTON_RIGHT:
+		if director:
+			director.order_attack(self)
+		if viewport is Viewport:
+			(viewport as Viewport).set_input_as_handled()
+		return
+	if mouse.button_index != MOUSE_BUTTON_LEFT:
+		return
 	if director:
 		director.select_target(self)
 	if viewport is Viewport:

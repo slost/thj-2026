@@ -14,6 +14,7 @@ var accepts_pointer := true
 var _hover: FocusTargetComponent
 var _pinned: FocusTargetComponent
 var _ranges: Node2D
+var _cues: Node2D
 
 
 func _ready() -> void:
@@ -23,6 +24,7 @@ func _ready() -> void:
 		viewport.physics_object_picking = true
 	_ensure_pin_indicator()
 	_ensure_ranges()
+	_ensure_cues()
 	_show_empty()
 
 
@@ -41,7 +43,13 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is not InputEventMouseButton:
 		return
 	var mouse := event as InputEventMouseButton
-	if mouse.pressed and mouse.button_index == MOUSE_BUTTON_LEFT:
+	if not mouse.pressed:
+		return
+	if mouse.button_index == MOUSE_BUTTON_RIGHT:
+		if _issue_move_order():
+			get_viewport().set_input_as_handled()
+		return
+	if mouse.button_index == MOUSE_BUTTON_LEFT:
 		clear_selection()
 
 
@@ -77,6 +85,13 @@ func select_target(target: FocusTargetComponent) -> void:
 	_refresh()
 
 
+## Right-click on a unit. True when the pinned minion queued an attack and should keep the pin.
+func order_attack(target: FocusTargetComponent) -> bool:
+	if not accepts_pointer or target == null or not target.can_focus():
+		return false
+	return _issue_attack_order(target)
+
+
 func clear_selection() -> void:
 	_pinned = null
 	_refresh()
@@ -94,6 +109,40 @@ func get_inspected_unit() -> Unit2D:
 	if shown == null or not is_instance_valid(shown):
 		return null
 	return shown.get_host() as Unit2D
+
+
+func _issue_move_order() -> bool:
+	var stage := _order_stage()
+	var unit := get_selected_unit()
+	if stage == null or unit == null:
+		return false
+	var camera := get_viewport().get_camera_2d()
+	var world_pos := camera.get_global_mouse_position() if camera != null else get_viewport().get_mouse_position()
+	return bool(stage.call("issue_move_order", unit, world_pos))
+
+
+func _issue_attack_order(target: FocusTargetComponent) -> bool:
+	var stage := _order_stage()
+	var unit := get_selected_unit()
+	var enemy := target.get_host() as Unit2D if target != null else null
+	if stage == null or unit == null or enemy == null:
+		return false
+	return bool(stage.call("issue_attack_order", unit, enemy))
+
+
+func _order_stage() -> Node:
+	var tree := get_tree()
+	if tree == null or tree.root == null:
+		return null
+	var game := tree.root.get_node_or_null("Game")
+	if game == null:
+		return null
+	var stage := game.get("current_stage") as Node
+	if stage == null or not is_instance_valid(stage) or not stage.has_method("issue_move_order"):
+		return null
+	if not bool(stage.get("direct_orders")):
+		return null
+	return stage
 
 
 func _ensure_pin_indicator() -> void:
@@ -127,6 +176,7 @@ func _refresh() -> void:
 	_place_indicator(pin_indicator, _pinned.get_host() as Node2D if _pinned != null else null, Color(1, 0.86, 0.45))
 	var shown := _hover if _hover != null else _pinned
 	_place_ranges(shown.get_host() as Unit2D if shown != null else null)
+	_sync_cues()
 	if debug_label == null:
 		return
 	if shown == null:
@@ -172,6 +222,50 @@ func _place_ranges(unit: Unit2D) -> void:
 	_ranges.queue_redraw()
 
 
+func _ensure_cues() -> void:
+	if _cues != null and is_instance_valid(_cues):
+		return
+	var parent := indicator.get_parent() if indicator != null else get_parent()
+	if parent == null:
+		return
+	var overlay := Node2D.new()
+	overlay.name = "OrderCues"
+	overlay.z_index = 30
+	overlay.set_script(load("res://systems/battle/order_cues.gd"))
+	parent.add_child(overlay)
+	_cues = overlay
+
+
+func _sync_cues() -> void:
+	_ensure_cues()
+	if _cues == null:
+		return
+	var unit := get_selected_unit()
+	if unit == null:
+		_cues.call("set_marks", PackedVector2Array(), PackedVector2Array(), PackedVector2Array())
+		return
+	var moves := PackedVector2Array()
+	var attacks := PackedVector2Array()
+	var nav := _grid()
+	for action in unit.queue_actions:
+		if action == null or not action.has_method("order_marker"):
+			continue
+		var mark: Variant = action.call("order_marker")
+		if mark is Vector2i:
+			var cell: Vector2i = mark
+			moves.append(nav.cell_to_world(cell) if nav != null else Vector2(cell) * 128.0)
+		elif mark is Vector2:
+			attacks.append(mark)
+	var walked: PackedVector2Array = unit.get_shown_path()
+	_cues.call("set_marks", walked, moves, attacks)
+
+
+func _grid() -> GridNav:
+	if get_tree() == null:
+		return null
+	return get_tree().get_first_node_in_group(GridNav.GROUP) as GridNav
+
+
 func _show_empty() -> void:
 	if indicator:
 		indicator.visible = false
@@ -179,5 +273,7 @@ func _show_empty() -> void:
 		pin_indicator.visible = false
 	if _ranges:
 		_ranges.visible = false
+	if _cues:
+		_cues.call("set_marks", PackedVector2Array(), PackedVector2Array(), PackedVector2Array())
 	if debug_label:
 		debug_label.text = "Nothing focused"

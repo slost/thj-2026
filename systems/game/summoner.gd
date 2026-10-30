@@ -47,6 +47,8 @@ static func summon(spell: SummonSpell, scene_root: Node, world_pos: Vector2) -> 
 	var member := ArmyMember.new()
 	member.def = copy_def(spell)
 	member.hp = maxi(member.def.max_hp, 1)
+	member.paid = _copy_paid(cost_entries(spell))
+	member.spell_slot = Game.spells.find(spell)
 	Game.army.append(member)
 	return spawn_member(member, scene_root, world_pos)
 
@@ -89,6 +91,9 @@ static func spawn_member(member: ArmyMember, scene_root: Node, world_pos: Vector
 		return member.unit
 	var unit := spawn_def(member.def, scene_root, world_pos, member.hp)
 	member.unit = unit
+	if unit != null:
+		unit.summon_paid = _copy_paid(member.paid)
+		unit.spell_slot = member.spell_slot
 	return unit
 
 
@@ -142,6 +147,8 @@ static func army_to_data(members: Array) -> Array:
 		rows.append({
 			"hp": member.hp,
 			"def": _def_to_data(member.def),
+			"paid": _copy_paid(member.paid),
+			"spell_slot": member.spell_slot,
 		})
 	return rows
 
@@ -159,6 +166,8 @@ static func army_from_data(raw: Variant) -> Array:
 		var member := ArmyMember.new()
 		member.def = def
 		member.hp = int(entry.get("hp", def.max_hp))
+		member.paid = _copy_paid(entry.get("paid", []))
+		member.spell_slot = int(entry.get("spell_slot", -1))
 		loaded.append(member)
 	return loaded
 
@@ -194,6 +203,68 @@ static func _spend(spell: SummonSpell) -> void:
 		if entry == null or entry.amount <= 0:
 			continue
 		Game.change_resource(_kind(entry.resource_type), -entry.amount)
+
+
+## Return half the pieces, chosen at random, then forget the bill so it cannot pay twice.
+static func refund_unit(unit: Unit2D) -> void:
+	if unit == null:
+		return
+	var member := _member_for(unit)
+	var paid: Array = member.paid if member != null else unit.summon_paid
+	_grant_half(paid)
+	if member != null:
+		member.paid = []
+	unit.summon_paid = []
+
+
+static func refund_member(member: ArmyMember) -> void:
+	if member == null:
+		return
+	_grant_half(member.paid)
+	member.paid = []
+	if member.unit != null and is_instance_valid(member.unit):
+		member.unit.summon_paid = []
+
+
+static func _member_for(unit: Unit2D) -> ArmyMember:
+	for member in Game.army:
+		if member != null and member.unit == unit:
+			return member
+	return null
+
+
+static func _copy_paid(source: Variant) -> Array:
+	var copy: Array = []
+	if source is not Array:
+		return copy
+	for entry in source:
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		var amount := int(entry.get("amount", 0))
+		if amount <= 0:
+			continue
+		copy.append({"type": int(entry.get("type", 0)), "amount": amount})
+	return copy
+
+
+static func _grant_half(paid: Array) -> void:
+	var pieces: Array = []
+	for entry in paid:
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		var kind := int(entry.get("type", 0))
+		for _piece in int(entry.get("amount", 0)):
+			pieces.append(kind)
+	var give := pieces.size() / 2
+	if give <= 0:
+		return
+	Rng.shuffle_array(pieces)
+	var totals := {}
+	for index in give:
+		var kind: int = pieces[index]
+		totals[kind] = int(totals.get(kind, 0)) + 1
+	for kind in totals.keys():
+		Game.change_resource(_kind(int(kind)), int(totals[kind]))
 
 
 static func _missing_cost(spell: SummonSpell) -> SummonCost:

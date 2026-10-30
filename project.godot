@@ -14,6 +14,7 @@ config/name="THJ 2026"
 config/description="THJ 2026 game jam. Godot 4.8-beta1 with the Lost framework hot-swap asset pipeline."
 run/main_scene="uid://dw2o45af0ufqs"
 config/features=PackedStringArray("4.8", "GL Compatibility")
+boot_splash/bg_color=Color(0, 0, 0, 1)
 boot_splash/image="uid://c4yc0juuf0jn4"
 config/icon="res://icon.svg"
 
@@ -58,7 +59,7 @@ folder_colors={
 
 [internationalization]
 
-locale/translations=PackedStringArray("res://contents/translations/blocks.en.translation", "res://contents/translations/blocks.th.translation")
+locale/translations=PackedStringArray("res://contents/translations/blocks.en.translation", "res://contents/translations/blocks.th.translation", "res://contents/translations/ui.en.translation", "res://contents/translations/ui.th.translation")
 
 [lost_framework]
 

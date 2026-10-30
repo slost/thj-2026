@@ -14,6 +14,7 @@ func _run() -> void:
 	await _test_retreat_after_half()
 	await _test_walk_directions()
 	await _test_spawn_preview_does_not_edit_shared_clip()
+	await _test_refund_half()
 	await _test_scenes_open()
 	if _failed == 0:
 		print("game loop checks passed")
@@ -31,6 +32,12 @@ func _test_raid_damage_formula() -> void:
 		_fail("lost ratio 1 dealt %s" % Formular.raid_damage(100.0, 1.0))
 	if not is_equal_approx(Formular.raid_stake_ratio(), 0.3):
 		_fail("stake ratio is %s" % Formular.raid_stake_ratio())
+	if Formular.raid_reward_payout(5, 0.0) != 0:
+		_fail("reward at ratio 0 was %s" % Formular.raid_reward_payout(5, 0.0))
+	if Formular.raid_reward_payout(5, 0.5) != 3:
+		_fail("reward at ratio 0.5 was %s" % Formular.raid_reward_payout(5, 0.5))
+	if Formular.raid_reward_payout(4, 1.0) != 4:
+		_fail("reward at ratio 1 was %s" % Formular.raid_reward_payout(4, 1.0))
 
 
 func _test_town_recover_amount() -> void:
@@ -162,6 +169,36 @@ func _test_walk_directions() -> void:
 			_fail("walk to %s ended %s at %s" % [goal, job["result"], nav.world_to_cell(unit.global_position)])
 		elif nav.world_to_cell(unit.global_position) != goal:
 			_fail("walk landed on %s, wanted %s" % [nav.world_to_cell(unit.global_position), goal])
+	var expected_facing := {
+		Vector2i(-9, 0): Vector2i.LEFT,
+		Vector2i(-7, 2): Vector2i.RIGHT,
+		Vector2i(-5, -1): Vector2i.UP,
+		Vector2i(-5, 3): Vector2i.DOWN,
+	}
+	var striker: Unit2D = null
+	var miss_unit: Unit2D = null
+	for job in jobs:
+		var unit: Unit2D = job["unit"]
+		var cell := nav.world_to_cell(unit.global_position)
+		if unit.facing != expected_facing.get(cell, Vector2i.ZERO):
+			_fail("facing at %s was %s" % [cell, unit.facing])
+		if cell == Vector2i(-7, 2):
+			striker = unit
+		elif cell == Vector2i(-9, 0):
+			miss_unit = unit
+	if striker != null:
+		var foe := _villager(battle, Vector2i(-6, 2))
+		await process_frame
+		var before := foe.health.get_health()
+		var strike := (load("res://data/blocks/attack_facing.tres") as ActionBlock).duplicate() as ActionBlock
+		var hit := strike.step(striker, ExecContext.new(striker, EventGraph.Event.ON_UPDATE, null))
+		if hit != ActionBlock.StepResult.RUNNING or foe.health.get_health() >= before:
+			_fail("attack ahead did not hit the cell in front")
+	if miss_unit != null:
+		var miss := (load("res://data/blocks/attack_facing.tres") as ActionBlock).duplicate() as ActionBlock
+		var missed := miss.step(miss_unit, ExecContext.new(miss_unit, EventGraph.Event.ON_UPDATE, null))
+		if missed != ActionBlock.StepResult.CANCELLED:
+			_fail("attack ahead swung with nobody along the last step")
 	var blocked := _walker(battle, nav, Vector2i(-12, 0))
 	await process_frame
 	blocked.set_state(Unit2D.State.IDLE)
@@ -230,9 +267,13 @@ func _test_scenes_open() -> void:
 	var map_script = load("res://systems/world_map/world_map.gd")
 	if world._towns().is_empty():
 		_fail("world map did not find its towns")
+	_check_towns(world)
 	world.set_state(map_script.State.CAMP)
 	for _frame in 3:
 		await process_frame
+	var yard := world.get_node(^"Camp/Map") as TileMapLayer
+	if yard == null or yard.get_cell_source_id(yard.local_to_map(Vector2.ZERO)) == -1:
+		_fail("camp yard was not painted")
 	world.set_state(map_script.State.CODE)
 	for _frame in 5:
 		await process_frame
@@ -275,16 +316,214 @@ func _test_scenes_open() -> void:
 	var battle_book := battle.get_node(^"BookBackground") as CanvasItem
 	if battle_book == null or not battle_book.visible:
 		_fail("battle book sprite stayed hidden")
-	var battle_screen := battle.get_node(^"BookBackground/BookScreen")
+	var battle_screen := battle.get_node(^"BookBackground/BookScreen") as Sprite2D
 	if battle_editor.get("book") != battle_screen:
 		_fail("battle editor is not laid out on the battle book")
+	var camera := battle.get_node(^"Camera2D") as Camera2D
+	if not camera.zoom.is_equal_approx(Vector2.ONE):
+		_fail("code camera zoom %s is not the world map zoom" % camera.zoom)
+	if not (battle_book as Node2D).scale.is_equal_approx(Vector2.ONE):
+		_fail("code book root scale %s is not 1" % (battle_book as Node2D).scale)
+	if not is_equal_approx(battle_screen.scale.x, 0.8703704):
+		_fail("code page scale %s does not match the world map book" % battle_screen.scale.x)
+	var map := battle.get_node(^"TileMaps/Map") as TileMapLayer
+	if map.get_cell_source_id(Vector2i(-8, 0)) == -1:
+		_fail("generated map left the play field empty")
+	if battle.get_node_or_null(^"CanvasLayer/CityProgress") != null:
+		_fail("city progress is still on the battle scene")
+	var city := root.get_node_or_null(^"GUI/CityProgress") as ProgressBar
+	if city == null or not city.visible:
+		_fail("city progress is not on the gui")
+	game.set("raid_garrison", [{"race": 4, "count": 2, "max_hp": 12, "damage": 2, "flees": true}])
+	battle.call("spawn_town_defenders")
+	for _frame in 3:
+		await process_frame
+	var villagers := 0
+	for node in battle.get_tree().get_nodes_in_group(&"units"):
+		var unit := node as Unit2D
+		if unit != null and unit.team == Unit2D.Team.VILLAGER:
+			villagers += 1
+	if villagers != 2:
+		_fail("town defenders spawned %s villagers" % villagers)
+	game.set("raid_garrison", [])
+	await _check_orders_and_summon(battle)
 	battle.call("set_state", 0)
 	for _frame in 2:
 		await process_frame
 	if bool(battle_editor.call("is_open")):
 		_fail("battle book stayed open after returning to the field")
+	if not camera.zoom.is_equal_approx(Vector2(0.7, 0.7)):
+		_fail("field camera zoom was not restored")
 	game.set("current_stage", null)
 	battle.queue_free()
+
+
+func _check_orders_and_summon(battle: Node2D) -> void:
+	battle.call("set_state", 0)
+	await process_frame
+	var standing := _villager(battle, Vector2i(-8, 0))
+	await process_frame
+	var blocked: Dictionary = battle.call("summon_spot", standing.global_position)
+	if bool(blocked.get("ok", true)):
+		_fail("summon accepted a cell that already has a unit")
+	var open: Dictionary = battle.call("summon_spot", battle.get_node(^"GridNav").call("cell_to_world", Vector2i(-8, 4)))
+	if not bool(open.get("ok", false)):
+		_fail("empty summon cell was rejected")
+	var bar := standing.get_node_or_null(^"ComponentContainer/HealthBarComponent")
+	battle.call("set_state", 1)
+	await process_frame
+	if bar != null:
+		var shown := false
+		for child in bar.get_children():
+			if child is CanvasItem and (child as CanvasItem).visible:
+				shown = true
+		if shown:
+			_fail("unit progress stayed visible in the code scene")
+	battle.call("set_state", 0)
+	var nav := battle.get_node(^"GridNav") as GridNav
+	var minion := _walker(battle, nav, Vector2i(-6, 0))
+	minion.state = Unit2D.State.IDLE
+	if not bool(battle.call("issue_move_order", minion, nav.cell_to_world(Vector2i(-4, 0)))):
+		_fail("pinned minion did not queue a move")
+	if minion.queue_actions.size() != 1:
+		_fail("move order queue size %s" % minion.queue_actions.size())
+	elif minion.queue_actions[0].goal != Vector2i(-4, 0):
+		_fail("move order lost its cell")
+	var foe := _villager(battle, Vector2i(-5, 0))
+	foe.state = Unit2D.State.IDLE
+	if not bool(battle.call("issue_attack_order", minion, foe)):
+		_fail("pinned minion did not queue an attack")
+	elif minion.queue_actions.size() != 2 or minion.queue_actions[1].target != foe:
+		_fail("attack order lost its enemy")
+	battle.set("direct_orders", false)
+	if bool(battle.call("issue_move_order", minion, standing.global_position)):
+		_fail("orders stayed on after the switch was closed")
+	battle.set("direct_orders", true)
+	var director := FocusDirector.new()
+	battle.add_child(director)
+	await process_frame
+	var focus := minion.get_node(^"ComponentContainer/UnitFocusComponent") as FocusTargetComponent
+	director.select_target(focus)
+	await process_frame
+	var cues := battle.get_node_or_null(^"OrderCues")
+	if cues == null or cues.move_points.size() < 1 or cues.attack_points.size() < 1:
+		_fail("click orders did not leave a mark")
+	for _frame in 8:
+		await process_frame
+	var shown := minion.get_shown_path()
+	if shown.size() < 2:
+		_fail("pinned unit did not show its path")
+	elif shown[0].distance_to(minion.global_position) > 2.0:
+		_fail("path line did not start at the unit")
+	var visual := minion.get_node_or_null("Visual") as Node2D
+	if visual == null or not is_equal_approx(visual.position.y, 64.0):
+		_fail("unit visual was not lowered")
+	var sacrifice := root.get_node_or_null(^"GUI/SacrificeButton") as Button
+	if sacrifice == null or sacrifice.disabled:
+		_fail("sacrifice button is not ready for the pinned minion")
+	else:
+		sacrifice.pressed.emit()
+		if minion.state != Unit2D.State.DEAD:
+			_fail("sacrifice button did not give up the minion")
+
+
+func _check_towns(world: Node) -> void:
+	var easy = null
+	var medium = null
+	var hard = null
+	for town in world._towns():
+		var def = town.def
+		if def == null:
+			continue
+		var id := String(def.id)
+		if id == "small_village":
+			easy = town
+		elif id == "small_village_b":
+			medium = town
+		elif id == "small_village_c":
+			hard = town
+	if easy == null or int(easy.def.difficulty) != 1 or int(easy.def.unit_count()) != 3:
+		_fail("easy town is missing its 3 villagers")
+		return
+	if medium == null or int(medium.def.difficulty) != 2 or int(medium.def.unit_count()) != 6:
+		_fail("crossroad town difficulty or garrison is wrong")
+	if hard == null or int(hard.def.difficulty) != 3 or int(hard.def.unit_count()) != 7:
+		_fail("palisade town difficulty or garrison is wrong")
+	if not bool(hard.is_locked()) or bool(easy.is_locked()):
+		_fail("palisade should stay locked until the easy town is cleared")
+	var info := world.get_node(^"UI/TownInfo")
+	info.call("show_town", easy)
+	var title := str(info.get_node(^"VBoxContainer/NameLabel").text)
+	if title != str(easy.def.get_display_name()):
+		_fail("inspector title was %s" % title)
+	var body := str(info.get_node(^"VBoxContainer/BodyLabel").text)
+	if not body.contains("3") or not body.contains("5"):
+		_fail("inspector did not list the easy garrison and reward: %s" % body)
+	var raid := info.get_node(^"VBoxContainer/RaidButton") as Button
+	if raid.disabled:
+		_fail("easy town raid button is disabled")
+	info.call("show_town", hard)
+	if not (info.get_node(^"VBoxContainer/RaidButton") as Button).disabled:
+		_fail("locked town can still be raided")
+
+
+func _test_refund_half() -> void:
+	var game := root.get_node(^"Game")
+	game.get("army").clear()
+	game.set("corpse", 8)
+	game.set("bone", 8)
+	game.set("gore", 8)
+	var spell := SummonSpell.new()
+	var def := UnitDef.new()
+	def.team = Unit2D.Team.MINION
+	def.max_hp = 12
+	def.starting_program = SummonSpell.blank_program()
+	spell.def = def
+	var corpse := SummonCost.new()
+	corpse.resource_type = 0
+	corpse.amount = 1
+	var bone := SummonCost.new()
+	bone.resource_type = 1
+	bone.amount = 3
+	spell.costs.append(corpse)
+	spell.costs.append(bone)
+	var summoner: Script = load("res://systems/game/summoner.gd")
+	var host := Node2D.new()
+	root.add_child(host)
+	var unit: Unit2D = summoner.summon(spell, host, Vector2.ZERO)
+	await process_frame
+	if unit == null:
+		_fail("priced summon did not spawn")
+		host.queue_free()
+		return
+	unit.state = Unit2D.State.IDLE
+	if int(game.get("corpse")) != 7 or int(game.get("bone")) != 5:
+		_fail("summon spent %s corpses and %s bones" % [game.get("corpse"), game.get("bone")])
+	var before_corpse := int(game.get("corpse"))
+	var before_bone := int(game.get("bone"))
+	var before_gore := int(game.get("gore"))
+	var block := (load("res://data/blocks/sacrifice.tres") as ActionBlock).duplicate() as ActionBlock
+	var result := block.step(unit, ExecContext.new(unit, EventGraph.Event.ON_UPDATE, null))
+	if result != ActionBlock.StepResult.DONE or unit.state != Unit2D.State.DEAD:
+		_fail("sacrifice ended %s" % result)
+	var returned := (int(game.get("corpse")) - before_corpse) + (int(game.get("bone")) - before_bone)
+	if returned != 2 or int(game.get("gore")) != before_gore:
+		_fail("sacrifice returned %s pieces" % returned)
+	if int(game.get("corpse")) - before_corpse > 1 or int(game.get("bone")) - before_bone > 3:
+		_fail("sacrifice returned a resource that was not spent")
+	var second: Unit2D = summoner.summon(spell, host, Vector2(160, 0))
+	await process_frame
+	if second == null:
+		_fail("second priced summon did not spawn")
+		host.queue_free()
+		return
+	before_corpse = int(game.get("corpse"))
+	before_bone = int(game.get("bone"))
+	game.call("abandon_army")
+	returned = (int(game.get("corpse")) - before_corpse) + (int(game.get("bone")) - before_bone)
+	if returned != 2 or game.get("army").size() != 0:
+		_fail("retreat returned %s pieces and left %s minions" % [returned, game.get("army").size()])
+	host.queue_free()
 
 
 func _make_town(points: float, maximum: float):

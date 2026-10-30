@@ -278,6 +278,8 @@ func _set_summon_preview(active: bool) -> void:
 	var stage := Game.current_stage
 	if stage != null and stage.has_method("set_summon_preview"):
 		stage.call("set_summon_preview", active)
+	if GUI != null and GUI.has_method("set_summoning"):
+		GUI.set_summoning(active)
 
 
 func _follow_ghost() -> void:

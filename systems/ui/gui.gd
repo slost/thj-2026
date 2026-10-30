@@ -1,5 +1,7 @@
 extends Node
 
+const _Summoner := preload("res://systems/game/summoner.gd")
+
 
 const _COVERED_ALPHA := 0.6
 const _FADE_SPEED := 10.0
@@ -14,9 +16,13 @@ const _ALPHA_CUTOFF := 0.12
 var _fullscreen_requested := false
 ## Opaque texels for a texture, built once. Keys are texture instance ids.
 var _opaque_masks: Dictionary = {}
+var _summoning := false
 
 
 func _ready() -> void:
+	var sacrifice := get_node_or_null("SacrificeButton") as Button
+	if sacrifice and not sacrifice.pressed.is_connected(_on_sacrifice_pressed):
+		sacrifice.pressed.connect(_on_sacrifice_pressed)
 	update_portrait()
 	if _fullscreen_requested or not OS.has_feature("web"):
 		return
@@ -26,6 +32,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	_sync_sacrifice_button()
 	if portrait == null or not is_instance_valid(portrait):
 		return
 	var target := _COVERED_ALPHA if _pointer_on_portrait() or _unit_under_portrait() else 1.0
@@ -34,6 +41,37 @@ func _process(delta: float) -> void:
 	if absf(color.a - target) < 0.01:
 		color.a = target
 	portrait.modulate = color
+
+
+func _sync_sacrifice_button() -> void:
+	var button := get_node_or_null("SacrificeButton") as Button
+	if button:
+		button.disabled = _pinned_minion() == null
+
+
+func _pinned_minion() -> Unit2D:
+	var tree := get_tree()
+	if tree == null:
+		return null
+	for node in tree.get_nodes_in_group(FocusDirector.GROUP):
+		var director := node as FocusDirector
+		if director == null or director.process_mode == Node.PROCESS_MODE_DISABLED:
+			continue
+		var unit := director.get_selected_unit()
+		if unit == null or not is_instance_valid(unit):
+			continue
+		if unit.team != Unit2D.Team.MINION or unit.state == Unit2D.State.DEAD:
+			continue
+		return unit
+	return null
+
+
+func _on_sacrifice_pressed() -> void:
+	var unit := _pinned_minion()
+	if unit == null:
+		return
+	_Summoner.refund_unit(unit)
+	unit.die()
 
 
 func get_portrait() -> HotSwapSprite:
@@ -237,6 +275,9 @@ func portrait_screen_rect() -> Rect2:
 
 func update_portrait() -> void:
 	hand.hide()
+	if _summoning:
+		_apply_point_portrait()
+		return
 	var stage := Game.current_stage
 	if stage is WorldMap:
 		_apply_world_portrait((stage as WorldMap).current_state)
@@ -294,6 +335,22 @@ func _apply_battle_field_portrait() -> void:
 	book.show()
 	set_portrait("tex_portrait_evil")
 	set_book("tex_portrait_evil_book")
+	set_far("")
+
+
+## Pointing portrait while a summon ghost is on the field.
+func set_summoning(active: bool) -> void:
+	if _summoning == active:
+		return
+	_summoning = active
+	update_portrait()
+
+
+func _apply_point_portrait() -> void:
+	far.hide()
+	book.show()
+	set_portrait("tex_portrait_point")
+	set_book("tex_portrait_point_book")
 	set_far("")
 
 

@@ -8,7 +8,20 @@
 [ext_resource type="Texture2D" uid="uid://cr2lb1v5v0igi" path="res://systems/ui/tex_portrait_idle_book.png" id="6_ck3vr"]
 [ext_resource type="PackedScene" path="res://systems/ui/summon_hotbar.tscn" id="7_hotbar"]
 
+[ext_resource type="Script" uid="uid://csyu27param8" path="res://systems/battle/script_debug_panel.gd" id="8_script"]
+
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_a8e4d"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_city_bg"]
+bg_color = Color(0.05, 0.06, 0.08, 0.9)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.85, 0.82, 0.7, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_city_fill"]
+bg_color = Color(0.42, 0.78, 0.38, 1)
 
 [node name="Gui" type="CanvasLayer" unique_id=1627323203 node_paths=PackedStringArray("portrait", "book", "far", "hand")]
 layer = 99
@@ -110,3 +123,62 @@ texture = ExtResource("6_ck3vr")
 script = ExtResource("4_fc8et")
 asset_id = "tex_portrait_focus"
 metadata/_custom_type_script = "uid://bgit4iapmj1bm"
+
+[node name="CityLabel" type="Label" parent="."]
+visible = false
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -168.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = 68.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 28
+horizontal_alignment = 2
+text = "City"
+
+[node name="CityProgress" type="ProgressBar" parent="."]
+visible = false
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -72.0
+offset_top = 76.0
+offset_right = -28.0
+offset_bottom = 480.0
+grow_horizontal = 0
+theme_override_styles/background = SubResource("StyleBoxFlat_city_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_city_fill")
+max_value = 1.0
+step = 0.0
+value = 1.0
+fill_mode = 3
+show_percentage = false
+
+[node name="ScriptPreview" type="Control" parent="."]
+anchors_preset = 0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 520.0
+offset_bottom = 460.0
+mouse_filter = 2
+script = ExtResource("8_script")
+
+[node name="Body" type="RichTextLabel" parent="ScriptPreview"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+bbcode_enabled = true
+scroll_active = true
+
+[node name="SacrificeButton" type="Button" parent="."]
+offset_left = 24.0
+offset_top = 476.0
+offset_right = 244.0
+offset_bottom = 540.0
+text = "Sacrifice"

@@ -10,16 +10,16 @@ const RESOLUTIONS: Array[Vector2i] = [
 	Vector2i(2560, 1440),
 ]
 
-const LANGUAGES: Array[String] = ["en", "th"]
+## Thai stays in the translation files. The game offers English only for now.
+const LANGUAGES: Array[String] = ["en"]
 const LANGUAGE_LABELS := {
 	"en": "English",
-	"th": "ไทย",
 }
 const VOLUME_BUSES: Array[String] = ["Master", "BGM", "SFX", "Ambience", "Voice", "UI"]
 
 var resolution_index: int = 0
 var fullscreen: bool = false
-var language := "th"
+var language := "en"
 
 var _volumes: Dictionary = {}
 var _dirty := false
@@ -156,7 +156,7 @@ func _reset_volumes() -> void:
 func _sanitize() -> void:
 	resolution_index = clampi(resolution_index, 0, RESOLUTIONS.size() - 1)
 	if LANGUAGES.find(language) == -1:
-		language = "th"
+		language = "en"
 	for bus_name in VOLUME_BUSES:
 		_volumes[bus_name] = clampf(float(_volumes.get(bus_name, 1.0)), 0.0, 1.0)
 

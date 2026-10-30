@@ -34,17 +34,6 @@ texture_region_size = Vector2i(128, 128)
 tile_size = Vector2i(128, 128)
 sources/1 = SubResource("TileSetAtlasSource_ksea4")
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_city_bg"]
-bg_color = Color(0.05, 0.06, 0.08, 0.9)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.85, 0.82, 0.7, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_city_fill"]
-bg_color = Color(0.42, 0.78, 0.38, 1)
-
 [node name="Battle" type="Node2D" unique_id=1492888788 node_paths=PackedStringArray("field_button", "code_button", "book", "code_editor")]
 script = ExtResource("1_f5pr0")
 field_button = NodePath("CanvasLayer/StateContainer/FieldButton")
@@ -69,36 +58,6 @@ zoom = Vector2(0.7, 0.7)
 script = ExtResource("2_v40hl")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1617395548]
-
-[node name="CityLabel" type="Label" parent="CanvasLayer" unique_id=1791336422]
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -168.0
-offset_top = 24.0
-offset_right = -24.0
-offset_bottom = 68.0
-grow_horizontal = 0
-theme_override_font_sizes/font_size = 28
-horizontal_alignment = 2
-text = "City"
-
-[node name="CityProgress" type="ProgressBar" parent="CanvasLayer" unique_id=969184600]
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -72.0
-offset_top = 76.0
-offset_right = -28.0
-offset_bottom = 480.0
-grow_horizontal = 0
-theme_override_styles/background = SubResource("StyleBoxFlat_city_bg")
-theme_override_styles/fill = SubResource("StyleBoxFlat_city_fill")
-max_value = 1.0
-step = 0.0
-value = 1.0
-fill_mode = 3
-show_percentage = false
 
 [node name="RetreatButton" type="Button" parent="CanvasLayer" unique_id=1158283549]
 anchors_preset = 8

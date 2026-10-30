@@ -39,7 +39,6 @@ const _CodeBook := preload("res://systems/code_editor/code_book.gd")
 const _INDICATOR_TEXTURE := preload("res://placeholders/tex_indicator.png")
 
 var _camp_director: FocusDirector
-var _camp_script: Control
 
 
 func _ready() -> void:
@@ -221,7 +220,9 @@ func _select_location(location: TownLocation) -> void:
 	_is_selected = true
 	indicator.show()
 	move_indicator_to(location.global_position)
-	if town_info:
+	if town_info and town_info.has_method("show_town"):
+		town_info.call("show_town", location)
+	elif town_info:
 		town_info.show()
 	_update_debug_label()
 	set_state(State.PINNED)
@@ -338,8 +339,6 @@ func _sync_camp_focus() -> void:
 		_camp_director.process_mode = Node.PROCESS_MODE_INHERIT if active else Node.PROCESS_MODE_DISABLED
 		if not active:
 			_camp_director.clear_selection()
-	if _camp_script:
-		_camp_script.visible = active
 
 
 func _ensure_camp_focus() -> void:
@@ -355,15 +354,6 @@ func _ensure_camp_focus() -> void:
 	director.pin_indicator = pin
 	add_child(director)
 	_camp_director = director
-	var panel := ScriptDebugPanel.new()
-	panel.name = "CampScript"
-	var ui := get_node_or_null("UI")
-	if ui:
-		ui.add_child(panel)
-	else:
-		add_child(panel)
-	panel.visible = false
-	_camp_script = panel
 
 
 func _camp_indicator(node_name: String, z: int) -> Sprite2D:
@@ -380,7 +370,22 @@ func summon_spot(world_pos: Vector2) -> Dictionary:
 		return {"ok": false, "pos": world_pos}
 	if not bool(camp.call("contains_world", world_pos)):
 		return {"ok": false, "pos": world_pos}
+	if _camp_occupied(world_pos):
+		return {"ok": false, "pos": world_pos}
 	return {"ok": true, "pos": world_pos}
+
+
+func _camp_occupied(world_pos: Vector2) -> bool:
+	if camp == null:
+		return false
+	var limit := Formular.TILE_SIZE * 0.45
+	for node in camp.find_children("*", "Unit2D", true, false):
+		var unit := node as Unit2D
+		if unit == null or unit.state == Unit2D.State.DEAD:
+			continue
+		if unit.global_position.distance_to(world_pos) <= limit:
+			return true
+	return false
 
 
 func _on_raid_button_pressed() -> void:

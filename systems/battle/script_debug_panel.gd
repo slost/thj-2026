@@ -1,36 +1,28 @@
-## Separate script view. Highlights the line the pinned or hovered unit is reading.
+## Separate script view placed in the GUI scene. Highlights the line being read.
 extends Control
 class_name ScriptDebugPanel
 
 
-const _PORTRAIT_MARGIN := 16.0
-
-var _label: RichTextLabel
+@onready var _label: RichTextLabel = get_node_or_null("Body") as RichTextLabel
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	set_anchors_preset(Control.PRESET_TOP_LEFT)
-	offset_left = 24.0
-	offset_top = 24.0
-	offset_right = 480.0
-	offset_bottom = 460.0
-	_fit_above_portrait()
-
-	_label = RichTextLabel.new()
+	if _label == null:
+		_label = RichTextLabel.new()
+		_label.name = "Body"
+		_label.set_anchors_preset(Control.PRESET_FULL_RECT)
+		add_child(_label)
 	_label.bbcode_enabled = true
 	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_label.scroll_active = true
 	_label.fit_content = false
-	_label.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_label.add_theme_font_size_override(&"normal_font_size", 22)
 	_label.add_theme_color_override(&"default_color", Color(0.82, 0.86, 0.9))
-	add_child(_label)
 
 
 func _process(_delta: float) -> void:
-	_fit_above_portrait()
 	if _label == null:
 		return
 	var unit := _inspected_unit()
@@ -38,18 +30,6 @@ func _process(_delta: float) -> void:
 		_label.text = "[color=#9aa4b2]Script[/color]\nNo unit focused"
 		return
 	_label.text = _render(unit)
-
-
-## Bottom edge sits just above the portrait, in camp and in battle.
-func _fit_above_portrait() -> void:
-	var bottom := offset_top + 120.0
-	if GUI != null and GUI.has_method("portrait_screen_rect"):
-		var rect: Rect2 = GUI.portrait_screen_rect()
-		if rect.size.y > 1.0:
-			bottom = rect.position.y - _PORTRAIT_MARGIN
-	bottom = maxf(bottom, offset_top + 120.0)
-	if not is_equal_approx(offset_bottom, bottom):
-		offset_bottom = bottom
 
 
 func _inspected_unit() -> Unit2D:
@@ -64,7 +44,8 @@ func _inspected_unit() -> Unit2D:
 
 func _render(unit: Unit2D) -> String:
 	var rows := PackedStringArray()
-	rows.append("[color=#9aa4b2]Script — %s[/color]" % _escape(unit.name))
+	rows.append("[color=#9aa4b2]Script — %s[/color]" % _escape(_script_title(unit)))
+	rows.append("[color=#9aa4b2]Doing[/color]  %s" % _escape(_current_action(unit)))
 	var function := unit.runner.get_update_script() if unit.runner else null
 	var current := unit.runner.read_index if unit.runner else -1
 	if function == null or function.lines.is_empty():
@@ -90,6 +71,54 @@ func _render(unit: Unit2D) -> String:
 		var usage := pattern.format({"used": unit.get_ram_used(), "max": unit.stats.ram})
 		rows.append("[color=#9aa4b2]%s[/color]" % usage)
 	return "\n".join(rows)
+
+
+func _script_title(unit: Unit2D) -> String:
+	var slot := unit.spell_slot
+	if slot < 0 or Game == null or slot >= Game.spells.size():
+		return unit.name
+	var spell := Game.spells[slot]
+	if spell == null:
+		return unit.name
+	var title := spell.display_name()
+	if title.is_empty():
+		title = unit.name
+	if not _matches_spell(unit, spell):
+		title += " (Old)"
+	return title
+
+
+func _matches_spell(unit: Unit2D, spell: SummonSpell) -> bool:
+	var live := spell.get_update_function()
+	var owned := unit.runner.get_update_script() if unit.runner else null
+	if live == null or owned == null:
+		return false
+	if live.lines.size() != owned.lines.size():
+		return false
+	for index in live.lines.size():
+		var current := live.lines[index]
+		var copied := owned.lines[index]
+		if current == null or copied == null:
+			if current != copied:
+				return false
+			continue
+		if current.indent != copied.indent:
+			return false
+		var current_id := ""
+		var copied_id := ""
+		if current.block:
+			current_id = str(current.block.id)
+		if copied.block:
+			copied_id = str(copied.block.id)
+		if current_id != copied_id:
+			return false
+	return true
+
+
+func _current_action(unit: Unit2D) -> String:
+	if unit.queue_actions.is_empty() or unit.queue_actions[0] == null:
+		return "-"
+	return BlockInventory.block_title(unit.queue_actions[0])
 
 
 func _target_list(unit: Unit2D) -> String:
