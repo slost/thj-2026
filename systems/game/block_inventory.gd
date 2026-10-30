@@ -14,7 +14,7 @@ var _blocks: Dictionary = {}
 
 static func block_title(block: CodeBlock) -> String:
 	if block == null:
-		return "block"
+		return "rune"
 	var title := block.get_display_name("en")
 	if title.is_empty():
 		return block.get_block_label()
@@ -78,6 +78,27 @@ func get_all() -> Array[CodeBlock]:
 		return block_title(a).nocasecmp_to(block_title(b)) < 0
 	)
 	return result
+
+
+## Zeros every count and keeps the known runes, so the palette can show an empty stock.
+func clear_counts() -> void:
+	if _counts.is_empty():
+		seed_if_empty()
+	for key in _counts.keys():
+		_counts[key] = 0
+	changed.emit()
+
+
+## Gives the player one rune by its file id, for example "attack_target".
+func grant_id(id: String, amount: int = 1) -> void:
+	var block := load("%s/%s.tres" % [BLOCK_DIR, id]) as CodeBlock
+	add(block, amount)
+
+
+## Replaces the stock with the normal new-game pile of every rune.
+func fill_starter() -> void:
+	_counts.clear()
+	seed_if_empty()
 
 
 ## Fills the inventory with every block .tres when nothing has been added yet.

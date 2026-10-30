@@ -59,6 +59,7 @@ static func summon(spell: SummonSpell, scene_root: Node, world_pos: Vector2) -> 
 
 ## Stats copied off the spell, plus a program the spell can no longer edit.
 static func copy_def(spell: SummonSpell) -> UnitDef:
+	spell.build_def()
 	var def := UnitDef.new()
 	var source := spell.def
 	if source != null:

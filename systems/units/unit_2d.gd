@@ -1100,6 +1100,17 @@ func get_move_speed() -> float:
 	return Formular.calculate_move_speed(get_gpu(), get_cpu())
 
 
+## Name of the clip playing now. An attack pose with no clip reports "attack".
+func get_playing_animation() -> String:
+	if anim_player != null and anim_player.is_playing():
+		var clip := String(anim_player.current_animation)
+		if not clip.is_empty():
+			return clip
+	if state == State.ATTACKING:
+		return "attack"
+	return ""
+
+
 ## 0 at the start of the playing clip, 1 when it finishes.
 ## An attack pose with no clip uses the same scale over its hold time.
 func get_animation_ratio() -> float:

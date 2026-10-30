@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="RaceProfile" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://systems/units/race_profile.gd" id="1_profile"]
+[ext_resource type="Texture2D" uid="uid://bvnhk5p7m2vib" path="res://contents/assets/tex_zombie.png" id="2_tex"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_icon"]
+atlas = ExtResource("2_tex")
+region = Rect2(123, 259, 143, 270)
+
+[resource]
+script = ExtResource("1_profile")
+race = 0
+display_name_key = "ui.race.zombie"
+max_hp = 40
+damage = 6
+attack_range = 1
+detect_range = 4
+attack_cooldown = 1.2
+base_cpu = 1
+base_gpu = 1
+ram_bonus = 0
+starts_unlocked = true
+icon = SubResource("AtlasTexture_icon")

@@ -1,5 +1,8 @@
 extends Node2D
 
+signal move_order_issued(unit: Unit2D)
+signal battle_won
+
 enum State { FIELD, CODE }
 
 const _INDICATOR_TEXTURE := preload("res://placeholders/tex_indicator.png")
@@ -36,6 +39,22 @@ const _DEFENDER_CELLS: Array[Vector2i] = [
 ## Click a pinned minion's destination or an enemy to queue a move or an attack.
 ## Turn this off to leave commands entirely to the written scripts.
 @export var direct_orders := true
+## The tutorial scene reuses this battle. It does not spawn a town or end before villagers exist.
+@export var tutorial_mode := false
+## How many spell buttons the hotbar shows while tutorial_mode is on.
+var tutorial_visible_spells := 8
+## How many of those buttons can be used. The rest stay visible and locked.
+var tutorial_unlocked_spells := 8
+## -1 means unlimited. Counts successful summons while tutorial_mode is on.
+var tutorial_summon_cap := -1
+## -1 means unlimited. Counts move and attack orders while tutorial_mode is on.
+var tutorial_order_cap := -1
+## The first taught move ignores the click and walks a couple of cells.
+var tutorial_short_move := false
+## While set, the field flag and Escape cannot leave the book.
+var tutorial_lock_field := false
+var _tutorial_summons := 0
+var _tutorial_orders := 0
 
 @export var field_button: Button
 @export var code_button: Button
@@ -68,19 +87,22 @@ func _ready() -> void:
 	var hover := _ensure_indicator("IndicatorSprite", 20)
 	var pin := _ensure_indicator("PinIndicator", 19)
 	_wire_focus(hover, pin)
-	if _is_raid_scene():
+	if _is_raid_scene() or tutorial_mode:
 		mount_raid_tools()
+	if _is_raid_scene() and not tutorial_mode:
 		spawn_town_defenders()
 		if spawn_raid_party_on_ready:
 			spawn_raid_party()
 		else:
 			spawn_army()
+	if tutorial_mode:
+		_prepare_tutorial_shell()
 	if _stage_end:
 		_stage_end.visible = false
 	set_state(State.FIELD)
 	_set_city_chrome(true)
 	_refresh_city_progress()
-	if _is_raid_scene():
+	if _is_raid_scene() and not tutorial_mode:
 		declare_victory_if_clear()
 
 
@@ -153,6 +175,11 @@ func _confirm_retreat() -> void:
 
 
 func _on_button_pressed() -> void:
+	if tutorial_mode:
+		var tutor := _game()
+		if tutor and tutor.has_method("finish_tutorial"):
+			tutor.finish_tutorial()
+		return
 	commit_raid_outcome()
 	if get_tree().paused:
 		get_tree().paused = false
@@ -170,6 +197,8 @@ func _game() -> Node:
 
 func _exit_tree() -> void:
 	_set_city_chrome(false)
+	if tutorial_mode:
+		_show_sacrifice_button(true)
 
 
 func _open_stage_end(city_fallen := true, sting_key := "") -> void:
@@ -190,6 +219,8 @@ func _open_stage_end(city_fallen := true, sting_key := "") -> void:
 		var reveal := _stage_end.get_node_or_null("RewardReveal")
 		if reveal and reveal.has_method("play"):
 			reveal.call("play", _received_rewards())
+	if sting_key != Game.BGM_BATTLE_RETREAT:
+		battle_won.emit()
 	get_tree().paused = true
 
 
@@ -471,6 +502,8 @@ func accepts_field_pointer() -> bool:
 
 
 func set_state(new_state: State = State.FIELD) -> void:
+	if tutorial_mode and tutorial_lock_field and current_state == State.CODE and new_state != State.CODE:
+		return
 	var entering_code := new_state == State.CODE and current_state != State.CODE
 	current_state = new_state
 	_CodeBook.set_open(book, code_editor, current_state == State.CODE)
@@ -511,7 +544,8 @@ func commit_raid_outcome() -> void:
 
 func _update_state_buttons() -> void:
 	if field_button:
-		field_button.modulate = Color.WHITE if current_state == State.FIELD else Game.DISABLED_COLOR
+		field_button.disabled = tutorial_mode and tutorial_lock_field
+		field_button.modulate = Color.WHITE if current_state == State.FIELD and not field_button.disabled else Game.DISABLED_COLOR
 	if code_button:
 		code_button.modulate = Color.WHITE if current_state == State.CODE else Game.DISABLED_COLOR
 
@@ -587,30 +621,69 @@ func _cell_has_unit(cell: Vector2i) -> bool:
 
 ## Queues a walk to the clicked cell. False when orders are off or the cell cannot be a goal.
 func issue_move_order(unit: Unit2D, world_pos: Vector2) -> bool:
-	if not _can_order(unit):
+	if not _can_order(unit) or not allows_order():
 		return false
 	var grid := get_node_or_null("GridNav") as GridNav
 	if grid == null:
 		return false
 	var cell := grid.world_to_cell(world_pos)
+	if tutorial_mode and tutorial_short_move:
+		cell = _short_move_cell(grid, unit)
 	if not grid.is_walkable_cell(cell):
 		return false
 	var order = _OrderMove.new()
 	order.goal = cell
 	unit.enqueue_order(order)
+	note_order()
+	move_order_issued.emit(unit)
 	return true
 
 
 ## Queues an attack on one enemy. False when that unit is not an enemy of the pinned minion.
 func issue_attack_order(unit: Unit2D, enemy: Unit2D) -> bool:
-	if not _can_order(unit) or enemy == null or not unit.is_enemy(enemy):
+	if not _can_order(unit) or not allows_order() or enemy == null or not unit.is_enemy(enemy):
 		return false
 	if enemy.state == Unit2D.State.DEAD:
 		return false
 	var order = _OrderAttack.new()
 	order.target = enemy
 	unit.enqueue_order(order)
+	note_order()
 	return true
+
+
+## World point of the short lesson walk. The tutorial arrow sits on this cell.
+func tutorial_move_marker() -> Vector2:
+	var grid := get_node_or_null("GridNav") as GridNav
+	var unit := _tutorial_minion()
+	if grid == null or unit == null:
+		return Vector2.INF
+	return grid.cell_to_world(_short_move_cell(grid, unit))
+
+
+func _tutorial_minion() -> Unit2D:
+	var tree := get_tree()
+	if tree == null:
+		return null
+	for node in tree.get_nodes_in_group(Unit2D.GROUP):
+		var unit := node as Unit2D
+		if unit != null and unit.team == Unit2D.Team.MINION and unit.state != Unit2D.State.DEAD:
+			return unit
+	return null
+
+
+## A couple of walkable cells from the unit, so the first lesson does not cross the map.
+func _short_move_cell(grid: GridNav, unit: Unit2D) -> Vector2i:
+	var origin := grid.world_to_cell(unit.global_position)
+	var steps: Array[Vector2i] = [
+		Vector2i(2, 0), Vector2i(-2, 0), Vector2i(0, 2), Vector2i(0, -2),
+		Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1),
+	]
+	for step in steps:
+		var cell := origin + step
+		if cell != origin and grid.is_walkable_cell(cell):
+			return cell
+	return origin
 
 
 func _can_order(unit: Unit2D) -> bool:
@@ -621,6 +694,105 @@ func _can_order(unit: Unit2D) -> bool:
 		and unit.team == Unit2D.Team.MINION
 		and unit.state != Unit2D.State.DEAD
 	)
+
+
+func shows_spell(index: int) -> bool:
+	if not tutorial_mode:
+		return true
+	return index >= 0 and index < tutorial_visible_spells
+
+
+func allows_spell(index: int) -> bool:
+	if not tutorial_mode:
+		return true
+	return index >= 0 and index < tutorial_unlocked_spells
+
+
+func allows_summon(index: int) -> bool:
+	if not allows_spell(index):
+		return false
+	if not tutorial_mode or tutorial_summon_cap < 0:
+		return true
+	return _tutorial_summons < tutorial_summon_cap
+
+
+func allows_order() -> bool:
+	if not tutorial_mode or tutorial_order_cap < 0:
+		return true
+	return _tutorial_orders < tutorial_order_cap
+
+
+func note_summon() -> void:
+	_tutorial_summons += 1
+
+
+func note_order() -> void:
+	_tutorial_orders += 1
+
+
+func reset_order_count() -> void:
+	_tutorial_orders = 0
+
+
+func present_tutorial_ending(text: String) -> void:
+	var back := get_node_or_null("CanvasLayer/StageEndScreen/BackButton") as Button
+	if back:
+		back.text = LocaleText.resolve("ui.tutorial.back", "Back to world")
+	var screen := get_node_or_null("CanvasLayer/StageEndScreen") as Control
+	if screen == null:
+		return
+	var label := screen.get_node_or_null("TutorialEnding") as RichTextLabel
+	if label == null:
+		label = RichTextLabel.new()
+		label.name = "TutorialEnding"
+		label.bbcode_enabled = true
+		label.fit_content = true
+		label.scroll_active = false
+		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+		label.offset_left = -560.0
+		label.offset_top = 36.0
+		label.offset_right = 560.0
+		label.offset_bottom = 240.0
+		label.add_theme_font_size_override(&"normal_font_size", 28)
+		label.add_theme_color_override(&"default_color", Color(0.93, 0.9, 0.8))
+		screen.add_child(label)
+	label.text = text
+
+
+func _prepare_tutorial_shell() -> void:
+	tutorial_visible_spells = 8
+	tutorial_unlocked_spells = 1
+	tutorial_summon_cap = 1
+	tutorial_order_cap = 0
+	var retreat := get_node_or_null("CanvasLayer/RetreatButton") as CanvasItem
+	if retreat:
+		retreat.visible = false
+	if code_button:
+		code_button.disabled = true
+	_show_sacrifice_button(false)
+
+
+func _show_sacrifice_button(show: bool) -> void:
+	var tree := get_tree()
+	if tree == null or tree.root == null:
+		return
+	var button := tree.root.get_node_or_null("GUI/SacrificeButton") as CanvasItem
+	if button:
+		button.visible = show
+
+
+## Spawns a few weak melee villagers with the same garrison spawner the raids use.
+func spawn_practice_villagers(count: int) -> void:
+	var row := {
+		"race": Unit2D.Race.VILLAGER_MELEE,
+		"count": maxi(count, 0),
+		"max_hp": 8,
+		"damage": 1,
+		"flees": false,
+	}
+	var rows: Array = [row]
+	_spawn_garrison_rows(rows)
 
 
 ## Spawns the raided town's villagers on the right side. Safe to call once.
@@ -634,6 +806,10 @@ func spawn_town_defenders() -> void:
 	var rows: Array = game.get("raid_garrison")
 	if rows.is_empty():
 		return
+	_spawn_garrison_rows(rows)
+
+
+func _spawn_garrison_rows(rows: Array) -> void:
 	var map := get_node_or_null("TileMaps/Map") as TileMapLayer
 	var grid := get_node_or_null("GridNav") as GridNav
 	var cursor := 0

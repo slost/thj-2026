@@ -1,0 +1,46 @@
+[gd_resource type="Resource" script_class="RaceProfile" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://systems/units/race_profile.gd" id="1_profile"]
+[ext_resource type="Script" path="res://systems/game/summon_cost.gd" id="2_cost"]
+[ext_resource type="Texture2D" uid="uid://dk6nlovkxkbb6" path="res://contents/assets/tex_skeleton_range.png" id="3_tex"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_icon"]
+atlas = ExtResource("3_tex")
+region = Rect2(133, 258, 144, 269)
+
+[sub_resource type="Resource" id="Cost_bone"]
+script = ExtResource("2_cost")
+resource_type = 1
+amount = 12
+
+[sub_resource type="Resource" id="Cost_weapon"]
+script = ExtResource("2_cost")
+resource_type = 2
+amount = 3
+
+[sub_resource type="Resource" id="Summon_bone"]
+script = ExtResource("2_cost")
+resource_type = 1
+amount = 1
+
+[sub_resource type="Resource" id="Summon_weapon"]
+script = ExtResource("2_cost")
+resource_type = 2
+amount = 1
+
+[resource]
+script = ExtResource("1_profile")
+race = 2
+display_name_key = "ui.race.skeleton_range"
+max_hp = 20
+damage = 5
+attack_range = 4
+detect_range = 6
+attack_cooldown = 1.5
+base_cpu = 2
+base_gpu = 1
+ram_bonus = 4
+unlock_costs = Array[SummonCost]([SubResource("Cost_bone"), SubResource("Cost_weapon")])
+summon_extras = Array[SummonCost]([SubResource("Summon_bone"), SubResource("Summon_weapon")])
+starts_unlocked = false
+icon = SubResource("AtlasTexture_icon")

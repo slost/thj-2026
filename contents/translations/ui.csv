@@ -27,3 +27,41 @@ location.small_village_b.name,Crossroad Village,หมู่บ้านทา�
 location.small_village_b.desc,A village that stands and fights.,หมู่บ้านที่ยืนสู้
 location.small_village_c.name,Palisade Village,หมู่บ้านรั้วไม้
 location.small_village_c.desc,A walled village. Clear an easier town before the road opens.,หมู่บ้านที่มีกำแพง ต้องเคลียร์เมืองที่ง่ายกว่าก่อนถึงจะเข้าได้
+ui.spec.page,Summoning,
+ui.spec.script,Thinking,
+ui.spec.corpse,Corpse,ศพ
+ui.spec.gore,Gore,เนื้อ
+ui.spec.hp,HP,HP
+ui.spec.dmg,DMG,ดาเมจ
+ui.spec.range,Range,ระยะ
+ui.spec.cpu,CPU,CPU
+ui.spec.gpu,GPU,GPU
+ui.spec.ram,RAM,แรม
+ui.spec.costs_prefix,Costs:,ค่าใช้จ่าย:
+ui.spec.explain,Each extra corpse adds 1 CPU and 4 RAM. Each extra gore adds 1 GPU and 2 RAM.,ศพที่เพิ่มขึ้นแต่ละชิ้นเพิ่ม CPU 1 และแรม 4 เนื้อที่เพิ่มขึ้นแต่ละชิ้นเพิ่ม GPU 1 และแรม 2
+ui.spec.unlock,Unlock,ปลดล็อก
+ui.spec.locked,Locked,ล็อก
+ui.race.zombie,Zombie,ซอมบี้
+ui.race.skeleton_melee,Skeleton,โครงกระดูก
+ui.race.skeleton_range,Skeleton archer,โครงกระดูกธนู
+ui.race.dire_wolf,Dire wolf,ไดร์วูล์ฟ
+ui.tutorial.next,Next,
+ui.tutorial.skip,Skip tutorial,
+ui.tutorial.back,Back to world,
+ui.tutorial.counter,{current}/{total},
+ui.tutorial.objective,Wipe out every villager.,
+ui.tutorial.summon,"Click Spell 1, then pick a spot on the field to summon.",
+ui.tutorial.offering,Summoning always needs an offering. This zombie costs 1 Corpse and 1 Gore.,
+ui.tutorial.select,Click your unit to select it and see its stats.,
+ui.tutorial.move,"With a unit selected, right-click the ground. It takes a short walk from where it stands.",
+ui.tutorial.bars,The red bar is health. The blue bar fills up until the unit thinks again. The yellow bar is its current animation.,
+ui.tutorial.cpu_gpu,"How fast a unit thinks depends on its [b]CPU[/b] (Corpses Per Unit). How fast it moves and animates depends on its [b]GPU[/b] (Gores Per Unit). Both come from what you offer when summoning, and you can tune them later.",
+ui.tutorial.queue,Giving a new order doesn't stop the old one. It joins a queue instead. Try it!,
+ui.tutorial.ram,"Remembering lots of orders takes Remembers As Monster, or [b]RAM[/b]. When RAM is full, the unit freezes and can't do anything.",
+ui.tutorial.sacrifice,You can Sacrifice that unit to get part of its offering back.,
+ui.tutorial.book,Time to cast some magic. Click the Necronomicon to open the spell book.,
+ui.tutorial.two_pages,"A spell has two parts: Summoning, which picks what you summon and what you offer, and Thinking, which is how your unit behaves.",
+ui.tutorial.summoning_page,Click Summoning to choose which creature this spell summons and how much it costs. [b]CPU[/b] and [b]GPU[/b] also change the unit's [b]RAM[/b].,
+ui.tutorial.thinking_page,"Now click Thinking to shape how your unit behaves. Runes come in two kinds: conditions and actions. When a condition is true, the runes inside it run. An action rune adds that action to the queue. A spell reads from top to bottom, as fast as the unit's [b]CPU[/b] allows. Each rune also costs [b]MB[/b] (Monster Brain), which takes up [b]RAM[/b], so don't stack too many.",
+ui.tutorial.fight,"Your goal is to wipe out every villager on the field. Shape your units however you like to get the upper hand. Now, use everything you have to win!",
+ui.tutorial.ending,You wiped out the villagers! You earned resources and new runes to write more spells. Press Back to world to begin your plan to conquer the world!,

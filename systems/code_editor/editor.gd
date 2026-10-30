@@ -8,6 +8,10 @@
 extends Node2D
 
 signal closed
+signal opened
+signal page_changed(page: int)
+
+enum Page { SPEC, SCRIPT }
 
 ## Book the pages are laid onto. Empty uses the child BookScreen, for the standalone wrapper.
 @export var book: Sprite2D
@@ -29,6 +33,7 @@ signal closed
 
 var _active := false
 var _slot := 0
+var _page := Page.SCRIPT
 var _switching := false
 var _book: Sprite2D
 var _page_uvs: Array[Rect2] = []
@@ -50,6 +55,11 @@ var _stored_mouse: Dictionary = {}
 @onready var _name_label: Label = %NameLabel
 @onready var _ram_label: Label = %RamLabel
 @onready var _slots: HBoxContainer = %SpellsContainer
+@onready var _ram_hint: Label = %RamHint
+@onready var _page_buttons: VBoxContainer = %PageButtons
+@onready var _spec_page_button: Button = %SpecPageButton
+@onready var _script_page_button: Button = %ScriptPageButton
+@onready var _spec = %SpecView
 @onready var _slot_buttons: Array[Button] = [
 	%SpellButton1, %SpellButton2, %SpellButton3, %SpellButton4,
 	%SpellButton5, %SpellButton6, %SpellButton7, %SpellButton8,
@@ -70,6 +80,14 @@ func _ready() -> void:
 	_script.remove_rows.connect(_on_remove_rows)
 	_script.indent_line.connect(_on_indent)
 	_watch_input_tree(self)
+	_spec.race_selected.connect(_on_spec_race)
+	_spec.corpse_changed.connect(_on_spec_corpse)
+	_spec.gore_changed.connect(_on_spec_gore)
+	_spec.unlock_pressed.connect(_on_spec_unlock)
+	_spec_page_button.pressed.connect(_on_page_button.bind(Page.SPEC))
+	_script_page_button.pressed.connect(_on_page_button.bind(Page.SCRIPT))
+	_refresh_page_buttons()
+	_apply_page()
 	if active_on_ready:
 		open()
 	else:
@@ -80,7 +98,10 @@ func _ready() -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_TRANSLATION_CHANGED:
+		_refresh_page_buttons()
 		_refresh_header()
+		if _spec and _page == Page.SPEC:
+			_spec.refresh()
 
 
 func _process(_delta: float) -> void:
@@ -103,6 +124,7 @@ func open() -> void:
 		_pan = null
 		_pan_captured = false
 		_capture_pan()
+		opened.emit()
 	refresh()
 	_has_fit = false
 	_fit_pages_if_needed()
@@ -260,6 +282,8 @@ func _bind_slots() -> void:
 			continue
 		button.text = Game.spells[index].display_name()
 		button.clip_text = true
+		button.clip_contents = true
+		RaceProfiles.mount_slot_icon(button, Game.spells[index].race)
 		if not button.pressed.is_connected(_on_slot_button):
 			button.pressed.connect(_on_slot_button.bind(index))
 
@@ -275,7 +299,8 @@ func _fit_pages() -> bool:
 		_uv_texture = _book.texture
 	if _page_uvs.size() < 2:
 		return false
-	var left := _map_uv(book_rect, _page_uvs[0]).grow(-page_inset)
+	var left_page := _map_uv(book_rect, _page_uvs[0]).grow(-page_inset)
+	var left := left_page
 	left.position.y -= palette_extra * 0.4
 	left.size.y += palette_extra
 	var right := _map_uv(book_rect, _page_uvs[1]).grow(-page_inset)
@@ -288,7 +313,11 @@ func _fit_pages() -> bool:
 	var header := %ScriptHeader as Control
 	_place(header, Rect2(Vector2(right.position.x, menu_y + slot_bar_height), Vector2(right.size.x, header_height)))
 	var script_top := menu_y + slot_bar_height + header_height
-	_place(_script, Rect2(Vector2(right.position.x, script_top), Vector2(right.size.x, maxf(right.end.y - script_top, min_body_height))))
+	var script_rect := Rect2(Vector2(right.position.x, script_top), Vector2(right.size.x, maxf(right.end.y - script_top, min_body_height)))
+	_place(_script, script_rect)
+	if _spec:
+		_spec.layout_pages(left_page, script_rect)
+	_place_page_buttons(book_rect, right)
 	return true
 
 
@@ -328,7 +357,10 @@ func _show_slot(index: int) -> void:
 		_slot_buttons[_slot].button_pressed = true
 	_switching = false
 	var slot := Game.spells[_slot]
+	slot.build_def()
 	_script.set_lines(slot.get_update_function().lines)
+	if _spec:
+		_spec.bind(slot)
 	_refresh_header()
 
 
@@ -363,6 +395,97 @@ func _flash_ram() -> void:
 	_ram_tween = create_tween()
 	_ram_tween.tween_interval(0.45)
 	_ram_tween.tween_callback(_show_ram)
+
+
+func _place_page_buttons(book_rect: Rect2, right: Rect2) -> void:
+	if _page_buttons == null:
+		return
+	var gap := book_rect.end.x - right.end.x
+	var width := clampf(gap - 18.0, 108.0, 200.0)
+	var x := book_rect.end.x - width - 10.0
+	if x < right.end.x + 6.0:
+		x = right.end.x + 6.0
+	_place(_page_buttons, Rect2(Vector2(x, right.position.y + 12.0), Vector2(width, 150.0)))
+
+
+func _apply_page() -> void:
+	var spec := _page == Page.SPEC
+	if _palette:
+		_palette.visible = not spec
+	if _script:
+		_script.visible = not spec
+	if _ram_hint:
+		_ram_hint.visible = not spec
+	if _spec:
+		_spec.visible = spec
+	_switching = true
+	if _spec_page_button:
+		_spec_page_button.set_pressed_no_signal(spec)
+	if _script_page_button:
+		_script_page_button.set_pressed_no_signal(not spec)
+	_switching = false
+
+
+func _refresh_page_buttons() -> void:
+	if _spec_page_button:
+		_spec_page_button.text = LocaleText.resolve("ui.spec.page", "Summoning")
+	if _script_page_button:
+		_script_page_button.text = LocaleText.resolve("ui.spec.script", "Thinking")
+
+
+func _on_page_button(page: Page) -> void:
+	if _switching or page == _page:
+		return
+	Sfx.play_ui("general.page_turn")
+	_page = page
+	_apply_page()
+	if _page == Page.SPEC:
+		var slot := _current_slot()
+		if slot and _spec:
+			slot.build_def()
+			_spec.bind(slot)
+	_refresh_header()
+	page_changed.emit(_page)
+
+
+func _on_spec_race(race_value: int) -> void:
+	var slot := _current_slot()
+	if slot == null:
+		return
+	var next: Unit2D.Race = race_value
+	if slot.set_race(next) == SummonSpell.RaceChange.REFUSED_RAM:
+		_flash_ram()
+	_refresh_after_spec()
+
+
+func _on_spec_corpse(amount: int) -> void:
+	var slot := _current_slot()
+	if slot == null:
+		return
+	if not slot.set_corpse_amount(amount):
+		_flash_ram()
+	_refresh_after_spec()
+
+
+func _on_spec_gore(amount: int) -> void:
+	var slot := _current_slot()
+	if slot == null:
+		return
+	if not slot.set_gore_amount(amount):
+		_flash_ram()
+	_refresh_after_spec()
+
+
+func _on_spec_unlock(race_value: int) -> void:
+	var next: Unit2D.Race = race_value
+	Game.try_unlock_race(next)
+	_refresh_after_spec()
+
+
+func _refresh_after_spec() -> void:
+	_refresh_header()
+	if _spec:
+		_spec.refresh()
 
 
 func _on_slot_button(index: int) -> void:

@@ -126,34 +126,34 @@ metadata/_custom_type_script = "uid://bgit4iapmj1bm"
 
 [node name="CityLabel" type="Label" parent="."]
 visible = false
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -168.0
-offset_top = 24.0
-offset_right = -24.0
-offset_bottom = 68.0
-grow_horizontal = 0
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -314.0
+offset_top = 96.0
+offset_right = -190.0
+offset_bottom = 132.0
+grow_horizontal = 2
 theme_override_font_sizes/font_size = 28
-horizontal_alignment = 2
+vertical_alignment = 1
 text = "City"
 
 [node name="CityProgress" type="ProgressBar" parent="."]
 visible = false
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -72.0
-offset_top = 76.0
-offset_right = -28.0
-offset_bottom = 480.0
-grow_horizontal = 0
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -182.0
+offset_top = 100.0
+offset_right = 314.0
+offset_bottom = 128.0
+grow_horizontal = 2
 theme_override_styles/background = SubResource("StyleBoxFlat_city_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_city_fill")
 max_value = 1.0
 step = 0.0
 value = 1.0
-fill_mode = 3
+fill_mode = 0
 show_percentage = false
 
 [node name="ScriptPreview" type="Control" parent="."]
@@ -177,8 +177,15 @@ bbcode_enabled = true
 scroll_active = true
 
 [node name="SacrificeButton" type="Button" parent="."]
-offset_left = 24.0
-offset_top = 476.0
-offset_right = 244.0
-offset_bottom = 540.0
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -36.0
+offset_right = -24.0
+offset_bottom = 36.0
+grow_horizontal = 0
+grow_vertical = 2
 text = "Sacrifice"

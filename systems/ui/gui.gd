@@ -1,5 +1,7 @@
 extends Node
 
+signal unit_sacrificed(unit: Unit2D)
+
 const _Summoner := preload("res://systems/game/summoner.gd")
 
 
@@ -71,6 +73,7 @@ func _on_sacrifice_pressed() -> void:
 	if unit == null:
 		return
 	_Summoner.refund_unit(unit)
+	unit_sacrificed.emit(unit)
 	unit.die()
 
 

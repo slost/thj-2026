@@ -3,6 +3,8 @@
 extends Node
 class_name FocusDirector
 
+signal selection_changed(unit: Unit2D)
+
 const GROUP := &"focus_director"
 
 @export var indicator: Node2D
@@ -85,6 +87,7 @@ func select_target(target: FocusTargetComponent) -> void:
 		return
 	_pinned = target
 	_refresh()
+	selection_changed.emit(get_selected_unit())
 
 
 ## Right-click on a unit. True when the pinned minion queued an attack and should keep the pin.
@@ -97,6 +100,19 @@ func order_attack(target: FocusTargetComponent) -> bool:
 func clear_selection() -> void:
 	_pinned = null
 	_refresh()
+	selection_changed.emit(null)
+
+
+## Pins a minion even if the pointer is elsewhere. Used by the tutorial.
+func pin_unit(unit: Unit2D) -> void:
+	if unit == null or not is_instance_valid(unit):
+		return
+	if get_selected_unit() == unit:
+		return
+	var target := unit.get_node_or_null("ComponentContainer/UnitFocusComponent") as FocusTargetComponent
+	if target == null:
+		return
+	select_target(target)
 
 
 func get_selected_unit() -> Unit2D:
