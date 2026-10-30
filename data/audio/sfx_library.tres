@@ -1,0 +1,139 @@
+[gd_resource type="Resource" script_class="SfxLibrary" format=3]
+
+[ext_resource type="Script" path="res://systems/audio/sfx_cue.gd" id="1_0uy7s"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/dog/sfx_dog_attack_01.ogg" id="2_fisfa"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/dog/sfx_dog_attack_02.ogg" id="3_q0kcu"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/dog/sfx_dog_dead_01.ogg" id="4_0nrg8"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/dog/sfx_dog_hurt_01.ogg" id="5_mqm7u"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/general/sfx_general_magic_cast_01.ogg" id="6_rkvhp"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/general/sfx_general_page_turn_01.ogg" id="7_neq43"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/general/sfx_general_write_01.ogg" id="8_ox1kq"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/necromancer/sfx_necromancer_laugh_soft_01.ogg" id="9_7b4d4"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/necromancer/sfx_necromancer_laugh_soft_02.ogg" id="10_7ou4m"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/skeleton/sfx_skeleton_attack_01.ogg" id="11_pta8g"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/skeleton/sfx_skeleton_hurt_01.ogg" id="12_1a40a"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/skeleton/sfx_skeleton_idle_01.ogg" id="13_juep2"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/skeleton/sfx_skeleton_idle_02.ogg" id="14_f4o82"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/skeleton/sfx_skeleton_spawn_01.ogg" id="15_jg4hw"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/skeleton/sfx_skeleton_spawn_02.ogg" id="16_liu7s"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/villager/sfx_villager_attack_01.ogg" id="17_tbr3g"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/villager/sfx_villager_attack_02.ogg" id="18_qbhtw"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/weapon/sfx_weapon_bow_01.ogg" id="19_ahgiv"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/weapon/sfx_weapon_bow_02.ogg" id="20_57aua"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/weapon/sfx_weapon_fork_01.ogg" id="21_l4pt0"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/weapon/sfx_weapon_sword_01.ogg" id="22_dxqvd"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/zombie/sfx_zombie_attack_01.ogg" id="23_ivanf"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/zombie/sfx_zombie_attack_02.ogg" id="24_ntevj"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/zombie/sfx_zombie_dead_01.ogg" id="25_xoaey"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/zombie/sfx_zombie_dead_02.ogg" id="26_ninw6"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/zombie/sfx_zombie_hurt_01.ogg" id="27_f8owf"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/zombie/sfx_zombie_idle_01.ogg" id="28_cl76p"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/zombie/sfx_zombie_idle_02.ogg" id="29_vxmc5"]
+[ext_resource type="AudioStream" path="res://contents/audio/sfx/zombie/sfx_zombie_spawn.ogg" id="30_2gcm8"]
+[ext_resource type="Script" path="res://systems/audio/sfx_library.gd" id="31_rrdpi"]
+
+[sub_resource type="Resource" id="Resource_d7x1q"]
+script = ExtResource("1_0uy7s")
+id = "dog.attack"
+streams = Array[AudioStream]([ExtResource("2_fisfa"), ExtResource("3_q0kcu")])
+
+[sub_resource type="Resource" id="Resource_utyte"]
+script = ExtResource("1_0uy7s")
+id = "dog.dead"
+streams = Array[AudioStream]([ExtResource("4_0nrg8")])
+
+[sub_resource type="Resource" id="Resource_upfti"]
+script = ExtResource("1_0uy7s")
+id = "dog.hurt"
+streams = Array[AudioStream]([ExtResource("5_mqm7u")])
+
+[sub_resource type="Resource" id="Resource_h644q"]
+script = ExtResource("1_0uy7s")
+id = "general.magic_cast"
+streams = Array[AudioStream]([ExtResource("6_rkvhp")])
+
+[sub_resource type="Resource" id="Resource_5rm34"]
+script = ExtResource("1_0uy7s")
+id = "general.page_turn"
+streams = Array[AudioStream]([ExtResource("7_neq43")])
+
+[sub_resource type="Resource" id="Resource_svkeo"]
+script = ExtResource("1_0uy7s")
+id = "general.write"
+streams = Array[AudioStream]([ExtResource("8_ox1kq")])
+max_concurrent = 2
+min_interval = 0.12
+
+[sub_resource type="Resource" id="Resource_g5r47"]
+script = ExtResource("1_0uy7s")
+id = "necromancer.laugh_soft"
+streams = Array[AudioStream]([ExtResource("9_7b4d4"), ExtResource("10_7ou4m")])
+
+[sub_resource type="Resource" id="Resource_q6icl"]
+script = ExtResource("1_0uy7s")
+id = "skeleton.attack"
+streams = Array[AudioStream]([ExtResource("11_pta8g")])
+
+[sub_resource type="Resource" id="Resource_elgrm"]
+script = ExtResource("1_0uy7s")
+id = "skeleton.hurt"
+streams = Array[AudioStream]([ExtResource("12_1a40a")])
+
+[sub_resource type="Resource" id="Resource_htur0"]
+script = ExtResource("1_0uy7s")
+id = "skeleton.idle"
+streams = Array[AudioStream]([ExtResource("13_juep2"), ExtResource("14_f4o82")])
+
+[sub_resource type="Resource" id="Resource_ua2ib"]
+script = ExtResource("1_0uy7s")
+id = "skeleton.spawn"
+streams = Array[AudioStream]([ExtResource("15_jg4hw"), ExtResource("16_liu7s")])
+
+[sub_resource type="Resource" id="Resource_bjetl"]
+script = ExtResource("1_0uy7s")
+id = "villager.attack"
+streams = Array[AudioStream]([ExtResource("17_tbr3g"), ExtResource("18_qbhtw")])
+
+[sub_resource type="Resource" id="Resource_kvpuq"]
+script = ExtResource("1_0uy7s")
+id = "weapon.bow"
+streams = Array[AudioStream]([ExtResource("19_ahgiv"), ExtResource("20_57aua")])
+
+[sub_resource type="Resource" id="Resource_i5fge"]
+script = ExtResource("1_0uy7s")
+id = "weapon.fork"
+streams = Array[AudioStream]([ExtResource("21_l4pt0")])
+
+[sub_resource type="Resource" id="Resource_rbsw8"]
+script = ExtResource("1_0uy7s")
+id = "weapon.sword"
+streams = Array[AudioStream]([ExtResource("22_dxqvd")])
+
+[sub_resource type="Resource" id="Resource_rtyv1"]
+script = ExtResource("1_0uy7s")
+id = "zombie.attack"
+streams = Array[AudioStream]([ExtResource("23_ivanf"), ExtResource("24_ntevj")])
+
+[sub_resource type="Resource" id="Resource_x3oi5"]
+script = ExtResource("1_0uy7s")
+id = "zombie.dead"
+streams = Array[AudioStream]([ExtResource("25_xoaey"), ExtResource("26_ninw6")])
+
+[sub_resource type="Resource" id="Resource_1mo4b"]
+script = ExtResource("1_0uy7s")
+id = "zombie.hurt"
+streams = Array[AudioStream]([ExtResource("27_f8owf")])
+
+[sub_resource type="Resource" id="Resource_4wmym"]
+script = ExtResource("1_0uy7s")
+id = "zombie.idle"
+streams = Array[AudioStream]([ExtResource("28_cl76p"), ExtResource("29_vxmc5")])
+
+[sub_resource type="Resource" id="Resource_3j3rf"]
+script = ExtResource("1_0uy7s")
+id = "zombie.spawn"
+streams = Array[AudioStream]([ExtResource("30_2gcm8")])
+
+[resource]
+script = ExtResource("31_rrdpi")
+cues = Array[ExtResource("1_0uy7s")]([SubResource("Resource_d7x1q"), SubResource("Resource_utyte"), SubResource("Resource_upfti"), SubResource("Resource_h644q"), SubResource("Resource_5rm34"), SubResource("Resource_svkeo"), SubResource("Resource_g5r47"), SubResource("Resource_q6icl"), SubResource("Resource_elgrm"), SubResource("Resource_htur0"), SubResource("Resource_ua2ib"), SubResource("Resource_bjetl"), SubResource("Resource_kvpuq"), SubResource("Resource_i5fge"), SubResource("Resource_rbsw8"), SubResource("Resource_rtyv1"), SubResource("Resource_x3oi5"), SubResource("Resource_1mo4b"), SubResource("Resource_4wmym"), SubResource("Resource_3j3rf")])

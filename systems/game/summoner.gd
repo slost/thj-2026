@@ -50,7 +50,11 @@ static func summon(spell: SummonSpell, scene_root: Node, world_pos: Vector2) -> 
 	member.paid = _copy_paid(cost_entries(spell))
 	member.spell_slot = Game.spells.find(spell)
 	Game.army.append(member)
-	return spawn_member(member, scene_root, world_pos)
+	var unit := spawn_member(member, scene_root, world_pos)
+	if unit != null:
+		Sfx.play("general.magic_cast")
+		Sfx.play_summon_laugh()
+	return unit
 
 
 ## Stats copied off the spell, plus a program the spell can no longer edit.

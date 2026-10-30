@@ -47,17 +47,18 @@ static func move_lines(lines: Array[ScriptLine], from_index: int, gap: int, requ
 
 
 ## Tab is +1, Shift+Tab is -1. Already being at the limit does nothing.
-static func nudge_indent(lines: Array[ScriptLine], index: int, delta: int) -> void:
+static func nudge_indent(lines: Array[ScriptLine], index: int, delta: int) -> bool:
 	if delta == 0 or index < 0 or index >= lines.size() or lines[index] == null:
-		return
+		return false
 	var current := maxi(lines[index].indent, 0)
 	var clamped := clamped_indent(lines, index, current + delta)
 	var applied := clamped - current
 	if delta > 0 and applied <= 0:
-		return
+		return false
 	if delta < 0 and applied >= 0:
-		return
+		return false
 	_shift_subtree(lines, index, applied)
+	return true
 
 
 ## Removes one line. A condition outdents the deeper lines under it by one.

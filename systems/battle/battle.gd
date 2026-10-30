@@ -180,6 +180,8 @@ func _open_stage_end(city_fallen := true, sting_key := "") -> void:
 	if game and game.has_method("play_battle_sting"):
 		var key := sting_key if sting_key != "" else Game.BGM_BATTLE_WIN
 		game.play_battle_sting(key)
+		if key == Game.BGM_BATTLE_WIN:
+			Sfx.play_laugh(1.0, true)
 	var bar := _city_bar()
 	if city_fallen and bar:
 		bar.value = 0.0
@@ -469,6 +471,7 @@ func accepts_field_pointer() -> bool:
 
 
 func set_state(new_state: State = State.FIELD) -> void:
+	var entering_code := new_state == State.CODE and current_state != State.CODE
 	current_state = new_state
 	_CodeBook.set_open(book, code_editor, current_state == State.CODE)
 	_update_state_buttons()
@@ -480,6 +483,8 @@ func set_state(new_state: State = State.FIELD) -> void:
 		set_summon_preview(false)
 	if GUI:
 		GUI.update_portrait()
+	if entering_code:
+		Sfx.play_ui("general.page_turn")
 
 
 func set_summon_preview(active: bool) -> void:
