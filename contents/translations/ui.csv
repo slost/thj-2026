@@ -4,6 +4,8 @@ ui.town.difficulty,Difficulty {rank},ความยาก {rank}
 ui.town.units,Villagers,ชาวบ้าน
 ui.town.no_units,None,ไม่มี
 ui.town.rewards,Possible rewards,รางวัลที่เป็นไปได้
+ui.battle.rewards,Rewards,รางวัล
+ui.battle.no_rewards,No rewards,ไม่มีรางวัล
 ui.town.no_rewards,None,ไม่มี
 ui.town.raid,Raid,บุก
 ui.town.locked,Locked,ยังล็อกอยู่
