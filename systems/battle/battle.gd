@@ -181,7 +181,31 @@ func _open_stage_end(city_fallen := true) -> void:
 		bar.value = 0.0
 	if _stage_end:
 		_stage_end.visible = true
+		var reveal := _stage_end.get_node_or_null("RewardReveal")
+		if reveal and reveal.has_method("play"):
+			reveal.call("play", _received_rewards())
 	get_tree().paused = true
+
+
+## Amounts this raid pays. Same split the map grants when the battle closes.
+func _received_rewards() -> Array:
+	var game := _game()
+	if game == null:
+		return []
+	var lost := clampf(1.0 - _villager_ratio(), 0.0, 1.0)
+	var source: Array = game.get("raid_rewards")
+	var lines: Array = []
+	for entry in source:
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		var amount := Formular.raid_reward_payout(int(entry.get("amount", 0)), lost)
+		if amount <= 0:
+			continue
+		lines.append({
+			"resource_type": int(entry.get("resource_type", 0)),
+			"amount": amount,
+		})
+	return lines
 
 
 func _city_bar() -> ProgressBar:

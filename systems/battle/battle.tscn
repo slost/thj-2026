@@ -11,6 +11,7 @@
 [ext_resource type="Texture2D" uid="uid://dqmg8d3tr3fsm" path="res://placeholders/text_pages.png" id="8_pages"]
 [ext_resource type="Script" uid="uid://bgit4iapmj1bm" path="res://addons/lost_framework/modules/asset_manager/hot_swap_sprite.gd" id="9_swap"]
 [ext_resource type="Script" uid="uid://dr6gpm73wngym" path="res://addons/lost_framework/modules/camera_controler/parallax_offset_component.gd" id="10_parallax"]
+[ext_resource type="Script" path="res://systems/battle/reward_reveal.gd" id="11_reward"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_ksea4"]
 texture = ExtResource("3_8h5sc")
@@ -92,6 +93,34 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 1)
+
+[node name="RewardReveal" type="VBoxContainer" parent="CanvasLayer/StageEndScreen"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -480.0
+offset_top = -320.0
+offset_right = 480.0
+offset_bottom = -80.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+alignment = 1
+script = ExtResource("11_reward")
+
+[node name="Title" type="Label" parent="CanvasLayer/StageEndScreen/RewardReveal"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "Rewards"
+horizontal_alignment = 1
+
+[node name="Row" type="HBoxContainer" parent="CanvasLayer/StageEndScreen/RewardReveal"]
+layout_mode = 2
+theme_override_constants/separation = 28
+alignment = 1
 
 [node name="BackButton" type="Button" parent="CanvasLayer/StageEndScreen" unique_id=1229068114]
 layout_mode = 1
