@@ -12,7 +12,8 @@ const _FLASH_TIME := 1.6
 ]
 
 var _spell_index := -1
-var _ghost: Sprite2D
+var _ghost: Node2D
+var _ghost_spell := -2
 var _flash_left := 0.0
 var _selecting := false
 
@@ -60,6 +61,8 @@ func _should_show() -> bool:
 	var stage := Game.current_stage
 	if stage == null or not is_instance_valid(stage):
 		return false
+	if stage.has_method("allows_summon_bar"):
+		return bool(stage.call("allows_summon_bar"))
 	if stage is WorldMap:
 		return (stage as WorldMap).current_state == WorldMap.State.CAMP
 	return stage.has_method("spawn_raid_party")
@@ -191,9 +194,8 @@ func _confirm() -> void:
 
 func _cancel_placement() -> void:
 	_spell_index = -1
-	if _ghost != null and is_instance_valid(_ghost):
-		_ghost.queue_free()
-	_ghost = null
+	_free_ghost()
+	_set_summon_preview(false)
 	_selecting = true
 	for button in _buttons:
 		button.button_pressed = false
@@ -201,18 +203,83 @@ func _cancel_placement() -> void:
 
 
 func _ensure_ghost() -> void:
-	if _ghost != null and is_instance_valid(_ghost):
+	if _ghost != null and is_instance_valid(_ghost) and _ghost_spell == _spell_index:
+		_set_summon_preview(true)
 		return
+	_free_ghost()
 	var stage := Game.current_stage
 	if stage == null:
 		return
-	var ghost := Sprite2D.new()
+	var spell: SummonSpell = null
+	if _spell_index >= 0 and _spell_index < Game.spells.size():
+		spell = Game.spells[_spell_index]
+	var ghost := Node2D.new()
 	ghost.name = "SummonGhost"
-	ghost.texture = _GHOST_TEXTURE
 	ghost.z_index = 40
 	ghost.modulate = Color(1, 1, 1, 0.55)
+	_mount_preview(ghost, spell)
 	stage.add_child(ghost)
 	_ghost = ghost
+	_ghost_spell = _spell_index
+	_set_summon_preview(true)
+
+
+func _free_ghost() -> void:
+	if _ghost != null and is_instance_valid(_ghost):
+		_ghost.queue_free()
+	_ghost = null
+	_ghost_spell = -2
+
+
+func _mount_preview(host: Node2D, spell: SummonSpell) -> void:
+	var race := Unit2D.Race.ZOMBIE
+	if spell != null and spell.def != null:
+		race = spell.def.race
+	var path := Unit2D.scene_path_for_race(race)
+	var scene: PackedScene = null
+	if path != "":
+		scene = load(path) as PackedScene
+	var visual: Node2D = null
+	if scene != null:
+		visual = scene.instantiate() as Node2D
+	if visual == null:
+		var sprite := Sprite2D.new()
+		sprite.texture = _GHOST_TEXTURE
+		host.add_child(sprite)
+		return
+	visual.name = "Visual"
+	host.add_child(visual)
+	if Unit2D.is_villager_race(race):
+		Unit2D.randomize_villager_sprites(visual)
+	_loop_spawn(visual.get_node_or_null("AnimationPlayer") as AnimationPlayer)
+
+
+## Plays a copy of spawn on loop. The shared clip on the animation scene stays unchanged.
+func _loop_spawn(player: AnimationPlayer) -> void:
+	if player == null or not player.has_animation(&"spawn"):
+		return
+	var source := player.get_animation(&"spawn")
+	if source == null:
+		return
+	var clip := source.duplicate(true) as Animation
+	if clip == null:
+		return
+	clip.loop_mode = Animation.LOOP_LINEAR
+	var library := AnimationLibrary.new()
+	library.add_animation(&"spawn", clip)
+	var library_name := &"ghost"
+	if player.has_animation_library(library_name):
+		player.remove_animation_library(library_name)
+	player.add_animation_library(library_name, library)
+	player.play(&"ghost/spawn")
+
+
+func _set_summon_preview(active: bool) -> void:
+	var stage := Game.current_stage
+	if stage != null and stage.has_method("set_summon_preview"):
+		stage.call("set_summon_preview", active)
+	if GUI != null and GUI.has_method("set_summoning"):
+		GUI.set_summoning(active)
 
 
 func _follow_ghost() -> void:

@@ -745,8 +745,8 @@ func _test_world_map_book() -> void:
 	if pages == null or not pages.follow_viewport_enabled or pages.layer <= 1 or pages.layer >= 10:
 		_fail("code pages are not on a layer between the portrait and the map buttons")
 	var gui := root.get_node_or_null(^"GUI") as CanvasLayer
-	if gui and pages.layer <= gui.layer:
-		_fail("code pages are still under the portrait layer")
+	if gui == null or gui.layer != 99:
+		_fail("portrait layer is not 99")
 	if world.get_node_or_null(^"BookBackground/Editor") != null:
 		_fail("code pages are still parented under the book")
 	if editor.get_node_or_null(^"Camera2D") != null:
@@ -929,8 +929,41 @@ func _test_raid_spawns_roster() -> void:
 				_fail("raid script does not start with the roster block")
 		if unit.stats and slot.def and unit.stats.ram != slot.ram_max():
 			_fail("raid unit ram is %d, slot ram is %d" % [unit.stats.ram, slot.ram_max()])
-	if battle.get_node_or_null(^"CanvasLayer/ScriptDebugPanel") == null:
+	var panel := root.get_node_or_null(^"GUI/ScriptPreview")
+	if panel == null:
 		_fail("raid battle has no script panel")
+	elif minions.size() == 1:
+		var shown := minions[0]
+		if int(shown.get("spell_slot")) != 0:
+			_fail("raid unit did not remember its spell slot")
+		await process_frame
+		var label := panel.get_node_or_null(^"Body") as RichTextLabel
+		var text := label.text if label else ""
+		if not text.contains(slot.display_name()):
+			_fail("script preview is not named for the spell slot")
+		if text.contains("(Old)"):
+			_fail("fresh raid script was marked old")
+		if not text.contains("Doing"):
+			_fail("script preview does not show the current action")
+		var cpu_with_gpu := false
+		for line in text.split("\n"):
+			if line.contains("CPU") and line.contains("GPU"):
+				cpu_with_gpu = true
+		if not cpu_with_gpu:
+			_fail("CPU and GPU are not on the same line")
+		var doing_beside_ram := false
+		for line in text.split("\n"):
+			if line.contains("Doing") and line.contains("RAM"):
+				doing_beside_ram = true
+		if not doing_beside_ram:
+			_fail("current action is not beside RAM")
+		var live := slot.get_update_function()
+		if live and not live.lines.is_empty():
+			live.lines.append(live.lines[0].duplicate())
+			await process_frame
+			if not label.text.contains("(Old)"):
+				_fail("edited spell slot was not marked old")
+			live.lines.pop_back()
 	var director := battle.get_node_or_null(^"FocusDirector") as FocusDirector
 	if director == null or director.get_inspected_unit() == null:
 		_fail("raid script panel has no minion pinned")

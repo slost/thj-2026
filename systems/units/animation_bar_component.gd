@@ -20,6 +20,9 @@ func _setup() -> void:
 		push_warning("AnimationBarComponent has no host")
 		return
 	_create_bar()
+	var unit := _host as Unit2D
+	if unit != null and unit.team == Unit2D.Team.VILLAGER:
+		set_bar_visible(false)
 
 
 func set_bar_visible(show: bool) -> void:

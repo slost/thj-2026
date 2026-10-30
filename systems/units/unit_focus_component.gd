@@ -3,6 +3,13 @@ extends FocusTargetComponent
 class_name UnitFocusComponent
 
 
+func can_select() -> bool:
+	var unit := get_host() as Unit2D
+	if unit != null and unit.team == Unit2D.Team.VILLAGER:
+		return false
+	return super.can_select()
+
+
 func get_debug_text() -> String:
 	var unit := get_host() as Unit2D
 	if unit == null:

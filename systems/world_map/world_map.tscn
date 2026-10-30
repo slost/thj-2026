@@ -11,7 +11,9 @@
 [ext_resource type="PackedScene" uid="uid://caqqo21gm7uu2" path="res://systems/world_map/map.tscn" id="8_5xdch"]
 [ext_resource type="Script" uid="uid://bo1xnktwb64sr" path="res://systems/world_map/map_state_button.gd" id="10_5rc7b"]
 [ext_resource type="PackedScene" uid="uid://b7gl0em3a23l" path="res://systems/code_editor/editor.tscn" id="11_editor"]
-[ext_resource type="Script" path="res://systems/world_map/camp_ground.gd" id="12_camp"]
+[ext_resource type="Script" uid="uid://bnkjedhp1d7ys" path="res://systems/world_map/camp_ground.gd" id="12_camp"]
+[ext_resource type="Script" path="res://systems/world_map/town_info_panel.gd" id="13_info"]
+[ext_resource type="TileSet" uid="uid://b6cn8ildm8ly" path="res://contents/tile_set.tres" id="14_tiles"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_6ji8r"]
 font_size = 32
@@ -50,8 +52,6 @@ corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 expand_margin_left = 16.0
 expand_margin_right = 16.0
-
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_26kkc"]
 
 [node name="WorldMap" type="Node2D" unique_id=1345538956 node_paths=PackedStringArray("indicator", "debug_label", "map", "camp", "book", "code_editor", "town_info", "map_marker", "map_button", "camp_button", "code_button")]
 script = ExtResource("1_k73hb")
@@ -123,21 +123,24 @@ state = 3
 offset_left = 1282.0
 offset_top = 176.0
 offset_right = 1794.0
-offset_bottom = 616.0
+offset_bottom = 820.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_vjbm6")
+script = ExtResource("13_info")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UI/TownInfo" unique_id=1639501412]
 layout_mode = 2
 theme_override_constants/separation = 32
 
-[node name="Label" type="Label" parent="UI/TownInfo/VBoxContainer" unique_id=2069535344]
+[node name="NameLabel" type="Label" parent="UI/TownInfo/VBoxContainer" unique_id=2069535344]
 layout_mode = 2
-text = "CITY A
-Units:
-[ ]
-Poissble Rewards: 
-[ ] "
+text = "Town"
 label_settings = SubResource("LabelSettings_vjbm6")
+
+[node name="BodyLabel" type="Label" parent="UI/TownInfo/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+autowrap_mode = 3
+text = ""
 
 [node name="ProgressBar" type="ProgressBar" parent="UI/TownInfo/VBoxContainer" unique_id=456747565]
 custom_minimum_size = Vector2(0, 64)
@@ -162,7 +165,7 @@ scale = Vector2(0.99999994, 0.99999994)
 layer = 5
 follow_viewport_enabled = true
 
-[node name="Editor" parent="CodeLayer" instance=ExtResource("11_editor") node_paths=PackedStringArray("book")]
+[node name="Editor" parent="CodeLayer" unique_id=1197573547 node_paths=PackedStringArray("book") instance=ExtResource("11_editor")]
 book = NodePath("../../BookBackground/BookScreen")
 active_on_ready = false
 
@@ -190,19 +193,9 @@ max_offset = Vector2(76.8, 48)
 [node name="Camp" type="Node2D" parent="." unique_id=2094654453]
 script = ExtResource("12_camp")
 
-[node name="TextureRect" type="TextureRect" parent="Camp" unique_id=250820297]
-visible = false
-offset_left = -1044.0
-offset_top = -601.0
-offset_right = 1084.0
-offset_bottom = 641.0
-texture = SubResource("PlaceholderTexture2D_26kkc")
-
-[node name="Label" type="Label" parent="Camp" unique_id=1437702104]
-offset_right = 40.0
-offset_bottom = 23.0
-theme_override_font_sizes/font_size = 128
-text = "CAMP"
+[node name="Map" type="TileMapLayer" parent="Camp"]
+z_index = -2
+tile_set = ExtResource("14_tiles")
 
 [node name="BookBackground" type="Node2D" parent="." unique_id=164887823]
 z_index = 9

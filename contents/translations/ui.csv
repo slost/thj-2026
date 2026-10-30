@@ -1,0 +1,27 @@
+keys,en,th
+ui.town.untitled,Town,เมือง
+ui.town.difficulty,Difficulty {rank},ความยาก {rank}
+ui.town.units,Villagers,ชาวบ้าน
+ui.town.no_units,None,ไม่มี
+ui.town.rewards,Possible rewards,รางวัลที่เป็นไปได้
+ui.town.no_rewards,None,ไม่มี
+ui.town.raid,Raid,บุก
+ui.town.locked,Locked,ยังล็อกอยู่
+ui.town.cleared,Cleared,เคลียร์แล้ว
+ui.town.villager,Villager,ชาวบ้าน
+ui.town.villager_ranged,Ranged villager,ชาวบ้านระยะไกล
+ui.town.unit_line,{name} x{count},{name} x{count}
+ui.town.reward_line,{name} x{count},{name} x{count}
+ui.town.flees,flees,วิ่งหนี
+ui.town.fights,fights,สู้
+ui.resource.corpse,Corpse,ศพ
+ui.resource.bone,Bone,กระดูก
+ui.resource.weapon,Weapon,อาวุธ
+ui.resource.collar,Collar,ปลอกคอ
+ui.resource.gore,Gore,เนื้อ
+location.small_village.name,Small Village,หมู่บ้านเล็ก
+location.small_village.desc,A quiet hamlet. The people run.,หมู่บ้านเงียบ ๆ คนที่นี่จะวิ่งหนี
+location.small_village_b.name,Crossroad Village,หมู่บ้านทางแยก
+location.small_village_b.desc,A village that stands and fights.,หมู่บ้านที่ยืนสู้
+location.small_village_c.name,Palisade Village,หมู่บ้านรั้วไม้
+location.small_village_c.desc,A walled village. Clear an easier town before the road opens.,หมู่บ้านที่มีกำแพง ต้องเคลียร์เมืองที่ง่ายกว่าก่อนถึงจะเข้าได้

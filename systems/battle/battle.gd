@@ -1,7 +1,15 @@
 extends Node2D
 
+enum State { FIELD, CODE }
+
 const _INDICATOR_TEXTURE := preload("res://placeholders/tex_indicator.png")
 const _Summoner := preload("res://systems/game/summoner.gd")
+const _CodeBook := preload("res://systems/code_editor/code_book.gd")
+const _SummonArea := preload("res://systems/battle/summon_area_overlay.gd")
+const _MapGenerator := preload("res://systems/battle/map_generator.gd")
+const _OrderMove := preload("res://systems/blocks/order_move.gd")
+const _OrderAttack := preload("res://systems/blocks/order_attack.gd")
+const _VillagerBrain := preload("res://systems/units/villager_brain.gd")
 const _UNIT_SCENE := preload("res://systems/units/unit.tscn")
 const _SPAWN_CELLS: Array[Vector2i] = [
 	Vector2i(-4, -3),
@@ -9,21 +17,44 @@ const _SPAWN_CELLS: Array[Vector2i] = [
 	Vector2i(-4, 1),
 	Vector2i(-4, 3),
 ]
+## Right side of the map, opposite the summon band.
+const _DEFENDER_CELLS: Array[Vector2i] = [
+	Vector2i(6, -4), Vector2i(6, -2), Vector2i(6, 0), Vector2i(6, 2), Vector2i(6, 4),
+	Vector2i(8, -3), Vector2i(8, -1), Vector2i(8, 1), Vector2i(8, 3),
+	Vector2i(10, -4), Vector2i(10, -2), Vector2i(10, 0), Vector2i(10, 2), Vector2i(10, 4),
+]
 
 @onready var _camera: Camera2D = $Camera2D
 @onready var _stage_end: Control = $CanvasLayer/StageEndScreen
-@onready var _city_progress: ProgressBar = $CanvasLayer/CityProgress
 
-## Cells the player may summon into. Covers the old left-edge spawn column.
-@export var summon_area: Rect2i = Rect2i(-6, -4, 3, 8)
+## Cells the player may summon into. x -11..-4 and the full walkable height y -7..7.
+@export var summon_area: Rect2i = Rect2i(-11, -7, 8, 15)
 ## The raid used to drop every spell on the field. The hotbar summons instead.
 @export var spawn_raid_party_on_ready: bool = false
+## When true, units stop moving and thinking while the book is open. The UI keeps running.
+@export var pause_while_coding := false
+## Click a pinned minion's destination or an enemy to queue a move or an attack.
+## Turn this off to leave commands entirely to the written scripts.
+@export var direct_orders := true
+
+@export var field_button: Button
+@export var code_button: Button
+@export var book: Node2D
+## Node, not the editor script: that script reads Game, and a global class would compile too early.
+@export var code_editor: Node
 
 ## Max HP of every villager that has entered this battle, kept after the body is gone.
 var _villager_max: Dictionary = {}
 var _stage_ended := false
 var _party_spawned := false
 var _army_spawned := false
+var _defenders_spawned := false
+var _raid_committed := false
+var current_state: State = State.FIELD
+var _summon_overlay: Node2D
+var _field_zoom := Vector2.ZERO
+var _field_camera_position := Vector2.ZERO
+var _camera_saved := false
 
 
 func _ready() -> void:
@@ -32,22 +63,41 @@ func _ready() -> void:
 		game.change_stage(self)
 	if _camera:
 		_camera.make_current()
+	_generate_map()
 	_ensure_grid()
 	var hover := _ensure_indicator("IndicatorSprite", 20)
 	var pin := _ensure_indicator("PinIndicator", 19)
 	_wire_focus(hover, pin)
 	if _is_raid_scene():
 		mount_raid_tools()
+		spawn_town_defenders()
 		if spawn_raid_party_on_ready:
 			spawn_raid_party()
 		else:
 			spawn_army()
 	if _stage_end:
 		_stage_end.visible = false
+	set_state(State.FIELD)
+	_set_city_chrome(true)
 	_refresh_city_progress()
+	if _is_raid_scene():
+		declare_victory_if_clear()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if current_state != State.CODE or event is not InputEventKey:
+		return
+	var key := event as InputEventKey
+	if key.pressed and not key.echo and key.keycode == KEY_ESCAPE:
+		set_state(State.FIELD)
+		get_viewport().set_input_as_handled()
 
 
 func _process(_delta: float) -> void:
+	if pause_while_coding and current_state == State.CODE:
+		_set_units_paused(true)
+	if current_state == State.CODE:
+		_sync_unit_bars()
 	if _stage_ended:
 		return
 	var ratio := _refresh_city_progress()
@@ -55,6 +105,26 @@ func _process(_delta: float) -> void:
 		return
 	if ratio <= 0.0:
 		_open_stage_end()
+
+
+## A raid with nobody left to fight is already won. The town takes no stake damage.
+func declare_victory_if_clear() -> void:
+	if _stage_ended or _living_enemy():
+		return
+	_open_stage_end(false)
+
+
+func _living_enemy() -> bool:
+	var tree := get_tree()
+	if tree == null:
+		return false
+	for node in tree.get_nodes_in_group(Unit2D.GROUP):
+		var unit := node as Unit2D
+		if unit == null or unit.state == Unit2D.State.DEAD:
+			continue
+		if unit.team == Unit2D.Team.VILLAGER:
+			return true
+	return false
 
 
 func _on_retreat_pressed() -> void:
@@ -83,6 +153,7 @@ func _confirm_retreat() -> void:
 
 
 func _on_button_pressed() -> void:
+	commit_raid_outcome()
 	if get_tree().paused:
 		get_tree().paused = false
 	var game := _game()
@@ -97,21 +168,43 @@ func _game() -> Node:
 	return tree.root.get_node_or_null("Game")
 
 
-func _open_stage_end() -> void:
+func _exit_tree() -> void:
+	_set_city_chrome(false)
+
+
+func _open_stage_end(city_fallen := true) -> void:
 	if _stage_ended:
 		return
 	_stage_ended = true
-	if _city_progress:
-		_city_progress.value = 0.0
+	var bar := _city_bar()
+	if city_fallen and bar:
+		bar.value = 0.0
 	if _stage_end:
 		_stage_end.visible = true
 	get_tree().paused = true
 
 
+func _city_bar() -> ProgressBar:
+	if GUI == null:
+		return null
+	return GUI.get_node_or_null("CityProgress") as ProgressBar
+
+
+func _set_city_chrome(show: bool) -> void:
+	if GUI == null:
+		return
+	for node_name in ["CityLabel", "CityProgress"]:
+		var node := GUI.get_node_or_null(node_name) as CanvasItem
+		if node:
+			node.visible = show
+
+
 func _refresh_city_progress() -> float:
 	var ratio := _villager_ratio()
-	if _city_progress:
-		_city_progress.value = ratio
+	# The bar is the raid's stake slice: full means none of it was lost this battle.
+	var bar := _city_bar()
+	if bar:
+		bar.value = 1.0 - clampf(1.0 - ratio, 0.0, 1.0)
 	return ratio
 
 
@@ -204,12 +297,6 @@ func mount_raid_tools() -> void:
 		add_child(director)
 	director.indicator = hover
 	director.pin_indicator = pin
-	var layer := get_node_or_null("CanvasLayer")
-	if layer == null or layer.get_node_or_null("ScriptDebugPanel") != null:
-		return
-	var panel := ScriptDebugPanel.new()
-	panel.name = "ScriptDebugPanel"
-	layer.add_child(panel)
 
 
 ## Spawns one minion per raid slot. The unit gets a copy of the slot program.
@@ -243,6 +330,7 @@ func spawn_raid_party() -> void:
 		if unit == null:
 			continue
 		unit.def = _def_for_slot(slot)
+		unit.spell_slot = index
 		unit.name = _party_name(slot, index)
 		unit.position = _cell_position(map, _SPAWN_CELLS[spawned % _SPAWN_CELLS.size()])
 		_Summoner.unit_container(self).add_child(unit)
@@ -262,7 +350,7 @@ func summon_spot(world_pos: Vector2) -> Dictionary:
 		return {"ok": false, "pos": world_pos}
 	var cell := grid.world_to_cell(world_pos)
 	var pos := grid.cell_to_world(cell)
-	var ok := summon_area.has_point(cell) and grid.is_walkable_cell(cell)
+	var ok := summon_area.has_point(cell) and grid.is_walkable_cell(cell) and not _cell_has_unit(cell)
 	return {"ok": ok, "pos": pos}
 
 
@@ -338,3 +426,240 @@ func _summon_cells() -> Array[Vector2i]:
 	if cells.is_empty():
 		cells.append_array(_SPAWN_CELLS)
 	return cells
+
+
+func is_coding() -> bool:
+	return current_state == State.CODE
+
+
+func allows_summon_bar() -> bool:
+	return current_state == State.FIELD and not _stage_ended
+
+
+func accepts_field_pointer() -> bool:
+	return current_state == State.FIELD
+
+
+func set_state(new_state: State = State.FIELD) -> void:
+	current_state = new_state
+	_CodeBook.set_open(book, code_editor, current_state == State.CODE)
+	_update_state_buttons()
+	_set_field_pointer(current_state == State.FIELD)
+	_set_units_paused(pause_while_coding and current_state == State.CODE)
+	_frame_code_camera(current_state == State.CODE)
+	_sync_unit_bars()
+	if current_state != State.FIELD:
+		set_summon_preview(false)
+	if GUI:
+		GUI.update_portrait()
+
+
+func set_summon_preview(active: bool) -> void:
+	var overlay := _ensure_summon_overlay()
+	if not active or current_state != State.FIELD:
+		overlay.hide_area()
+		return
+	overlay.show_area(get_node_or_null("GridNav") as GridNav, summon_area)
+
+
+## Stores this battle's stake damage once. Retreat and the stage-end exit both come through here.
+func commit_raid_outcome() -> void:
+	if _raid_committed:
+		return
+	var game := _game()
+	if game == null or not bool(game.get("raid_outcome_pending")):
+		return
+	_raid_committed = true
+	var max_points := float(game.get("raid_target_max_points"))
+	var lost := clampf(1.0 - _villager_ratio(), 0.0, 1.0)
+	game.set("pending_raid_damage", Formular.raid_damage(max_points, lost))
+	game.set("pending_raid_lost_ratio", lost)
+
+
+func _update_state_buttons() -> void:
+	if field_button:
+		field_button.modulate = Color.WHITE if current_state == State.FIELD else Game.DISABLED_COLOR
+	if code_button:
+		code_button.modulate = Color.WHITE if current_state == State.CODE else Game.DISABLED_COLOR
+
+
+func _set_field_pointer(open: bool) -> void:
+	var tree := get_tree()
+	if tree == null:
+		return
+	for node in tree.get_nodes_in_group(FocusDirector.GROUP):
+		var director := node as FocusDirector
+		if director:
+			director.set_accepts_pointer(open)
+
+
+func _set_units_paused(paused: bool) -> void:
+	var tree := get_tree()
+	if tree == null:
+		return
+	var mode := Node.PROCESS_MODE_DISABLED if paused else Node.PROCESS_MODE_INHERIT
+	for node in tree.get_nodes_in_group(Unit2D.GROUP):
+		var unit := node as Node
+		if unit:
+			unit.process_mode = mode
+
+
+## World map opens the book at camera zoom 1. Match that while coding, then restore the battle view.
+func _frame_code_camera(open: bool) -> void:
+	if _camera == null:
+		return
+	if book:
+		book.scale = Vector2.ONE
+	if open:
+		if not _camera_saved:
+			_field_zoom = _camera.zoom
+			_field_camera_position = _camera.position
+			_camera_saved = true
+		_camera.zoom = Vector2.ONE
+		_camera.position = book.global_position if book != null else Vector2.ZERO
+		return
+	if not _camera_saved:
+		return
+	_camera.zoom = _field_zoom
+	_camera.position = _field_camera_position
+	_camera_saved = false
+
+
+func _sync_unit_bars() -> void:
+	var show := current_state == State.FIELD
+	for node in find_children("*", "Unit2D", true, false):
+		if node.has_method("set_status_bars_visible"):
+			node.call("set_status_bars_visible", show)
+
+
+func _generate_map() -> void:
+	var map := get_node_or_null("TileMaps/Map") as TileMapLayer
+	var decor := get_node_or_null("TileMaps/Decor") as TileMapLayer
+	_MapGenerator.generate(map, decor)
+
+
+func _cell_has_unit(cell: Vector2i) -> bool:
+	var grid := get_node_or_null("GridNav") as GridNav
+	var tree := get_tree()
+	if grid == null or tree == null:
+		return false
+	for node in tree.get_nodes_in_group(Unit2D.GROUP):
+		var unit := node as Unit2D
+		if unit == null or unit.state == Unit2D.State.DEAD:
+			continue
+		if grid.world_to_cell(unit.global_position) == cell:
+			return true
+	return false
+
+
+## Queues a walk to the clicked cell. False when orders are off or the cell cannot be a goal.
+func issue_move_order(unit: Unit2D, world_pos: Vector2) -> bool:
+	if not _can_order(unit):
+		return false
+	var grid := get_node_or_null("GridNav") as GridNav
+	if grid == null:
+		return false
+	var cell := grid.world_to_cell(world_pos)
+	if not grid.is_walkable_cell(cell):
+		return false
+	var order = _OrderMove.new()
+	order.goal = cell
+	unit.enqueue_order(order)
+	return true
+
+
+## Queues an attack on one enemy. False when that unit is not an enemy of the pinned minion.
+func issue_attack_order(unit: Unit2D, enemy: Unit2D) -> bool:
+	if not _can_order(unit) or enemy == null or not unit.is_enemy(enemy):
+		return false
+	if enemy.state == Unit2D.State.DEAD:
+		return false
+	var order = _OrderAttack.new()
+	order.target = enemy
+	unit.enqueue_order(order)
+	return true
+
+
+func _can_order(unit: Unit2D) -> bool:
+	return (
+		direct_orders
+		and current_state == State.FIELD
+		and unit != null
+		and unit.team == Unit2D.Team.MINION
+		and unit.state != Unit2D.State.DEAD
+	)
+
+
+## Spawns the raided town's villagers on the right side. Safe to call once.
+func spawn_town_defenders() -> void:
+	if _defenders_spawned:
+		return
+	_defenders_spawned = true
+	var game := _game()
+	if game == null:
+		return
+	var rows: Array = game.get("raid_garrison")
+	if rows.is_empty():
+		return
+	var map := get_node_or_null("TileMaps/Map") as TileMapLayer
+	var grid := get_node_or_null("GridNav") as GridNav
+	var cursor := 0
+	var serial := 1
+	for entry in rows:
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		var row: Dictionary = entry
+		var count := maxi(int(row.get("count", 0)), 0)
+		var race: Unit2D.Race = int(row.get("race", Unit2D.Race.VILLAGER_MELEE))
+		var flees := bool(row.get("flees", false))
+		for _n in count:
+			var spot := _defender_cell(grid, cursor)
+			cursor = int(spot.get("next", cursor))
+			if not bool(spot.get("ok", false)):
+				return
+			var unit := _UNIT_SCENE.instantiate() as Unit2D
+			if unit == null:
+				continue
+			unit.def = _defender_def(row, race, flees)
+			unit.name = "Villager %d" % serial
+			serial += 1
+			var cell := spot.get("cell", Vector2i.ZERO) as Vector2i
+			unit.position = _cell_position(map, cell)
+			_Summoner.unit_container(self).add_child(unit)
+
+
+func _defender_cell(grid: GridNav, start: int) -> Dictionary:
+	for index in range(start, _DEFENDER_CELLS.size()):
+		var cell := _DEFENDER_CELLS[index]
+		if grid == null or grid.is_walkable_cell(cell):
+			return {"ok": true, "cell": cell, "next": index + 1}
+	return {"ok": false, "cell": Vector2i.ZERO, "next": _DEFENDER_CELLS.size()}
+
+
+func _defender_def(row: Dictionary, race: Unit2D.Race, flees: bool) -> UnitDef:
+	var def := UnitDef.new()
+	def.team = Unit2D.Team.VILLAGER
+	def.race = race
+	def.max_hp = maxi(int(row.get("max_hp", 16)), 1)
+	def.damage = maxi(int(row.get("damage", 3)), 0)
+	def.speed = 110.0 if flees else 80.0
+	def.detect_range = 7
+	def.attack_range = 4 if race == Unit2D.Race.VILLAGER_RANGED else 1
+	def.cpu = 2
+	def.gpu = 2
+	def.ram = 12
+	def.starting_program = _VillagerBrain.program(flees)
+	var events: Array[EventGraph.Event] = []
+	events.append(EventGraph.Event.ON_UPDATE)
+	def.allowed_events = events
+	return def
+
+
+func _ensure_summon_overlay() -> Node2D:
+	if _summon_overlay != null and is_instance_valid(_summon_overlay):
+		return _summon_overlay
+	var overlay := _SummonArea.new() as Node2D
+	overlay.name = "SummonArea"
+	add_child(overlay)
+	_summon_overlay = overlay
+	return overlay

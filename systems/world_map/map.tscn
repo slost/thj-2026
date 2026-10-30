@@ -7,6 +7,8 @@
 [ext_resource type="Script" uid="uid://dneuq16wtfe1r" path="res://addons/lost_framework/modules/data_definition/description_variant.gd" id="4_671ko"]
 [ext_resource type="TileSet" uid="uid://b6cn8ildm8ly" path="res://contents/tile_set.tres" id="4_nec8q"]
 [ext_resource type="Script" uid="uid://jc6n263ren8b" path="res://systems/world_map/town_def.gd" id="5_g4con"]
+[ext_resource type="Script" path="res://systems/world_map/town_garrison.gd" id="6_garrison"]
+[ext_resource type="Script" path="res://systems/world_map/town_reward.gd" id="7_reward"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_5xdch"]
 shader = ExtResource("1_671ko")
@@ -26,22 +28,107 @@ shader_parameter/highlight_position = Vector2(-0.22, -0.22)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_nec8q"]
 
+[sub_resource type="Resource" id="Garrison_a"]
+script = ExtResource("6_garrison")
+race = 4
+count = 3
+max_hp = 14
+damage = 2
+flees = true
+
+[sub_resource type="Resource" id="Reward_a"]
+script = ExtResource("7_reward")
+resource_type = 0
+amount = 5
+
+[sub_resource type="Resource" id="Garrison_b_melee"]
+script = ExtResource("6_garrison")
+race = 4
+count = 4
+max_hp = 24
+damage = 5
+flees = false
+
+[sub_resource type="Resource" id="Garrison_b_ranged"]
+script = ExtResource("6_garrison")
+race = 5
+count = 2
+max_hp = 16
+damage = 4
+flees = true
+
+[sub_resource type="Resource" id="Reward_b_corpse"]
+script = ExtResource("7_reward")
+resource_type = 0
+amount = 4
+
+[sub_resource type="Resource" id="Reward_b_bone"]
+script = ExtResource("7_reward")
+resource_type = 1
+amount = 4
+
+[sub_resource type="Resource" id="Garrison_c_melee"]
+script = ExtResource("6_garrison")
+race = 4
+count = 4
+max_hp = 32
+damage = 7
+flees = false
+
+[sub_resource type="Resource" id="Garrison_c_ranged"]
+script = ExtResource("6_garrison")
+race = 5
+count = 3
+max_hp = 20
+damage = 6
+flees = false
+
+[sub_resource type="Resource" id="Reward_c_bone"]
+script = ExtResource("7_reward")
+resource_type = 1
+amount = 6
+
+[sub_resource type="Resource" id="Reward_c_weapon"]
+script = ExtResource("7_reward")
+resource_type = 2
+amount = 2
+
+[sub_resource type="Resource" id="Reward_c_gore"]
+script = ExtResource("7_reward")
+resource_type = 4
+amount = 3
+
 [sub_resource type="Resource" id="Resource_g4con"]
 script = ExtResource("5_g4con")
 id = &"small_village"
-name = "Smaill Village"
+name = "Small Village"
+description = "A quiet hamlet. The people run."
+max_restore_points = 80.0
+difficulty = 1
+garrison = Array[TownGarrison]([SubResource("Garrison_a")])
+rewards = Array[TownReward]([SubResource("Reward_a")])
 metadata/_custom_type_script = "uid://jc6n263ren8b"
 
 [sub_resource type="Resource" id="Resource_r63pq"]
 script = ExtResource("5_g4con")
 id = &"small_village_b"
-name = "Small Village B"
+name = "Crossroad Village"
+description = "A village that stands and fights."
+max_restore_points = 120.0
+difficulty = 2
+garrison = Array[TownGarrison]([SubResource("Garrison_b_melee"), SubResource("Garrison_b_ranged")])
+rewards = Array[TownReward]([SubResource("Reward_b_corpse"), SubResource("Reward_b_bone")])
 metadata/_custom_type_script = "uid://jc6n263ren8b"
 
 [sub_resource type="Resource" id="Resource_c1kel"]
 script = ExtResource("5_g4con")
 id = &"small_village_c"
-name = "Small Village C"
+name = "Palisade Village"
+description = "A walled village. Clear an easier town before the road opens."
+max_restore_points = 180.0
+difficulty = 3
+garrison = Array[TownGarrison]([SubResource("Garrison_c_melee"), SubResource("Garrison_c_ranged")])
+rewards = Array[TownReward]([SubResource("Reward_c_bone"), SubResource("Reward_c_weapon"), SubResource("Reward_c_gore")])
 metadata/_custom_type_script = "uid://jc6n263ren8b"
 
 [node name="Map" type="Node2D" unique_id=1660380084]
@@ -73,4 +160,4 @@ def = SubResource("Resource_r63pq")
 [node name="TownLocation6" parent="Towns" unique_id=2121925113 node_paths=PackedStringArray("required_locations") instance=ExtResource("3_nec8q")]
 position = Vector2(-39.34165, 121.804085)
 def = SubResource("Resource_c1kel")
-required_locations = [null]
+required_locations = [NodePath("../TownLocation4")]

@@ -70,6 +70,17 @@ func take_damage(amount: float) -> void:
 	_update_visual()
 
 
+## Adds restore points, never past the town's max.
+func heal(amount: float) -> void:
+	if amount <= 0.0:
+		return
+	var ceiling := restore_points
+	if def != null:
+		ceiling = def.max_restore_points
+	restore_points = minf(restore_points + amount, ceiling)
+	_update_visual()
+
+
 ## Damage stays on the town until it falls below the destroyed line. Then the clear is kept and points refill.
 func sync_destroyed_state() -> void:
 	if def == null or restore_points >= _destroyed_threshold():

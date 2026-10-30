@@ -23,6 +23,18 @@ code.move_away_from_target.name,Run from the target,หนีจากเป้�
 code.move_away_from_target.desc,Back away from the one you remember.,ถอยห่างจากคนที่จำไว้
 code.wander.name,Wander around,เดินเตร็ดเตร่
 code.wander.desc,Walk off in a random direction.,เดินไปทางไหนก็ได้
+code.walk_left.name,Walk left,เดินไปซ้าย
+code.walk_left.desc,Take one step to the left.,ก้าวไปทางซ้ายหนึ่งช่อง
+code.walk_right.name,Walk right,เดินไปขวา
+code.walk_right.desc,Take one step to the right.,ก้าวไปทางขวาหนึ่งช่อง
+code.walk_up.name,Walk up,เดินขึ้น
+code.walk_up.desc,Take one step up.,ก้าวขึ้นหนึ่งช่อง
+code.walk_down.name,Walk down,เดินลง
+code.walk_down.desc,Take one step down.,ก้าวลงหนึ่งช่อง
+code.attack_facing.name,Attack ahead,โจมตีตรงหน้า
+code.attack_facing.desc,Hit along the way you just walked.,ตีไปตามทางที่เพิ่งเดิน
+code.sacrifice.name,Sacrifice,สังเวย
+code.sacrifice.desc,Give this minion up. Half the summoning cost comes back, chosen at random.,สังเวยมินเนียนนี้ คืนต้นทุนอัญเชิญครึ่งหนึ่งแบบสุ่ม
 code.stand_still.name,Stand still,ยืนนิ่ง ๆ
 code.stand_still.desc,Stop and stay put.,หยุดยืนอยู่กับที่
 code.remember_hostile.name,Remember an enemy,จำศัตรูไว้

@@ -24,9 +24,46 @@ static func calculate_attack_duration(gpu: int) -> float:
 
 ## Seconds spent reading one script line. A higher CPU reaches the next line sooner.
 static func calculate_think_interval(cpu: int) -> float:
-	return 0.5 / float(maxi(cpu, 1))
+	return 16 / float(maxi(cpu, 1))
 
 
 ## RAM added by one remembered target or one queued action.
 static func memory_slot_cost() -> int:
 	return 1
+
+
+## Share of a town's max restore points that one raid can take.
+static func raid_stake_ratio() -> float:
+	return 0.3
+
+
+## Restore points lost from one raid.
+## lost_ratio is 0 when every villager is still up, and 1 when all of them are down.
+static func raid_damage(town_max_points: float, lost_ratio: float) -> float:
+	return town_max_points * raid_stake_ratio() * clampf(lost_ratio, 0.0, 1.0)
+
+
+## Lowest share of max restore points another town regains after a raid.
+static func town_recover_min_ratio() -> float:
+	return 0.10
+
+
+## Highest share of max restore points another town regains after a raid.
+static func town_recover_max_ratio() -> float:
+	return 0.15
+
+
+## Random heal for a town that was not the one just raided.
+## The roll includes both town_recover_min_ratio and town_recover_max_ratio.
+static func town_recover_amount(town_max_points: float, rng: RandomNumberGenerator) -> float:
+	var ratio := rng.randf_range(town_recover_min_ratio(), town_recover_max_ratio())
+	return town_max_points * ratio
+
+
+## Whole resources paid for one reward line. lost_ratio 0 pays nothing, 1 pays the full amount.
+## Halves round away from zero.
+static func raid_reward_payout(amount: int, lost_ratio: float) -> int:
+	if amount <= 0:
+		return 0
+	var scaled := float(amount) * clampf(lost_ratio, 0.0, 1.0)
+	return maxi(roundi(scaled), 0)

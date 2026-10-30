@@ -35,10 +35,14 @@ var _map_tween: Tween
 
 
 const _Summoner := preload("res://systems/game/summoner.gd")
+const _CodeBook := preload("res://systems/code_editor/code_book.gd")
+const _OrderMove := preload("res://systems/blocks/order_move.gd")
 const _INDICATOR_TEXTURE := preload("res://placeholders/tex_indicator.png")
 
+## Right-click a pinned minion's destination while the camp is open.
+@export var direct_orders := true
+
 var _camp_director: FocusDirector
-var _camp_script: Control
 
 
 func _ready() -> void:
@@ -119,10 +123,27 @@ func refresh_locations() -> void:
 
 func _towns() -> Array[TownLocation]:
 	var towns: Array[TownLocation] = []
-	for child in get_children():
-		if child is TownLocation:
-			towns.append(child)
+	for node in find_children("*", "TownLocation", true, false):
+		var town := node as TownLocation
+		if town:
+			towns.append(town)
 	return towns
+
+
+## Heals every other unlocked town that has not been destroyed. The raided town is left as it is.
+func recover_other_towns(raided: TownLocation, rng: RandomNumberGenerator) -> void:
+	recover_towns(_towns(), raided, rng)
+
+
+static func recover_towns(towns: Array, raided: TownLocation, rng: RandomNumberGenerator) -> void:
+	for entry in towns:
+		var town := entry as TownLocation
+		if town == null or town == raided:
+			continue
+		if town.is_locked() or town.has_been_destroyed:
+			continue
+		var maximum := town.def.max_restore_points if town.def != null else town.restore_points
+		town.heal(Formular.town_recover_amount(maximum, rng))
 
 
 func is_location_selected() -> bool:
@@ -178,6 +199,10 @@ func _update_debug_label() -> void:
 	debug_label.text += "\n" + "Required locations: %s" % str(focus_location.required_locations)
 
 
+func is_coding() -> bool:
+	return current_state == State.CODE
+
+
 func set_state(new_state: State = State.MAP) -> void:
 	var keeps_selection := new_state == State.FOCUS or new_state == State.PINNED
 	if _is_selected and not keeps_selection:
@@ -199,7 +224,9 @@ func _select_location(location: TownLocation) -> void:
 	_is_selected = true
 	indicator.show()
 	move_indicator_to(location.global_position)
-	if town_info:
+	if town_info and town_info.has_method("show_town"):
+		town_info.call("show_town", location)
+	elif town_info:
 		town_info.show()
 	_update_debug_label()
 	set_state(State.PINNED)
@@ -269,21 +296,11 @@ func _town_at_mouse() -> TownLocation:
 
 func _update_state() -> void:
 	set_camp_visible(current_state == State.CAMP)
-	set_book_visible(current_state == State.CODE)
-	_sync_code_editor()
+	_CodeBook.set_open(book, code_editor, current_state == State.CODE)
 	_sync_unit_bars()
 	_sync_camp_focus()
 	if current_state == State.CAMP and camp:
 		_Summoner.spawn_army_at(camp)
-
-
-func _sync_code_editor() -> void:
-	if code_editor == null:
-		return
-	if current_state == State.CODE:
-		code_editor.call(&"open")
-	else:
-		code_editor.call(&"close")
 
 
 func set_camp_visible(value: bool = true) -> void:
@@ -294,14 +311,6 @@ func set_camp_visible(value: bool = true) -> void:
 				child.set_visible(value)
 		camp.visible = value
 		camp.process_mode = Node.PROCESS_MODE_INHERIT if value else Node.PROCESS_MODE_DISABLED
-
-
-func set_book_visible(value: bool = true) -> void:
-	if book:
-		for child in book.get_children():
-			if child.has_method("set_visible"):
-				child.set_visible(value)
-		book.visible = value
 
 
 func _update_buttons() -> void:
@@ -334,8 +343,6 @@ func _sync_camp_focus() -> void:
 		_camp_director.process_mode = Node.PROCESS_MODE_INHERIT if active else Node.PROCESS_MODE_DISABLED
 		if not active:
 			_camp_director.clear_selection()
-	if _camp_script:
-		_camp_script.visible = active
 
 
 func _ensure_camp_focus() -> void:
@@ -351,24 +358,34 @@ func _ensure_camp_focus() -> void:
 	director.pin_indicator = pin
 	add_child(director)
 	_camp_director = director
-	var panel := ScriptDebugPanel.new()
-	panel.name = "CampScript"
-	var ui := get_node_or_null("UI")
-	if ui:
-		ui.add_child(panel)
-	else:
-		add_child(panel)
-	panel.visible = false
-	_camp_script = panel
 
 
 func _camp_indicator(node_name: String, z: int) -> Sprite2D:
-	var sprite := Sprite2D.new()
+	var sprite := HotSwapSprite.new()
 	sprite.name = node_name
 	sprite.z_index = z
 	sprite.visible = false
 	sprite.texture = _INDICATOR_TEXTURE
+	sprite.asset_id = "tex_indicator"
 	return sprite
+
+
+## Queues a walk on the camp yard. False outside camp or on a blocked cell.
+func issue_move_order(unit: Unit2D, world_pos: Vector2) -> bool:
+	if not direct_orders or current_state != State.CAMP:
+		return false
+	if unit == null or unit.team != Unit2D.Team.MINION or unit.state == Unit2D.State.DEAD:
+		return false
+	var grid := camp.get_node_or_null("GridNav") as GridNav if camp != null else null
+	if grid == null:
+		return false
+	var cell := grid.world_to_cell(world_pos)
+	if not grid.is_walkable_cell(cell):
+		return false
+	var order = _OrderMove.new()
+	order.goal = cell
+	unit.enqueue_order(order)
+	return true
 
 
 func summon_spot(world_pos: Vector2) -> Dictionary:
@@ -376,7 +393,22 @@ func summon_spot(world_pos: Vector2) -> Dictionary:
 		return {"ok": false, "pos": world_pos}
 	if not bool(camp.call("contains_world", world_pos)):
 		return {"ok": false, "pos": world_pos}
+	if _camp_occupied(world_pos):
+		return {"ok": false, "pos": world_pos}
 	return {"ok": true, "pos": world_pos}
+
+
+func _camp_occupied(world_pos: Vector2) -> bool:
+	if camp == null:
+		return false
+	var limit := Formular.TILE_SIZE * 0.45
+	for node in camp.find_children("*", "Unit2D", true, false):
+		var unit := node as Unit2D
+		if unit == null or unit.state == Unit2D.State.DEAD:
+			continue
+		if unit.global_position.distance_to(world_pos) <= limit:
+			return true
+	return false
 
 
 func _on_raid_button_pressed() -> void:

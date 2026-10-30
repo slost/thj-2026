@@ -19,9 +19,19 @@ const DISABLED_COLOR: Color = Color.DIM_GRAY
 
 # States
 var raid_target_id := "" ## Save key of the town that was raided.
+## Max restore points of the raided town, copied in raid_to before the map unloads.
+var raid_target_max_points := 0.0
 ## Roster indexes brought into the current raid. Empty until raid_to().
 var raid_slots: Array[int] = []
 var pending_raid_damage := 0.0 ## Applied after the map reloads its saved restore points.
+## True from raid_to until the map applies that battle's outcome, even when damage is 0.
+var raid_outcome_pending := false
+## Villager groups copied from the town before the map unloads. Each row is a dictionary.
+var raid_garrison: Array = []
+## Full reward lines copied from the town. Paid by lost_ratio when the map applies the outcome.
+var raid_rewards: Array = []
+## Share of the town's villagers lost, stored with the outcome so rewards can be paid on the map.
+var pending_raid_lost_ratio := 0.0
 var current_stage: Node
 
 # Hard-coded resources
@@ -49,12 +59,24 @@ const _SPELL_COUNT := 8
 const _SEED_RAM: Array[int] = [8, 12, 16, 10, 8, 14, 12, 9]
 
 
+func _ready() -> void:
+	block_inventory = BlockInventory.new()
+	block_inventory.seed_if_empty()
+	_seed_spells_if_empty()
+
+
+
 func change_stage(stage: Node) -> void:
 	current_stage = stage
 
 
 func raid_to(location: TownLocation, slots: Array[int] = []) -> void:
 	raid_target_id = location.get_save_key()
+	raid_target_max_points = location.def.max_restore_points if location.def != null else 0.0
+	raid_garrison = location.def.garrison_snapshot() if location.def != null else []
+	raid_rewards = location.def.reward_snapshot() if location.def != null else []
+	pending_raid_lost_ratio = 0.0
+	raid_outcome_pending = true
 	raid_slots = _normalize_raid_slots(slots)
 	_Summoner.stash_army()
 	save_map_state()
@@ -81,15 +103,16 @@ func _normalize_raid_slots(slots: Array[int]) -> Array[int]:
 
 func back_to_map() -> void:
 	_Summoner.stash_army()
-	pending_raid_damage = 50.0 # test only, remove this later
 	get_tree().change_scene_to_file(MAP_SCENE)
 
 
 ## Retreat throws the whole army away. Survivors are not kept.
 func abandon_army() -> void:
 	for member in army:
-		if member:
-			member.unit = null
+		if member == null:
+			continue
+		_Summoner.refund_member(member)
+		member.unit = null
 	army.clear()
 
 
@@ -128,11 +151,18 @@ func _replace_army(loaded: Array) -> void:
 
 
 func _apply_pending_raid_damage() -> void:
-	if pending_raid_damage <= 0.0:
+	if not raid_outcome_pending and pending_raid_damage <= 0.0:
 		return
 
 	var damage := pending_raid_damage
+	var finished := raid_outcome_pending
+	var lost_ratio := pending_raid_lost_ratio
+	var rewards: Array = raid_rewards.duplicate()
 	pending_raid_damage = 0.0
+	pending_raid_lost_ratio = 0.0
+	raid_outcome_pending = false
+	raid_garrison.clear()
+	raid_rewards.clear()
 	if world_map == null or raid_target_id.is_empty():
 		return
 
@@ -141,7 +171,13 @@ func _apply_pending_raid_damage() -> void:
 		push_warning("Game: saved raid target '%s' is not on the world map" % raid_target_id)
 		return
 
-	world_map.deal_damage_to(location, damage)
+	if damage > 0.0:
+		world_map.deal_damage_to(location, damage)
+	if finished:
+		_grant_raid_rewards(rewards, lost_ratio)
+		var rng := RandomNumberGenerator.new()
+		rng.randomize()
+		world_map.recover_other_towns(location, rng)
 	save_map_state()
 
 
@@ -165,8 +201,24 @@ func delete_save() -> void:
 
 func _clear_raid_request() -> void:
 	raid_target_id = ""
+	raid_target_max_points = 0.0
 	raid_slots.clear()
+	raid_garrison.clear()
+	raid_rewards.clear()
 	pending_raid_damage = 0.0
+	pending_raid_lost_ratio = 0.0
+	raid_outcome_pending = false
+
+
+func _grant_raid_rewards(rows: Array, lost_ratio: float) -> void:
+	for entry in rows:
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		var amount := Formular.raid_reward_payout(int(entry.get("amount", 0)), lost_ratio)
+		if amount <= 0:
+			continue
+		var kind: ResourceType = int(entry.get("resource_type", 0))
+		change_resource(kind, amount)
 
 
 func resource_icon_id(resource_type: ResourceType) -> String:
@@ -215,12 +267,6 @@ func change_resource(resource_type: ResourceType, amount: int) -> void:
 			gore = max(0, gore + amount)
 			
 	resource_changed.emit()
-
-
-func _ready() -> void:
-	block_inventory = BlockInventory.new()
-	block_inventory.seed_if_empty()
-	_seed_spells_if_empty()
 
 
 func _seed_spells_if_empty() -> void:
