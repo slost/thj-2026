@@ -149,7 +149,7 @@ func _confirm_retreat() -> void:
 	var game := _game()
 	if game and game.has_method("abandon_army"):
 		game.abandon_army()
-	_on_button_pressed()
+	_open_stage_end(false, Game.BGM_BATTLE_RETREAT)
 
 
 func _on_button_pressed() -> void:
@@ -172,10 +172,14 @@ func _exit_tree() -> void:
 	_set_city_chrome(false)
 
 
-func _open_stage_end(city_fallen := true) -> void:
+func _open_stage_end(city_fallen := true, sting_key := "") -> void:
 	if _stage_ended:
 		return
 	_stage_ended = true
+	var game := _game()
+	if game and game.has_method("play_battle_sting"):
+		var key := sting_key if sting_key != "" else Game.BGM_BATTLE_WIN
+		game.play_battle_sting(key)
 	var bar := _city_bar()
 	if city_fallen and bar:
 		bar.value = 0.0

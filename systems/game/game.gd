@@ -16,6 +16,13 @@ const MAP_SCENE: String = "res://systems/world_map/world_map.tscn"
 const DESTROYED_RATIO: float = 0.5 # The ratio of the town's restore points to be destroyed.
 const MAP_SAVE_SLOT := 0
 const DISABLED_COLOR: Color = Color.DIM_GRAY
+const BGM_TITLE := "bgm.title"
+const BGM_MAP := "bgm.map"
+const BGM_BATTLE := "bgm.battle"
+const BGM_BATTLE_WIN := "bgm.battle.win"
+const BGM_BATTLE_RETREAT := "bgm.battle.retreat"
+const _BATTLE_SCRIPT := "res://systems/battle/battle.gd"
+const _TITLE_SCENE := "res://systems/debug/debug_rooms.tscn"
 
 # States
 var raid_target_id := "" ## Save key of the town that was raided.
@@ -52,6 +59,8 @@ var spells: Array[SummonSpell] = []
 var army: Array[ArmyMember] = []
 ## False until the map save has been read once this session.
 var _army_loaded := false
+## True while a win or retreat sting should hand back to the battle bed.
+var _resume_battle_bed := false
 
 const _Summoner := preload("res://systems/game/summoner.gd")
 
@@ -63,11 +72,56 @@ func _ready() -> void:
 	block_inventory = BlockInventory.new()
 	block_inventory.seed_if_empty()
 	_seed_spells_if_empty()
+	get_tree().scene_changed.connect(_on_scene_changed)
+	Audio.music_finished.connect(_on_music_finished)
+	play_bgm(BGM_TITLE)
 
+
+## Looping bed for a stage. One-shot stingers pass [param loop] as false and return the clip length.
+func play_bgm(key: String, loop: bool = true) -> float:
+	var stream := Assets.fetch(key) as AudioStream
+	if stream == null:
+		push_warning("Game: missing bgm '%s'" % key)
+		return 0.0
+	Audio.play_music(stream, loop)
+	return stream.get_length()
+
+
+## One-shot win or retreat clip. When it ends, the battle bed plays until the stage changes.
+func play_battle_sting(key: String) -> void:
+	_resume_battle_bed = true
+	if play_bgm(key, false) <= 0.0:
+		_resume_battle_bed = false
+		if _is_battle_stage(current_stage):
+			play_bgm(BGM_BATTLE)
+
+
+func _on_music_finished() -> void:
+	if not _resume_battle_bed:
+		return
+	_resume_battle_bed = false
+	if _is_battle_stage(current_stage):
+		play_bgm(BGM_BATTLE)
 
 
 func change_stage(stage: Node) -> void:
 	current_stage = stage
+	_resume_battle_bed = false
+	if stage is WorldMap:
+		play_bgm(BGM_MAP)
+	elif _is_battle_stage(stage):
+		play_bgm(BGM_BATTLE)
+
+
+func _on_scene_changed() -> void:
+	var scene := get_tree().current_scene
+	if scene != null and scene.scene_file_path == _TITLE_SCENE:
+		play_bgm(BGM_TITLE)
+
+
+func _is_battle_stage(stage: Node) -> bool:
+	var script := stage.get_script() as Script
+	return script != null and script.resource_path == _BATTLE_SCRIPT
 
 
 func raid_to(location: TownLocation, slots: Array[int] = []) -> void:
