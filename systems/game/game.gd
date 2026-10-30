@@ -16,6 +16,7 @@ const MAP_SCENE: String = "res://systems/world_map/world_map.tscn"
 const DESTROYED_RATIO: float = 0.5 # The ratio of the town's restore points to be destroyed.
 const MAP_SAVE_SLOT := 0
 const DISABLED_COLOR: Color = Color.DIM_GRAY
+const RESOURCE_CAP := 99
 const BGM_TITLE := "bgm.title"
 const BGM_MAP := "bgm.map"
 const BGM_BATTLE := "bgm.battle"
@@ -55,6 +56,8 @@ var world_map: WorldMap
 var block_inventory: BlockInventory
 ## Summon spells. Each keeps its own program, cloned from the def on first use.
 var spells: Array[SummonSpell] = []
+## Race values the player may put on a spell. Zombie is always included.
+var unlocked_races: Array[int] = []
 ## Minions summoned in camp or battle. Snapshots, not the live spells.
 var army: Array[ArmyMember] = []
 ## False until the map save has been read once this session.
@@ -72,6 +75,7 @@ func _ready() -> void:
 	block_inventory = BlockInventory.new()
 	block_inventory.seed_if_empty()
 	_seed_spells_if_empty()
+	_seed_unlocked_races()
 	get_tree().scene_changed.connect(_on_scene_changed)
 	Audio.music_finished.connect(_on_music_finished)
 	play_bgm(BGM_TITLE)
@@ -180,6 +184,8 @@ func load_map_state() -> void:
 	if not _army_loaded:
 		var meta := SaveManager.get_slot_metadata(MAP_SAVE_SLOT)
 		_replace_army(_Summoner.army_from_data(meta.get("army", [])))
+		if SaveManager.has_slot(MAP_SAVE_SLOT):
+			apply_saved_progress(meta)
 		_army_loaded = true
 	else:
 		_write_army()
@@ -194,6 +200,8 @@ func save_map_state() -> void:
 
 func _write_army() -> void:
 	SaveManager.set_metadata_value("army", _Summoner.army_to_data(army))
+	SaveManager.set_metadata_value("unlocked_races", unlocked_races.duplicate())
+	SaveManager.set_metadata_value("spells", _spell_specs_to_data())
 
 
 func _replace_army(loaded: Array) -> void:
@@ -239,6 +247,8 @@ func restart() -> void:
 	_clear_raid_request()
 	army.clear()
 	_army_loaded = true
+	_seed_unlocked_races()
+	_reset_spell_specs()
 	SaveManager.delete_slot(MAP_SAVE_SLOT)
 	get_tree().reload_current_scene()
 	# get_tree().change_scene_to_file(MAP_SCENE)
@@ -248,6 +258,8 @@ func delete_save() -> void:
 	_clear_raid_request()
 	army.clear()
 	_army_loaded = true
+	_seed_unlocked_races()
+	_reset_spell_specs()
 	SaveManager.delete_slot(MAP_SAVE_SLOT)
 	if world_map != null:
 		world_map.reset_locations()
@@ -307,20 +319,89 @@ func get_resource(resource_type: ResourceType) -> int:
 			return 0
 
 
+func is_race_unlocked(race: Unit2D.Race) -> bool:
+	return unlocked_races.has(int(race))
+
+
+func can_afford(costs: Array) -> bool:
+	for entry in costs:
+		var cost := entry as SummonCost
+		if cost == null:
+			continue
+		var kind: ResourceType = int(cost.resource_type)
+		if get_resource(kind) < maxi(cost.amount, 0):
+			return false
+	return true
+
+
+## Pays every line, or pays nothing. Each spent line emits resource_changed.
+func spend(costs: Array) -> bool:
+	if not can_afford(costs):
+		return false
+	for entry in costs:
+		var cost := entry as SummonCost
+		if cost == null or cost.amount <= 0:
+			continue
+		var kind: ResourceType = int(cost.resource_type)
+		change_resource(kind, -cost.amount)
+	return true
+
+
+## Unlocks one race for every spell. A price that cannot be paid leaves the wallet alone.
+func try_unlock_race(race: Unit2D.Race) -> bool:
+	if is_race_unlocked(race):
+		return true
+	var profile := RaceProfiles.get_profile(race)
+	if profile == null:
+		return false
+	if not spend(profile.unlock_costs):
+		return false
+	unlocked_races.append(int(race))
+	Sfx.play("general.magic_cast")
+	resource_changed.emit()
+	_write_army()
+	if is_instance_valid(world_map):
+		save_map_state()
+	return true
+
+
+## Spell specs and unlocks, in the same shape stored on the map save.
+func capture_progress() -> Dictionary:
+	return {
+		"unlocked_races": unlocked_races.duplicate(),
+		"spells": _spell_specs_to_data(),
+	}
+
+
+## Missing keys are an old save: only zombie is unlocked, and every spec returns to zombie.
+func apply_saved_progress(meta: Dictionary) -> void:
+	if meta.has("unlocked_races"):
+		_set_unlocked(meta.get("unlocked_races"))
+	else:
+		_seed_unlocked_races()
+	if meta.has("spells"):
+		_apply_spell_specs(meta.get("spells"))
+	else:
+		_reset_spell_specs()
+
+
 func change_resource(resource_type: ResourceType, amount: int) -> void:
 	match resource_type:
 		ResourceType.CORPSE:
-			corpse = max(0, corpse + amount)
+			corpse = _capped(corpse + amount)
 		ResourceType.BONE:
-			bone = max(0, bone + amount)
+			bone = _capped(bone + amount)
 		ResourceType.WEAPON:
-			weapon = max(0, weapon + amount)
+			weapon = _capped(weapon + amount)
 		ResourceType.COLLAR:
-			collar = max(0, collar + amount)
+			collar = _capped(collar + amount)
 		ResourceType.GORE:
-			gore = max(0, gore + amount)
-			
+			gore = _capped(gore + amount)
 	resource_changed.emit()
+
+
+func _capped(value: int) -> int:
+	return clampi(value, 0, RESOURCE_CAP)
 
 
 func _seed_spells_if_empty() -> void:
@@ -329,21 +410,83 @@ func _seed_spells_if_empty() -> void:
 	for index in _SPELL_COUNT:
 		var def := UnitDef.new()
 		def.id = StringName("spell_%d" % (index + 1))
-		def.name = "Spell %d" % (index + 1)
 		def.team = Unit2D.Team.MINION
-		def.ram = _SEED_RAM[index]
 		var events: Array[EventGraph.Event] = []
 		events.append(EventGraph.Event.ON_UPDATE)
 		def.allowed_events = events
 		def.starting_program = SummonSpell.blank_program()
 		var spell := SummonSpell.new()
 		spell.def = def
-		var price := SummonCost.new()
-		price.resource_type = ResourceType.CORPSE
-		price.amount = 1
-		spell.costs.append(price)
-		var gore := SummonCost.new()
-		gore.resource_type = ResourceType.GORE
-		gore.amount = 1
-		spell.costs.append(gore)
+		spell.base_ram = _SEED_RAM[index]
+		spell.race = Unit2D.Race.ZOMBIE
+		spell.corpse_amount = 1
+		spell.gore_amount = 1
+		spell.build_def()
 		spells.append(spell)
+
+
+func _seed_unlocked_races() -> void:
+	unlocked_races.clear()
+	for profile in RaceProfiles.all():
+		if profile.starts_unlocked:
+			unlocked_races.append(int(profile.race))
+	if not is_race_unlocked(Unit2D.Race.ZOMBIE):
+		unlocked_races.append(int(Unit2D.Race.ZOMBIE))
+
+
+func _reset_spell_specs() -> void:
+	for spell in spells:
+		spell.race = Unit2D.Race.ZOMBIE
+		spell.corpse_amount = 1
+		spell.gore_amount = 1
+		spell.build_def()
+
+
+func _spell_specs_to_data() -> Array:
+	var rows: Array = []
+	for spell in spells:
+		rows.append({
+			"race": int(spell.race),
+			"corpse_amount": spell.corpse_amount,
+			"gore_amount": spell.gore_amount,
+		})
+	return rows
+
+
+func _set_unlocked(raw: Variant) -> void:
+	unlocked_races.clear()
+	if raw is Array:
+		for entry in raw:
+			var race_value := int(entry)
+			if race_value < 0 or race_value >= Unit2D.Race.size():
+				continue
+			if not unlocked_races.has(race_value):
+				unlocked_races.append(race_value)
+	if not is_race_unlocked(Unit2D.Race.ZOMBIE):
+		unlocked_races.append(int(Unit2D.Race.ZOMBIE))
+
+
+func _apply_spell_specs(raw: Variant) -> void:
+	if raw is not Array:
+		_reset_spell_specs()
+		return
+	for index in spells.size():
+		var spell := spells[index]
+		if index >= raw.size() or raw[index] is not Dictionary:
+			spell.race = Unit2D.Race.ZOMBIE
+			spell.corpse_amount = 1
+			spell.gore_amount = 1
+			spell.build_def()
+			continue
+		var row: Dictionary = raw[index]
+		var race_value := int(row.get("race", int(Unit2D.Race.ZOMBIE)))
+		var race := Unit2D.Race.ZOMBIE
+		if race_value >= 0 and race_value < Unit2D.Race.size():
+			var picked: Unit2D.Race = race_value
+			race = picked
+		if not is_race_unlocked(race):
+			race = Unit2D.Race.ZOMBIE
+		spell.race = race
+		spell.corpse_amount = int(row.get("corpse_amount", 1))
+		spell.gore_amount = int(row.get("gore_amount", 1))
+		spell.build_def()

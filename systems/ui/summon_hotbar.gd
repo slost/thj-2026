@@ -78,6 +78,7 @@ func _refresh_buttons() -> void:
 		var spell := Game.spells[index]
 		button.text = spell.display_name()
 		button.clip_text = true
+		RaceProfiles.mount_slot_icon(button, spell.race)
 		var affordable := _Summoner.can_afford(spell)
 		button.modulate = Color.WHITE if affordable else Game.DISABLED_COLOR
 		button.tooltip_text = "" if affordable else _Summoner.deny_reason(spell)
@@ -233,8 +234,9 @@ func _free_ghost() -> void:
 
 func _mount_preview(host: Node2D, spell: SummonSpell) -> void:
 	var race := Unit2D.Race.ZOMBIE
-	if spell != null and spell.def != null:
-		race = spell.def.race
+	if spell != null:
+		spell.build_def()
+		race = spell.race
 	var path := Unit2D.scene_path_for_race(race)
 	var scene: PackedScene = null
 	if path != "":

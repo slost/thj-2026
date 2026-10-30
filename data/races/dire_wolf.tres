@@ -1,0 +1,46 @@
+[gd_resource type="Resource" script_class="RaceProfile" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://systems/units/race_profile.gd" id="1_profile"]
+[ext_resource type="Script" path="res://systems/game/summon_cost.gd" id="2_cost"]
+[ext_resource type="Texture2D" uid="uid://bvymkxeubuxrc" path="res://contents/assets/tex_direwolf.png" id="3_tex"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_icon"]
+atlas = ExtResource("3_tex")
+region = Rect2(260, 130, 270, 141)
+
+[sub_resource type="Resource" id="Cost_corpse"]
+script = ExtResource("2_cost")
+resource_type = 0
+amount = 8
+
+[sub_resource type="Resource" id="Cost_gore"]
+script = ExtResource("2_cost")
+resource_type = 4
+amount = 6
+
+[sub_resource type="Resource" id="Cost_collar"]
+script = ExtResource("2_cost")
+resource_type = 3
+amount = 2
+
+[sub_resource type="Resource" id="Summon_collar"]
+script = ExtResource("2_cost")
+resource_type = 3
+amount = 1
+
+[resource]
+script = ExtResource("1_profile")
+race = 3
+display_name_key = "ui.race.dire_wolf"
+max_hp = 25
+damage = 6
+attack_range = 1
+detect_range = 6
+attack_cooldown = 0.8
+base_cpu = 1
+base_gpu = 3
+ram_bonus = -2
+unlock_costs = Array[SummonCost]([SubResource("Cost_corpse"), SubResource("Cost_gore"), SubResource("Cost_collar")])
+summon_extras = Array[SummonCost]([SubResource("Summon_collar")])
+starts_unlocked = false
+icon = SubResource("AtlasTexture_icon")

@@ -76,12 +76,12 @@ func _render(unit: Unit2D) -> String:
 	rows.append("[color=#9aa4b2]Targets[/color]  %s" % _escape(_target_list(unit)))
 	rows.append("[color=#9aa4b2]Queue[/color]  %s" % _escape(_queue_list(unit)))
 	rows.append("[color=#9aa4b2]CPU[/color]  %d    [color=#9aa4b2]GPU[/color]  %d" % [unit.get_cpu(), unit.get_gpu()])
-	var doing := "[color=#9aa4b2]Doing[/color]  %s" % _escape(_current_action(unit))
+	rows.append("[color=#9aa4b2]Doing[/color]  %s" % _escape(_current_action(unit)))
 	if unit.stats:
 		var pattern := LocaleText.resolve("ui.code_editor.ram", "RAM: {used}/{max} MB", "en")
 		var usage := pattern.format({"used": unit.get_ram_used(), "max": unit.stats.ram})
-		doing += "    [color=#9aa4b2]%s[/color]" % usage
-	rows.append(doing)
+		rows.append("[color=#9aa4b2]%s[/color]" % usage)
+	rows.append("[color=#9aa4b2]Anim[/color]  %s" % _escape(_playing_animation(unit)))
 	return "\n".join(rows)
 
 
@@ -125,6 +125,13 @@ func _matches_spell(unit: Unit2D, spell: SummonSpell) -> bool:
 		if current_id != copied_id:
 			return false
 	return true
+
+
+func _playing_animation(unit: Unit2D) -> String:
+	var clip := unit.get_playing_animation()
+	if clip.is_empty():
+		return "-"
+	return clip
 
 
 func _current_action(unit: Unit2D) -> String:

@@ -27,3 +27,21 @@ location.small_village_b.name,Crossroad Village,หมู่บ้านทา�
 location.small_village_b.desc,A village that stands and fights.,หมู่บ้านที่ยืนสู้
 location.small_village_c.name,Palisade Village,หมู่บ้านรั้วไม้
 location.small_village_c.desc,A walled village. Clear an easier town before the road opens.,หมู่บ้านที่มีกำแพง ต้องเคลียร์เมืองที่ง่ายกว่าก่อนถึงจะเข้าได้
+ui.spec.page,Spec,สเปก
+ui.spec.script,Script,สคริปต์
+ui.spec.corpse,Corpse,ศพ
+ui.spec.gore,Gore,เนื้อ
+ui.spec.hp,HP,HP
+ui.spec.dmg,DMG,ดาเมจ
+ui.spec.range,Range,ระยะ
+ui.spec.cpu,CPU,CPU
+ui.spec.gpu,GPU,GPU
+ui.spec.ram,RAM,แรม
+ui.spec.costs_prefix,Costs:,ค่าใช้จ่าย:
+ui.spec.explain,Each extra corpse adds 1 CPU and 4 RAM. Each extra gore adds 1 GPU and 2 RAM.,ศพที่เพิ่มขึ้นแต่ละชิ้นเพิ่ม CPU 1 และแรม 4 เนื้อที่เพิ่มขึ้นแต่ละชิ้นเพิ่ม GPU 1 และแรม 2
+ui.spec.unlock,Unlock,ปลดล็อก
+ui.spec.locked,Locked,ล็อก
+ui.race.zombie,Zombie,ซอมบี้
+ui.race.skeleton_melee,Skeleton,โครงกระดูก
+ui.race.skeleton_range,Skeleton archer,โครงกระดูกธนู
+ui.race.dire_wolf,Dire wolf,ไดร์วูล์ฟ

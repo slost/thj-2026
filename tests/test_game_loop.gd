@@ -350,6 +350,11 @@ func _test_scenes_open() -> void:
 	var city := root.get_node_or_null(^"GUI/CityProgress") as ProgressBar
 	if city == null or not city.visible:
 		_fail("city progress is not on the gui")
+	var wallet := root.get_node_or_null(^"GUI/PanelContainer") as Control
+	if wallet == null or city.size.x <= city.size.y or city.fill_mode != 0:
+		_fail("city progress is not a horizontal bar")
+	elif city.position.y < wallet.position.y + wallet.size.y:
+		_fail("city progress is not under the resource bar")
 	game.set("raid_garrison", [{"race": 4, "count": 2, "max_hp": 12, "damage": 2, "flees": true}])
 	battle.call("spawn_town_defenders")
 	for _frame in 3:
@@ -547,14 +552,8 @@ func _test_refund_half() -> void:
 	def.max_hp = 12
 	def.starting_program = SummonSpell.blank_program()
 	spell.def = def
-	var corpse := SummonCost.new()
-	corpse.resource_type = 0
-	corpse.amount = 1
-	var bone := SummonCost.new()
-	bone.resource_type = 1
-	bone.amount = 3
-	spell.costs.append(corpse)
-	spell.costs.append(bone)
+	spell.corpse_amount = 1
+	spell.gore_amount = 3
 	var summoner: Script = load("res://systems/game/summoner.gd")
 	var host := Node2D.new()
 	root.add_child(host)
@@ -565,19 +564,19 @@ func _test_refund_half() -> void:
 		host.queue_free()
 		return
 	unit.state = Unit2D.State.IDLE
-	if int(game.get("corpse")) != 7 or int(game.get("bone")) != 5:
-		_fail("summon spent %s corpses and %s bones" % [game.get("corpse"), game.get("bone")])
+	if int(game.get("corpse")) != 7 or int(game.get("gore")) != 5 or int(game.get("bone")) != 8:
+		_fail("summon spent %s corpses and %s gore" % [game.get("corpse"), game.get("gore")])
 	var before_corpse := int(game.get("corpse"))
-	var before_bone := int(game.get("bone"))
 	var before_gore := int(game.get("gore"))
+	var before_bone := int(game.get("bone"))
 	var block := (load("res://data/blocks/sacrifice.tres") as ActionBlock).duplicate() as ActionBlock
 	var result := block.step(unit, ExecContext.new(unit, EventGraph.Event.ON_UPDATE, null))
 	if result != ActionBlock.StepResult.DONE or unit.state != Unit2D.State.DEAD:
 		_fail("sacrifice ended %s" % result)
-	var returned := (int(game.get("corpse")) - before_corpse) + (int(game.get("bone")) - before_bone)
-	if returned != 2 or int(game.get("gore")) != before_gore:
+	var returned := (int(game.get("corpse")) - before_corpse) + (int(game.get("gore")) - before_gore)
+	if returned != 2 or int(game.get("bone")) != before_bone:
 		_fail("sacrifice returned %s pieces" % returned)
-	if int(game.get("corpse")) - before_corpse > 1 or int(game.get("bone")) - before_bone > 3:
+	if int(game.get("corpse")) - before_corpse > 1 or int(game.get("gore")) - before_gore > 3:
 		_fail("sacrifice returned a resource that was not spent")
 	var second: Unit2D = summoner.summon(spell, host, Vector2(160, 0))
 	await process_frame
@@ -586,9 +585,11 @@ func _test_refund_half() -> void:
 		host.queue_free()
 		return
 	before_corpse = int(game.get("corpse"))
-	before_bone = int(game.get("bone"))
+	before_gore = int(game.get("gore"))
 	game.call("abandon_army")
-	returned = (int(game.get("corpse")) - before_corpse) + (int(game.get("bone")) - before_bone)
+	returned = (int(game.get("corpse")) - before_corpse) + (int(game.get("gore")) - before_gore)
+	if int(game.get("bone")) != before_bone:
+		_fail("retreat changed bones")
 	if returned != 2 or game.get("army").size() != 0:
 		_fail("retreat returned %s pieces and left %s minions" % [returned, game.get("army").size()])
 	host.queue_free()

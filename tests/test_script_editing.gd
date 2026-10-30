@@ -951,12 +951,30 @@ func _test_raid_spawns_roster() -> void:
 				cpu_with_gpu = true
 		if not cpu_with_gpu:
 			_fail("CPU and GPU are not on the same line")
-		var doing_beside_ram := false
+		var doing_at := -1
+		var ram_at := -1
+		var line_index := 0
 		for line in text.split("\n"):
 			if line.contains("Doing") and line.contains("RAM"):
-				doing_beside_ram = true
-		if not doing_beside_ram:
-			_fail("current action is not beside RAM")
+				_fail("RAM is still on the Doing line")
+			if line.contains("Doing"):
+				doing_at = line_index
+			if line.contains("RAM"):
+				ram_at = line_index
+			line_index += 1
+		if doing_at < 0 or ram_at != doing_at + 1:
+			_fail("RAM is not under Doing")
+		var anim_at := -1
+		line_index = 0
+		for line in text.split("\n"):
+			if line.contains("Anim"):
+				anim_at = line_index
+			line_index += 1
+		var clip := shown.get_playing_animation()
+		if clip.is_empty():
+			clip = "-"
+		if anim_at != ram_at + 1 or not text.split("\n")[anim_at].contains(clip):
+			_fail("script preview is not showing animation '%s'" % clip)
 		var live := slot.get_update_function()
 		if live and not live.lines.is_empty():
 			live.lines.append(live.lines[0].duplicate())
