@@ -254,6 +254,9 @@ const _VISUAL_DROP := 64.0
 func _seat_visual(visual: Node2D) -> void:
 	if visual:
 		visual.position.y = _VISUAL_DROP
+	var shape := get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if shape:
+		shape.position.y = _VISUAL_DROP
 
 
 static func randomize_villager_sprites(visual: Node) -> void:

@@ -376,6 +376,9 @@ func _test_scenes_open() -> void:
 	var clear := (load("res://systems/battle/battle.tscn") as PackedScene).instantiate() as Node2D
 	root.add_child(clear)
 	await process_frame
+	game.set("raid_rewards", [{"resource_type": 1, "amount": 4}])
+	var beaten := _villager(clear, Vector2i(6, 0))
+	beaten.die()
 	clear.call("declare_victory_if_clear")
 	var end := clear.get_node_or_null(^"CanvasLayer/StageEndScreen") as CanvasItem
 	if end == null or not end.visible:
@@ -383,6 +386,18 @@ func _test_scenes_open() -> void:
 	var city_after := root.get_node_or_null(^"GUI/CityProgress") as ProgressBar
 	if city_after != null and city_after.value < 0.99:
 		_fail("empty battle damaged the city")
+	var reveal := clear.get_node_or_null(^"CanvasLayer/StageEndScreen/RewardReveal")
+	if reveal == null or int(reveal.get("revealed_count")) != 1:
+		_fail("stage end did not reveal the raid reward")
+	else:
+		var row := reveal.get_node_or_null(^"Row")
+		var caption := ""
+		if row != null and row.get_child_count() > 0:
+			var card := row.get_child(0)
+			caption = str(card.get_child(card.get_child_count() - 1).get("text"))
+		if not caption.contains("4"):
+			_fail("reward caption was %s" % caption)
+	game.set("raid_rewards", [])
 	paused = false
 	clear.queue_free()
 
@@ -450,6 +465,13 @@ func _check_orders_and_summon(battle: Node2D) -> void:
 		_fail("villager script stayed on screen")
 	var focus := minion.get_node(^"ComponentContainer/UnitFocusComponent") as FocusTargetComponent
 	director.select_target(focus)
+	var queued := minion.queue_actions.size()
+	if not director.order_attack_at(foe.global_position + Vector2(0, 64)):
+		_fail("map click on an enemy did not attack")
+	elif minion.queue_actions.size() != queued + 1 or minion.queue_actions.back().target != foe:
+		_fail("map click attack lost its enemy")
+	if director.order_attack_at(foe.global_position + Vector2(400, 0)):
+		_fail("a far map click was treated as an attack")
 	await process_frame
 	var cues := battle.get_node_or_null(^"OrderCues")
 	if cues == null or cues.move_points.size() < 1 or cues.attack_points.size() < 1:

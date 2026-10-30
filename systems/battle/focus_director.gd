@@ -46,7 +46,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not mouse.pressed:
 		return
 	if mouse.button_index == MOUSE_BUTTON_RIGHT:
-		if _issue_move_order():
+		var camera := get_viewport().get_camera_2d()
+		var world_pos := camera.get_global_mouse_position() if camera != null else get_viewport().get_mouse_position()
+		if order_attack_at(world_pos) or _issue_move_order():
 			get_viewport().set_input_as_handled()
 		return
 	if mouse.button_index == MOUSE_BUTTON_LEFT:
@@ -109,6 +111,40 @@ func get_inspected_unit() -> Unit2D:
 	if shown == null or not is_instance_valid(shown):
 		return null
 	return shown.get_host() as Unit2D
+
+
+## Right-click on the map. Attacks the enemy standing there instead of walking onto them.
+func order_attack_at(world_pos: Vector2) -> bool:
+	var stage := _order_stage()
+	var unit := get_selected_unit()
+	if stage == null or unit == null or not stage.has_method("issue_attack_order"):
+		return false
+	var enemy := _enemy_at(unit, world_pos)
+	if enemy == null:
+		return false
+	return bool(stage.call("issue_attack_order", unit, enemy))
+
+
+func _enemy_at(minion: Unit2D, world_pos: Vector2) -> Unit2D:
+	var tree := get_tree()
+	if tree == null:
+		return null
+	var limit := 56.0 * 56.0
+	var best: Unit2D = null
+	var best_distance := limit
+	for node in tree.get_nodes_in_group(Unit2D.GROUP):
+		var other := node as Unit2D
+		if other == null or other.state == Unit2D.State.DEAD or not minion.is_enemy(other):
+			continue
+		var distance := other.global_position.distance_squared_to(world_pos)
+		var visual := other.get_node_or_null("Visual") as Node2D
+		if visual != null:
+			distance = minf(distance, visual.global_position.distance_squared_to(world_pos))
+		if distance > best_distance:
+			continue
+		best = other
+		best_distance = distance
+	return best
 
 
 func _issue_move_order() -> bool:
