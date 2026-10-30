@@ -12,34 +12,39 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	offset_left = -292.0
-	offset_top = 24.0
-	offset_right = -24.0
+	offset_left = -520.0
+	offset_top = UiPalette.SCREEN_MARGIN
+	offset_right = -UiPalette.SCREEN_MARGIN
+	offset_bottom = 480.0
 	grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	add_theme_constant_override(&"separation", 8)
+	clip_contents = true
 
 	var title := Label.new()
 	title.text = "Debug"
+	title.theme_type_variation = &"LabelTitle"
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	title.add_theme_font_size_override(&"font_size", 28)
 	add_child(title)
 
-	_delete = _add_button("Delete Unit", _on_delete)
-	_add_button("Spawn Minion", _on_spawn_minion)
-	_add_button("Spawn Villager", _on_spawn_villager)
-	_unit_debug = _add_button("Hide Unit Debug", _on_toggle_debug)
-	_pause = _add_button("Pause", _on_pause)
+	var actions := _button_grid()
+	add_child(actions)
+	_delete = _add_button(actions, "Delete Unit", _on_delete, &"ButtonDanger")
+	_add_button(actions, "Spawn Minion", _on_spawn_minion)
+	_add_button(actions, "Spawn Villager", _on_spawn_villager)
+	_unit_debug = _add_button(actions, "Hide Unit Debug", _on_toggle_debug)
+	_pause = _add_button(actions, "Pause", _on_pause)
 	var situations := Label.new()
 	situations.text = "Situation"
+	situations.theme_type_variation = &"LabelMuted"
 	situations.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	situations.add_theme_font_size_override(&"font_size", 20)
 	add_child(situations)
-	_situations.append(_add_button("Enemy In Attack", _on_attack_range))
-	_situations.append(_add_button("Enemy In Detect", _on_detect_range))
-	_situations.append(_add_button("Enemy Out Of Range", _on_out_of_range))
-	_situations.append(_add_button("Low HP", _on_low_hp))
-	_situations.append(_add_button("Full HP", _on_full_hp))
-	_situations.append(_add_button("Clear Memory", _on_clear_memory))
+	var cases := _button_grid()
+	add_child(cases)
+	_situations.append(_add_button(cases, "Enemy In Attack", _on_attack_range))
+	_situations.append(_add_button(cases, "Enemy In Detect", _on_detect_range))
+	_situations.append(_add_button(cases, "Enemy Out Of Range", _on_out_of_range))
+	_situations.append(_add_button(cases, "Low HP", _on_low_hp))
+	_situations.append(_add_button(cases, "Full HP", _on_full_hp))
+	_situations.append(_add_button(cases, "Clear Memory", _on_clear_memory))
 
 
 func _process(_delta: float) -> void:
@@ -58,14 +63,24 @@ func _process(_delta: float) -> void:
 		_unit_debug.text = "Hide Unit Debug" if shown else "Show Unit Debug"
 
 
-func _add_button(label: String, callback: Callable) -> Button:
+func _button_grid() -> GridContainer:
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return grid
+
+
+func _add_button(parent: Node, label: String, callback: Callable, variation: StringName = &"") -> Button:
 	var button := Button.new()
 	button.text = label
-	button.custom_minimum_size = Vector2(260, 36)
+	button.custom_minimum_size = Vector2(0, UiPalette.BUTTON_HUD)
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	button.process_mode = Node.PROCESS_MODE_ALWAYS
-	button.add_theme_font_size_override(&"font_size", 18)
+	if variation != &"":
+		button.theme_type_variation = variation
 	button.pressed.connect(callback)
-	add_child(button)
+	parent.add_child(button)
 	return button
 
 

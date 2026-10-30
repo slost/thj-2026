@@ -15,8 +15,13 @@ const BATTLE_SCENE: String = "res://systems/battle/battle.tscn"
 const MAP_SCENE: String = "res://systems/world_map/world_map.tscn"
 const DESTROYED_RATIO: float = 0.5 # The ratio of the town's restore points to be destroyed.
 const MAP_SAVE_SLOT := 0
+## Sandbox writes here so a test battle cannot replace the campaign save.
+const SANDBOX_SAVE_SLOT := 1
+const BATTLE_TEST_SCENE := "res://systems/battle/battle_test.tscn"
 const DISABLED_COLOR: Color = Color.DIM_GRAY
 const RESOURCE_CAP := 99
+## Sandbox battle test spends nothing and ignores the cap. The campaign keeps both.
+var resources_unlimited := false
 const BGM_TITLE := "bgm.title"
 const BGM_MAP := "bgm.map"
 const BGM_BATTLE := "bgm.battle"
@@ -41,6 +46,20 @@ var raid_garrison: Array = []
 var raid_rewards: Array = []
 ## Share of the town's villagers lost, stored with the outcome so rewards can be paid on the map.
 var pending_raid_lost_ratio := 0.0
+## Restore points of the raided town, copied in raid_to before the map unloads.
+var raid_target_points := 0.0
+## True when the raided town is the capital.
+var raid_target_is_capital := false
+## True when that capital had already fallen before this raid.
+var raid_target_destroyed := false
+## Set when the capital falls. Stored on the map save.
+var game_won := false
+## The next map load should leave for the ending cutscene if the capital fell.
+var ending_after_map := false
+## Title menu plays the ending cutscene once, then returns to the menu.
+var play_ending_on_title := false
+## Next world map marks every non-capital town destroyed.
+var debug_unlock_capital := false
 var current_stage: Node
 
 # Hard-coded resources
@@ -63,6 +82,12 @@ var unlocked_races: Array[int] = []
 var army: Array[ArmyMember] = []
 ## False until the map save has been read once this session.
 var _army_loaded := false
+## The boot cutscene plays once, before the title menu.
+var opening_played := false
+## Slot used by load_map_state and save_map_state. The campaign stays on slot 0.
+var save_slot := MAP_SAVE_SLOT
+var _sandbox_open := false
+var _campaign_hold: Dictionary = {}
 ## Set when the guided battle is finished or skipped, and stored on the map save.
 var tutorial_done := false
 ## True while a win or retreat sting should hand back to the battle bed.
@@ -134,6 +159,9 @@ func _is_battle_stage(stage: Node) -> bool:
 func raid_to(location: TownLocation, slots: Array[int] = []) -> void:
 	raid_target_id = location.get_save_key()
 	raid_target_max_points = location.def.max_restore_points if location.def != null else 0.0
+	raid_target_points = location.restore_points
+	raid_target_is_capital = location.def != null and location.def.is_capital
+	raid_target_destroyed = location.has_been_destroyed
 	raid_garrison = location.def.garrison_snapshot() if location.def != null else []
 	raid_rewards = location.def.reward_snapshot() if location.def != null else []
 	pending_raid_lost_ratio = 0.0
@@ -167,6 +195,66 @@ func back_to_map() -> void:
 	get_tree().change_scene_to_file(MAP_SCENE)
 
 
+## Stage-end exit. A capital that falls here plays the ending instead of the map.
+func return_from_battle() -> void:
+	prepare_battle_exit()
+	back_to_map()
+
+
+## Arms the ending when this raid destroys the capital. Does not change the scene.
+func prepare_battle_exit() -> bool:
+	ending_after_map = capital_falls_from_pending()
+	return ending_after_map
+
+
+## True when this raid's stored damage drops the capital under the destroyed line.
+func capital_falls_from_pending() -> bool:
+	if not raid_target_is_capital or raid_target_destroyed:
+		return false
+	if not raid_outcome_pending and pending_raid_damage <= 0.0:
+		return false
+	return _points_destroy_town(raid_target_points - pending_raid_damage, raid_target_max_points)
+
+
+func _points_destroy_town(points: float, maximum: float) -> bool:
+	return points < DESTROYED_RATIO * maximum
+
+
+## Called after the map applies the raid. Sets game_won when the capital is newly fallen.
+func mark_capital_fallen(location: TownLocation) -> void:
+	if location == null or location.def == null or not location.def.is_capital:
+		return
+	if raid_target_destroyed or not location.has_been_destroyed:
+		return
+	game_won = true
+
+
+## True once, when this map load should hand off to the ending cutscene.
+func take_victory_exit() -> bool:
+	var play := ending_after_map and game_won
+	ending_after_map = false
+	if play:
+		play_ending_on_title = true
+	return play
+
+
+func go_to_title_for_ending() -> void:
+	play_ending_on_title = true
+	get_tree().change_scene_to_file(_TITLE_SCENE)
+
+
+func consume_play_ending() -> bool:
+	var play := play_ending_on_title
+	play_ending_on_title = false
+	return play
+
+
+func unlock_capital_for_debug() -> void:
+	debug_unlock_capital = true
+	if is_instance_valid(world_map) and world_map.has_method("apply_debug_capital_unlock"):
+		world_map.apply_debug_capital_unlock()
+
+
 ## Retreat throws the whole army away. Survivors are not kept.
 func abandon_army() -> void:
 	for member in army:
@@ -178,17 +266,19 @@ func abandon_army() -> void:
 
 
 func load_map_state() -> void:
-	if SaveManager.has_slot(MAP_SAVE_SLOT):
-		SaveManager.load_slot(MAP_SAVE_SLOT)
+	if SaveManager.has_slot(save_slot):
+		SaveManager.load_slot(save_slot)
 
-	if world_map != null:
+	if is_instance_valid(world_map):
 		world_map.refresh_locations()
 
 	if not _army_loaded:
-		var meta := SaveManager.get_slot_metadata(MAP_SAVE_SLOT)
+		var meta := SaveManager.get_slot_metadata(save_slot)
 		_replace_army(_Summoner.army_from_data(meta.get("army", [])))
-		if SaveManager.has_slot(MAP_SAVE_SLOT):
+		if SaveManager.has_slot(save_slot):
 			apply_saved_progress(meta)
+			if save_slot == SANDBOX_SAVE_SLOT:
+				_apply_wallet(meta.get("wallet", []))
 		_army_loaded = true
 	else:
 		_write_army()
@@ -198,7 +288,7 @@ func load_map_state() -> void:
 
 func save_map_state() -> void:
 	_write_army()
-	SaveManager.save_slot(MAP_SAVE_SLOT)
+	SaveManager.save_slot(save_slot)
 
 
 func _write_army() -> void:
@@ -206,6 +296,9 @@ func _write_army() -> void:
 	SaveManager.set_metadata_value("unlocked_races", unlocked_races.duplicate())
 	SaveManager.set_metadata_value("spells", _spell_specs_to_data())
 	SaveManager.set_metadata_value("tutorial_done", tutorial_done)
+	SaveManager.set_metadata_value("game_won", game_won)
+	if save_slot == SANDBOX_SAVE_SLOT:
+		SaveManager.set_metadata_value("wallet", [corpse, bone, weapon, collar, gore])
 
 
 func _replace_army(loaded: Array) -> void:
@@ -224,9 +317,14 @@ func _apply_pending_raid_damage() -> void:
 	var finished := raid_outcome_pending
 	var lost_ratio := pending_raid_lost_ratio
 	var rewards: Array = raid_rewards.duplicate()
+	var capital_raid := raid_target_is_capital
+	var already_fallen := raid_target_destroyed
 	pending_raid_damage = 0.0
 	pending_raid_lost_ratio = 0.0
 	raid_outcome_pending = false
+	raid_target_is_capital = false
+	raid_target_destroyed = false
+	raid_target_points = 0.0
 	raid_garrison.clear()
 	raid_rewards.clear()
 	if world_map == null or raid_target_id.is_empty():
@@ -239,6 +337,9 @@ func _apply_pending_raid_damage() -> void:
 
 	if damage > 0.0:
 		world_map.deal_damage_to(location, damage)
+	if capital_raid and not already_fallen:
+		raid_target_destroyed = false
+		mark_capital_fallen(location)
 	if finished:
 		_grant_raid_rewards(rewards, lost_ratio)
 		var rng := RandomNumberGenerator.new()
@@ -249,6 +350,9 @@ func _apply_pending_raid_damage() -> void:
 
 func restart() -> void:
 	_clear_raid_request()
+	game_won = false
+	play_ending_on_title = false
+	debug_unlock_capital = false
 	army.clear()
 	_army_loaded = true
 	_seed_unlocked_races()
@@ -260,6 +364,9 @@ func restart() -> void:
 
 func delete_save() -> void:
 	_clear_raid_request()
+	game_won = false
+	play_ending_on_title = false
+	debug_unlock_capital = false
 	army.clear()
 	_army_loaded = true
 	_seed_unlocked_races()
@@ -272,6 +379,10 @@ func delete_save() -> void:
 func _clear_raid_request() -> void:
 	raid_target_id = ""
 	raid_target_max_points = 0.0
+	raid_target_points = 0.0
+	raid_target_is_capital = false
+	raid_target_destroyed = false
+	ending_after_map = false
 	raid_slots.clear()
 	raid_garrison.clear()
 	raid_rewards.clear()
@@ -327,7 +438,16 @@ func is_race_unlocked(race: Unit2D.Race) -> bool:
 	return unlocked_races.has(int(race))
 
 
+func set_resources_unlimited(enabled: bool) -> void:
+	if resources_unlimited == enabled:
+		return
+	resources_unlimited = enabled
+	resource_changed.emit()
+
+
 func can_afford(costs: Array) -> bool:
+	if resources_unlimited:
+		return true
 	for entry in costs:
 		var cost := entry as SummonCost
 		if cost == null:
@@ -374,6 +494,7 @@ func capture_progress() -> Dictionary:
 	return {
 		"unlocked_races": unlocked_races.duplicate(),
 		"spells": _spell_specs_to_data(),
+		"game_won": game_won,
 	}
 
 
@@ -388,9 +509,12 @@ func apply_saved_progress(meta: Dictionary) -> void:
 	else:
 		_reset_spell_specs()
 	tutorial_done = bool(meta.get("tutorial_done", false))
+	game_won = bool(meta.get("game_won", false))
 
 
 func change_resource(resource_type: ResourceType, amount: int) -> void:
+	if resources_unlimited and amount < 0:
+		return
 	match resource_type:
 		ResourceType.CORPSE:
 			corpse = _capped(corpse + amount)
@@ -406,7 +530,98 @@ func change_resource(resource_type: ResourceType, amount: int) -> void:
 
 
 func _capped(value: int) -> int:
-	return clampi(value, 0, RESOURCE_CAP)
+	var floored := maxi(value, 0)
+	if resources_unlimited:
+		return floored
+	return mini(floored, RESOURCE_CAP)
+
+
+## Keeps the campaign in memory, then loads or starts the sandbox slot.
+func enter_sandbox() -> void:
+	if not _sandbox_open:
+		_campaign_hold = _capture_session()
+		_sandbox_open = true
+	save_slot = SANDBOX_SAVE_SLOT
+	_army_loaded = false
+	if SaveManager.has_slot(SANDBOX_SAVE_SLOT):
+		load_map_state()
+	else:
+		_seed_new_game_state()
+		tutorial_done = true
+		_army_loaded = true
+	if block_inventory:
+		block_inventory.fill_starter()
+	get_tree().change_scene_to_file(BATTLE_TEST_SCENE)
+
+
+## Writes the sandbox slot, puts the campaign back, and returns to the title.
+func leave_sandbox() -> void:
+	if get_tree().paused:
+		get_tree().paused = false
+	if _sandbox_open:
+		save_map_state()
+		save_slot = MAP_SAVE_SLOT
+		_restore_session(_campaign_hold)
+		_campaign_hold = {}
+		_sandbox_open = false
+	get_tree().change_scene_to_file(_TITLE_SCENE)
+
+
+func _capture_session() -> Dictionary:
+	return {
+		"specs": _spell_specs_to_data(),
+		"army": _Summoner.army_to_data(army),
+		"races": unlocked_races.duplicate(),
+		"tutorial_done": tutorial_done,
+		"game_won": game_won,
+		"army_loaded": _army_loaded,
+		"wallet": [corpse, bone, weapon, collar, gore],
+		"blocks": _block_counts(),
+	}
+
+
+func _restore_session(hold: Dictionary) -> void:
+	if hold.is_empty():
+		return
+	var wallet: Variant = hold.get("wallet", [])
+	_apply_wallet(wallet)
+	_set_unlocked(hold.get("races", []))
+	tutorial_done = bool(hold.get("tutorial_done", false))
+	game_won = bool(hold.get("game_won", false))
+	_apply_spell_specs(hold.get("specs", []))
+	_replace_army(_Summoner.army_from_data(hold.get("army", [])))
+	_apply_block_counts(hold.get("blocks", {}))
+	_army_loaded = bool(hold.get("army_loaded", false))
+
+
+func _apply_wallet(raw: Variant) -> void:
+	if raw is not Array or raw.size() < 5:
+		return
+	set_wallet(int(raw[0]), int(raw[1]), int(raw[2]), int(raw[3]), int(raw[4]))
+
+
+func _block_counts() -> Dictionary:
+	var counts := {}
+	if block_inventory == null:
+		return counts
+	for block in block_inventory.get_all():
+		if block == null or block.resource_path.is_empty():
+			continue
+		counts[block.resource_path] = block_inventory.get_count(block)
+	return counts
+
+
+func _apply_block_counts(counts: Variant) -> void:
+	if block_inventory == null or counts is not Dictionary:
+		return
+	block_inventory.clear_counts()
+	for path in counts.keys():
+		var amount := int(counts[path])
+		if amount <= 0:
+			continue
+		var block := load(str(path)) as CodeBlock
+		if block:
+			block_inventory.add(block, amount)
 
 
 ## Opens the tutorial until it has been finished or skipped, then the world map.
@@ -459,6 +674,7 @@ func _save_tutorial_result() -> void:
 			payload = parsed
 	var meta: Dictionary = payload.get("meta", {})
 	meta["tutorial_done"] = tutorial_done
+	meta["game_won"] = game_won
 	meta["army"] = _Summoner.army_to_data(army)
 	meta["unlocked_races"] = unlocked_races.duplicate()
 	meta["spells"] = _spell_specs_to_data()
@@ -476,6 +692,7 @@ func _save_tutorial_result() -> void:
 
 func _seed_new_game_state() -> void:
 	_clear_raid_request()
+	game_won = false
 	army.clear()
 	set_wallet(0, 0, 0, 0, 0)
 	if block_inventory == null:
@@ -539,6 +756,7 @@ func _spell_specs_to_data() -> Array:
 			"race": int(spell.race),
 			"corpse_amount": spell.corpse_amount,
 			"gore_amount": spell.gore_amount,
+			"functions": _Summoner._functions_to_data(spell.get_program()),
 		})
 	return rows
 
@@ -579,4 +797,6 @@ func _apply_spell_specs(raw: Variant) -> void:
 		spell.race = race
 		spell.corpse_amount = int(row.get("corpse_amount", 1))
 		spell.gore_amount = int(row.get("gore_amount", 1))
+		if row.has("functions"):
+			spell.program = _Summoner._program_from_data(row.get("functions"))
 		spell.build_def()

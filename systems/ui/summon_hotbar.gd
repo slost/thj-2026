@@ -76,9 +76,8 @@ func _refresh_buttons() -> void:
 			continue
 		button.visible = true
 		var spell := Game.spells[index]
-		button.text = spell.display_name()
-		button.clip_text = true
-		RaceProfiles.mount_slot_icon(button, spell.race)
+		button.text = ""
+		RaceProfiles.mount_slot_icon(button, spell.race, 30.0)
 		var open := _stage_allows_spell(index)
 		button.disabled = not open
 		var affordable := open and _Summoner.can_afford(spell)
@@ -319,9 +318,9 @@ func _follow_ghost() -> void:
 	var spot := _spot(_mouse_world())
 	_ghost.global_position = spot.get("pos", _mouse_world())
 	if bool(spot.get("ok", false)):
-		_ghost.modulate = Color(0.55, 1.0, 0.6, 0.55)
+		_ghost.modulate = UiPalette.tint(UiPalette.ACCENT, 0.55)
 	else:
-		_ghost.modulate = Color(1.0, 0.35, 0.32, 0.78)
+		_ghost.modulate = UiPalette.tint(UiPalette.DANGER, 0.78)
 
 
 func _spot(world_pos: Vector2) -> Dictionary:

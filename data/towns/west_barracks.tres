@@ -1,0 +1,48 @@
+[gd_resource type="Resource" script_class="TownDef" format=3 uid="uid://dcdmoibmpjdte"]
+
+[ext_resource type="Script" uid="uid://dneuq16wtfe1r" path="res://addons/lost_framework/modules/data_definition/description_variant.gd" id="1_2bu8d"]
+[ext_resource type="Script" uid="uid://jc6n263ren8b" path="res://systems/world_map/town_def.gd" id="1_def"]
+[ext_resource type="Script" uid="uid://wsn3xhgbgden" path="res://systems/world_map/town_garrison.gd" id="2_gar"]
+[ext_resource type="Script" uid="uid://b5vdnbpirpbg3" path="res://systems/world_map/town_reward.gd" id="3_rew"]
+
+[sub_resource type="Resource" id="Garrison_melee"]
+script = ExtResource("2_gar")
+count = 3
+
+[sub_resource type="Resource" id="Garrison_ranged"]
+script = ExtResource("2_gar")
+race = 5
+
+[sub_resource type="Resource" id="Garrison_hero"]
+script = ExtResource("2_gar")
+race = 7
+count = 2
+
+[sub_resource type="Resource" id="Garrison_archer"]
+script = ExtResource("2_gar")
+race = 8
+
+[sub_resource type="Resource" id="Reward_corpse"]
+script = ExtResource("3_rew")
+amount = 6
+
+[sub_resource type="Resource" id="Reward_bone"]
+script = ExtResource("3_rew")
+resource_type = 1
+amount = 8
+
+[sub_resource type="Resource" id="Reward_weapon"]
+script = ExtResource("3_rew")
+resource_type = 2
+amount = 3
+
+[resource]
+script = ExtResource("1_def")
+max_restore_points = 280.0
+difficulty = 4
+art_variant = 2
+garrison = Array[ExtResource("2_gar")]([SubResource("Garrison_melee"), SubResource("Garrison_ranged"), SubResource("Garrison_hero"), SubResource("Garrison_archer")])
+rewards = Array[ExtResource("3_rew")]([SubResource("Reward_corpse"), SubResource("Reward_bone"), SubResource("Reward_weapon")])
+id = &"west_barracks"
+name = "West Barracks"
+description = "Soldiers and one archer. The villagers are only the front rank."

@@ -19,7 +19,7 @@ func execute(unit: Unit2D, _ctx: ExecContext) -> void:
 	var found: Unit2D = null
 	match seen:
 		Seen.HOSTILE:
-			found = unit.find_nearest_enemy()
+			found = unit.find_preferred_enemy()
 		Seen.ALLY:
 			found = unit.find_nearest_ally()
 		_:

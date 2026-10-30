@@ -2,31 +2,8 @@
 
 [ext_resource type="Script" uid="uid://c42bmufto4x8c" path="res://addons/lost_framework/modules/settings/settings_volume_row.gd" id="1_row"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_track"]
-content_margin_left = 2.0
-content_margin_top = 4.0
-content_margin_right = 2.0
-content_margin_bottom = 4.0
-bg_color = Color(0.16, 0.13, 0.24, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill"]
-content_margin_left = 2.0
-content_margin_top = 4.0
-content_margin_right = 2.0
-content_margin_bottom = 4.0
-bg_color = Color(0.72, 0.62, 0.95, 1)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
-
 [node name="SettingsVolumeRow" type="VBoxContainer" unique_id=1172579256 node_paths=PackedStringArray("title_label", "slider", "value_label")]
 size_flags_vertical = 0
-theme_override_constants/separation = 4
 script = ExtResource("1_row")
 title_label = NodePath("Header/TitleLabel")
 slider = NodePath("Slider")
@@ -35,27 +12,20 @@ value_label = NodePath("Header/ValueLabel")
 [node name="Header" type="HBoxContainer" parent="." unique_id=1179844618]
 layout_mode = 2
 size_flags_vertical = 0
-theme_override_constants/separation = 12
 
 [node name="TitleLabel" type="Label" parent="Header" unique_id=385904273]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.9, 0.86, 0.98, 1)
-theme_override_font_sizes/font_size = 18
 text = "settings.master"
 
 [node name="ValueLabel" type="Label" parent="Header" unique_id=125094937]
 custom_minimum_size = Vector2(56, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
 text = "100%"
 horizontal_alignment = 2
 
 [node name="Slider" type="HSlider" parent="." unique_id=776590442]
-custom_minimum_size = Vector2(0, 22)
+custom_minimum_size = Vector2(0, 16)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_styles/slider = SubResource("StyleBoxFlat_track")
-theme_override_styles/grabber_area = SubResource("StyleBoxFlat_fill")
-theme_override_styles/grabber_area_highlight = SubResource("StyleBoxFlat_fill")
 value = 100.0

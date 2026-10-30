@@ -34,6 +34,7 @@ var _body: RichTextLabel
 var _counter: Label
 var _objective: Label
 var _next: Button
+var _skip: Button
 var _dim: Array[ColorRect] = []
 var _arrow: Label
 var _pulse: Tween
@@ -580,15 +581,15 @@ func _build_ui() -> void:
 	add_child(_layer)
 	for _i in 4:
 		var shade := ColorRect.new()
-		shade.color = Color(0, 0, 0, 0.62)
+		shade.color = UiPalette.tint(UiPalette.BG_DARK, 0.62)
 		shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		shade.visible = false
 		_layer.add_child(shade)
 		_dim.append(shade)
 	_arrow = Label.new()
 	_arrow.text = "▼"
-	_arrow.add_theme_font_size_override(&"font_size", 42)
-	_arrow.add_theme_color_override(&"font_color", Color(1, 0.86, 0.35))
+	_arrow.theme_type_variation = &"LabelTitle"
+	_arrow.add_theme_color_override(&"font_color", UiPalette.WARN)
 	_arrow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_layer.add_child(_arrow)
 	_dialog = PanelContainer.new()
@@ -601,7 +602,6 @@ func _build_ui() -> void:
 	_dialog.mouse_filter = Control.MOUSE_FILTER_STOP
 	_layer.add_child(_dialog)
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override(&"separation", 10)
 	_dialog.add_child(box)
 	_counter = Label.new()
 	_counter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -611,7 +611,6 @@ func _build_ui() -> void:
 	_body.fit_content = true
 	_body.scroll_active = false
 	_body.custom_minimum_size = Vector2(760, 0)
-	_body.add_theme_font_size_override(&"normal_font_size", 26)
 	box.add_child(_body)
 	_objective = Label.new()
 	_objective.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -622,10 +621,22 @@ func _build_ui() -> void:
 	box.add_child(row)
 	_next = Button.new()
 	_next.text = LocaleText.resolve("ui.tutorial.next", "Next")
-	_next.custom_minimum_size = Vector2(160, 56)
+	_next.theme_type_variation = &"ButtonPrimary"
+	_next.custom_minimum_size = Vector2(160, UiPalette.BUTTON_HUD)
 	_next.pressed.connect(press_next)
 	row.add_child(_next)
 	_dialog.visible = false
+	_skip = Button.new()
+	_skip.name = "SkipButton"
+	_skip.text = LocaleText.resolve("ui.tutorial.skip", "Skip")
+	_skip.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_skip.offset_left = -336.0
+	_skip.offset_top = UiPalette.SCREEN_MARGIN
+	_skip.offset_right = -UiPalette.SCREEN_MARGIN
+	_skip.offset_bottom = UiPalette.SCREEN_MARGIN + UiPalette.BUTTON_HUD
+	_skip.custom_minimum_size = Vector2(160, UiPalette.BUTTON_HUD)
+	_skip.pressed.connect(skip)
+	_layer.add_child(_skip)
 
 
 func _show_dialog(step: TutorialStep, collapsed: bool) -> void:
@@ -764,7 +775,7 @@ func _subtract_one(rect: Rect2, hole: Rect2) -> Array[Rect2]:
 func _ensure_shades(count: int) -> void:
 	while _dim.size() < count:
 		var shade := ColorRect.new()
-		shade.color = Color(0, 0, 0, 0.62)
+		shade.color = UiPalette.tint(UiPalette.BG_DARK, 0.62)
 		shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_layer.add_child(shade)
 		_layer.move_child(shade, 0)

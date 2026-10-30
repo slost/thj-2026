@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://b2yxl6doboo5g" path="res://systems/world_map/town_location.gd" id="1_v3pa3"]
 [ext_resource type="Script" uid="uid://bgit4iapmj1bm" path="res://addons/lost_framework/modules/asset_manager/hot_swap_sprite.gd" id="2_8kku3"]
-[ext_resource type="Texture2D" uid="uid://buoxhiemsruk8" path="res://placeholders/tex_village_1.png" id="3_uuqcs"]
+[ext_resource type="Texture2D" path="res://contents/assets/tex_village_1.png" id="3_village"]
 [ext_resource type="Script" uid="uid://dr6n32evhj6uq" path="res://addons/lost_framework/modules/save_manager/save_participant_component.gd" id="4_save"]
 [ext_resource type="Script" path="res://addons/lost_framework/modules/composition/components/squash_animation_component.gd" id="5_squash"]
 
@@ -15,12 +15,9 @@ script = ExtResource("1_v3pa3")
 [node name="Visual" type="Node2D" parent="."]
 
 [node name="HotSwapSprite" type="Sprite2D" parent="Visual" unique_id=1329539680]
+texture = ExtResource("3_village")
 script = ExtResource("2_8kku3")
-asset_id = "tex_village_1"
 metadata/_custom_type_script = "uid://bgit4iapmj1bm"
-
-[node name="PlaceholderSprite" type="Sprite2D" parent="Visual" unique_id=842593998]
-texture = ExtResource("3_uuqcs")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1368550289]
 visible = false

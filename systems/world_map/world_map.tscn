@@ -12,46 +12,8 @@
 [ext_resource type="Script" uid="uid://bo1xnktwb64sr" path="res://systems/world_map/map_state_button.gd" id="10_5rc7b"]
 [ext_resource type="PackedScene" uid="uid://b7gl0em3a23l" path="res://systems/code_editor/editor.tscn" id="11_editor"]
 [ext_resource type="Script" uid="uid://bnkjedhp1d7ys" path="res://systems/world_map/camp_ground.gd" id="12_camp"]
-[ext_resource type="Script" path="res://systems/world_map/town_info_panel.gd" id="13_info"]
+[ext_resource type="Script" uid="uid://6qjl7e54x1ne" path="res://systems/world_map/town_info_panel.gd" id="13_info"]
 [ext_resource type="TileSet" uid="uid://b6cn8ildm8ly" path="res://contents/tile_set.tres" id="14_tiles"]
-
-[sub_resource type="LabelSettings" id="LabelSettings_6ji8r"]
-font_size = 32
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vjbm6"]
-bg_color = Color(0.25560415, 0.24762374, 0.32941177, 1)
-border_width_top = 8
-border_width_bottom = 8
-border_color = Color(1, 1, 1, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-expand_margin_left = 32.0
-expand_margin_top = 32.0
-expand_margin_right = 32.0
-expand_margin_bottom = 32.0
-shadow_size = 16
-shadow_offset = Vector2(0, 16)
-
-[sub_resource type="LabelSettings" id="LabelSettings_vjbm6"]
-font_size = 32
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nmuip"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wy6xx"]
-bg_color = Color(0.546875, 0, 0.17314655, 1)
-border_width_left = 8
-border_width_top = 8
-border_width_right = 8
-border_width_bottom = 8
-border_color = Color(0.2578125, 0, 0, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-expand_margin_left = 16.0
-expand_margin_right = 16.0
 
 [node name="WorldMap" type="Node2D" unique_id=1345538956 node_paths=PackedStringArray("indicator", "debug_label", "map", "camp", "book", "code_editor", "town_info", "map_marker", "map_button", "camp_button", "code_button")]
 script = ExtResource("1_k73hb")
@@ -71,15 +33,15 @@ code_button = NodePath("UI/StateContainer/CodeButton")
 layer = 10
 
 [node name="DebugLabel" type="Label" parent="UI" unique_id=2113755158]
-offset_left = 82.0
-offset_top = 169.0
-offset_right = 722.0
-offset_bottom = 425.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 656.0
+offset_bottom = 272.0
+theme_type_variation = &"LabelMuted"
 text = "aaaa
 bbbb
 cccc
 dddd"
-label_settings = SubResource("LabelSettings_6ji8r")
 
 [node name="StateContainer" type="HBoxContainer" parent="UI" unique_id=33387423]
 custom_minimum_size = Vector2(128, 128)
@@ -94,7 +56,6 @@ offset_right = -16.0
 offset_bottom = -16.0
 grow_horizontal = 0
 grow_vertical = 0
-theme_override_constants/separation = 16
 
 [node name="MapButton" type="Button" parent="UI/StateContainer" unique_id=1026624835]
 layout_mode = 2
@@ -120,40 +81,41 @@ script = ExtResource("10_5rc7b")
 state = 3
 
 [node name="TownInfo" type="PanelContainer" parent="UI" unique_id=1656006737]
-offset_left = 1282.0
-offset_top = 176.0
-offset_right = 1794.0
-offset_bottom = 820.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_vjbm6")
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -528.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 660.0
+grow_horizontal = 0
+theme_type_variation = &"PanelDark"
 script = ExtResource("13_info")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UI/TownInfo" unique_id=1639501412]
 layout_mode = 2
-theme_override_constants/separation = 32
 
 [node name="NameLabel" type="Label" parent="UI/TownInfo/VBoxContainer" unique_id=2069535344]
 layout_mode = 2
+theme_type_variation = &"LabelTitle"
 text = "Town"
-label_settings = SubResource("LabelSettings_vjbm6")
 
-[node name="BodyLabel" type="Label" parent="UI/TownInfo/VBoxContainer"]
+[node name="BodyLabel" type="Label" parent="UI/TownInfo/VBoxContainer" unique_id=1647340472]
 layout_mode = 2
-theme_override_font_sizes/font_size = 22
 autowrap_mode = 3
-text = ""
 
 [node name="ProgressBar" type="ProgressBar" parent="UI/TownInfo/VBoxContainer" unique_id=456747565]
-custom_minimum_size = Vector2(0, 64)
+custom_minimum_size = Vector2(0, 16)
 layout_mode = 2
-theme_override_styles/background = SubResource("StyleBoxFlat_nmuip")
+theme_type_variation = &"BarCity"
 value = 5.0
 show_percentage = false
 
 [node name="RaidButton" type="Button" parent="UI/TownInfo/VBoxContainer" unique_id=195530604]
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 48
-theme_override_styles/normal = SubResource("StyleBoxFlat_wy6xx")
+theme_type_variation = &"ButtonPrimary"
 text = "Raid"
 
 [node name="Marker2D" type="Marker2D" parent="UI" unique_id=1880518025]
@@ -193,11 +155,12 @@ max_offset = Vector2(76.8, 48)
 [node name="Camp" type="Node2D" parent="." unique_id=2094654453]
 script = ExtResource("12_camp")
 
-[node name="Map" type="TileMapLayer" parent="Camp"]
+[node name="Map" type="TileMapLayer" parent="Camp" unique_id=833010748]
 z_index = -2
 tile_set = ExtResource("14_tiles")
 
 [node name="BookBackground" type="Node2D" parent="." unique_id=164887823]
+visible = false
 z_index = 9
 
 [node name="ParallaxOffset" type="Node" parent="BookBackground" unique_id=1140344268 node_paths=PackedStringArray("visual")]

@@ -12,6 +12,12 @@ ui.town.locked,Locked,ยังล็อกอยู่
 ui.town.cleared,Cleared,เคลียร์แล้ว
 ui.town.villager,Villager,ชาวบ้าน
 ui.town.villager_ranged,Ranged villager,ชาวบ้านระยะไกล
+ui.town.capital,Capital,เมืองหลวง
+ui.town.capital_locked,Destroy every other town.,ทำลายเมืองอื่นให้หมดก่อน
+ui.town.locked_reason,Clear the earlier towns first.,เคลียร์เมืองก่อนหน้าก่อน
+unit.wardog,War dog,สุนัขสงคราม
+unit.hero_melee,Hero,วีรบุรุษ
+unit.hero_ranged,Hero archer,วีรบุรุษธนู
 ui.town.unit_line,{name} x{count},{name} x{count}
 ui.town.reward_line,{name} x{count},{name} x{count}
 ui.town.flees,flees,วิ่งหนี
@@ -24,9 +30,21 @@ ui.resource.gore,Gore,เนื้อ
 location.small_village.name,Small Village,หมู่บ้านเล็ก
 location.small_village.desc,A quiet hamlet. The people run.,หมู่บ้านเงียบ ๆ คนที่นี่จะวิ่งหนี
 location.small_village_b.name,Crossroad Village,หมู่บ้านทางแยก
-location.small_village_b.desc,A village that stands and fights.,หมู่บ้านที่ยืนสู้
+location.small_village_b.desc,A village that stands and fights, with slingers behind them.,หมู่บ้านที่ยืนสู้ มีคนใช้สลิงอยู่ข้างหลัง
 location.small_village_c.name,Palisade Village,หมู่บ้านรั้วไม้
-location.small_village_c.desc,A walled village. Clear an easier town before the road opens.,หมู่บ้านที่มีกำแพง ต้องเคลียร์เมืองที่ง่ายกว่าก่อนถึงจะเข้าได้
+location.small_village_c.desc,A walled village. Clear the roads before the gate opens.,หมู่บ้านที่มีกำแพง ต้องเคลียร์ถนนก่อนถึงจะเข้าได้
+location.orchard_hamlet.name,Orchard Hamlet,หมู่บ้านสวนผลไม้
+location.orchard_hamlet.desc,A few farmers with pitchforks. Easy meat.,ชาวนาไม่กี่คนกับคราด เนื้อง่าย ๆ
+location.hound_farm.name,Hound Farm,ฟาร์มสุนัข
+location.hound_farm.desc,Kennels at the edge of the fields. The dogs are faster than a zombie.,คอกสุนัขริมทุ่ง สุนัขเร็วกว่าซอมบี้
+location.kennel_manor.name,Kennel Manor,คฤหาสน์คอกสุนัข
+location.kennel_manor.desc,A knight keeps a pack of war dogs. This is the first hero on the road.,อัศวินเลี้ยงสุนัขสงคราม นี่คือวีรบุรุษคนแรกบนเส้นทาง
+location.west_barracks.name,West Barracks,ค่ายทหารตะวันตก
+location.west_barracks.desc,Soldiers and one archer. The villagers are only the front rank.,ทหารกับนักธนูหนึ่งคน ชาวบ้านเป็นแค่แถวหน้า
+location.chapel_gate.name,Chapel Gate,ประตูโบสถ์
+location.chapel_gate.desc,The last wall before the capital. Archers keep their distance.,กำแพงสุดท้ายก่อนเมืองหลวง นักธนูรักษาระยะ
+location.capital.name,The Capital,เมืองหลวง
+location.capital.desc,The seat of the living. When it falls, the land is yours.,ที่นั่งของคนเป็น เมื่อมันล่ม แผ่นดินนี้เป็นของคุณ
 ui.spec.page,Summoning,
 ui.spec.script,Thinking,
 ui.spec.corpse,Corpse,ศพ

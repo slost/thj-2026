@@ -109,6 +109,10 @@ script = ExtResource("9_focus")
 script = ExtResource("7_cgeqx")
 offset = Vector2(0, -256)
 size = Vector2(128, 6)
+outline_thickness = 0.0
+outline_color = Color(0.067, 0.075, 0.063, 1)
+background_color = Color(0.067, 0.075, 0.063, 1)
+fill_color = Color(0.8, 0.1, 0.1, 1)
 metadata/_custom_type_script = "uid://dgfcfexheyfng"
 
 [node name="ThinkBarComponent" type="Node" parent="ComponentContainer" unique_id=1277441677]

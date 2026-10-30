@@ -4,11 +4,20 @@
 [ext_resource type="Texture2D" uid="uid://j3stu2xsbx6k" path="res://placeholders/tex_map_screen.png" id="1_nec8q"]
 [ext_resource type="Script" uid="uid://bgit4iapmj1bm" path="res://addons/lost_framework/modules/asset_manager/hot_swap_sprite.gd" id="2_671ko"]
 [ext_resource type="PackedScene" uid="uid://bmtlacr4kkmnv" path="res://systems/world_map/town_location.tscn" id="3_nec8q"]
-[ext_resource type="Script" uid="uid://dneuq16wtfe1r" path="res://addons/lost_framework/modules/data_definition/description_variant.gd" id="4_671ko"]
 [ext_resource type="TileSet" uid="uid://b6cn8ildm8ly" path="res://contents/tile_set.tres" id="4_nec8q"]
-[ext_resource type="Script" uid="uid://jc6n263ren8b" path="res://systems/world_map/town_def.gd" id="5_g4con"]
-[ext_resource type="Script" path="res://systems/world_map/town_garrison.gd" id="6_garrison"]
-[ext_resource type="Script" path="res://systems/world_map/town_reward.gd" id="7_reward"]
+[ext_resource type="Texture2D" uid="uid://b14eel1f81o8h" path="res://contents/assets/tex_mountain_1.png" id="5_po7ml"]
+[ext_resource type="Texture2D" uid="uid://bdrlj4shmntwe" path="res://contents/assets/tex_mountain_4.png" id="6_4gs6w"]
+[ext_resource type="Texture2D" uid="uid://cy7850s8lkef8" path="res://contents/assets/tex_mountain_3.png" id="7_1oak0"]
+[ext_resource type="Texture2D" uid="uid://0y4bq4imfj7w" path="res://contents/assets/tex_mountain_5.png" id="8_1cych"]
+[ext_resource type="Resource" path="res://data/towns/small_village.tres" id="town_small"]
+[ext_resource type="Resource" path="res://data/towns/orchard_hamlet.tres" id="town_orchard"]
+[ext_resource type="Resource" path="res://data/towns/small_village_b.tres" id="town_crossroad"]
+[ext_resource type="Resource" path="res://data/towns/hound_farm.tres" id="town_hounds"]
+[ext_resource type="Resource" path="res://data/towns/small_village_c.tres" id="town_palisade"]
+[ext_resource type="Resource" path="res://data/towns/kennel_manor.tres" id="town_kennel"]
+[ext_resource type="Resource" path="res://data/towns/west_barracks.tres" id="town_barracks"]
+[ext_resource type="Resource" path="res://data/towns/chapel_gate.tres" id="town_gate"]
+[ext_resource type="Resource" path="res://data/towns/capital.tres" id="town_capital"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_5xdch"]
 shader = ExtResource("1_671ko")
@@ -27,109 +36,6 @@ shader_parameter/highlight_speed = 0.25
 shader_parameter/highlight_position = Vector2(-0.22, -0.22)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_nec8q"]
-
-[sub_resource type="Resource" id="Garrison_a"]
-script = ExtResource("6_garrison")
-race = 4
-count = 3
-max_hp = 14
-damage = 2
-flees = true
-
-[sub_resource type="Resource" id="Reward_a"]
-script = ExtResource("7_reward")
-resource_type = 0
-amount = 5
-
-[sub_resource type="Resource" id="Garrison_b_melee"]
-script = ExtResource("6_garrison")
-race = 4
-count = 4
-max_hp = 24
-damage = 5
-flees = false
-
-[sub_resource type="Resource" id="Garrison_b_ranged"]
-script = ExtResource("6_garrison")
-race = 5
-count = 2
-max_hp = 16
-damage = 4
-flees = true
-
-[sub_resource type="Resource" id="Reward_b_corpse"]
-script = ExtResource("7_reward")
-resource_type = 0
-amount = 4
-
-[sub_resource type="Resource" id="Reward_b_bone"]
-script = ExtResource("7_reward")
-resource_type = 1
-amount = 4
-
-[sub_resource type="Resource" id="Garrison_c_melee"]
-script = ExtResource("6_garrison")
-race = 4
-count = 4
-max_hp = 32
-damage = 7
-flees = false
-
-[sub_resource type="Resource" id="Garrison_c_ranged"]
-script = ExtResource("6_garrison")
-race = 5
-count = 3
-max_hp = 20
-damage = 6
-flees = false
-
-[sub_resource type="Resource" id="Reward_c_bone"]
-script = ExtResource("7_reward")
-resource_type = 1
-amount = 6
-
-[sub_resource type="Resource" id="Reward_c_weapon"]
-script = ExtResource("7_reward")
-resource_type = 2
-amount = 2
-
-[sub_resource type="Resource" id="Reward_c_gore"]
-script = ExtResource("7_reward")
-resource_type = 4
-amount = 3
-
-[sub_resource type="Resource" id="Resource_g4con"]
-script = ExtResource("5_g4con")
-id = &"small_village"
-name = "Small Village"
-description = "A quiet hamlet. The people run."
-max_restore_points = 80.0
-difficulty = 1
-garrison = Array[TownGarrison]([SubResource("Garrison_a")])
-rewards = Array[TownReward]([SubResource("Reward_a")])
-metadata/_custom_type_script = "uid://jc6n263ren8b"
-
-[sub_resource type="Resource" id="Resource_r63pq"]
-script = ExtResource("5_g4con")
-id = &"small_village_b"
-name = "Crossroad Village"
-description = "A village that stands and fights."
-max_restore_points = 120.0
-difficulty = 2
-garrison = Array[TownGarrison]([SubResource("Garrison_b_melee"), SubResource("Garrison_b_ranged")])
-rewards = Array[TownReward]([SubResource("Reward_b_corpse"), SubResource("Reward_b_bone")])
-metadata/_custom_type_script = "uid://jc6n263ren8b"
-
-[sub_resource type="Resource" id="Resource_c1kel"]
-script = ExtResource("5_g4con")
-id = &"small_village_c"
-name = "Palisade Village"
-description = "A walled village. Clear an easier town before the road opens."
-max_restore_points = 180.0
-difficulty = 3
-garrison = Array[TownGarrison]([SubResource("Garrison_c_melee"), SubResource("Garrison_c_ranged")])
-rewards = Array[TownReward]([SubResource("Reward_c_bone"), SubResource("Reward_c_weapon"), SubResource("Reward_c_gore")])
-metadata/_custom_type_script = "uid://jc6n263ren8b"
 
 [node name="Map" type="Node2D" unique_id=1660380084]
 
@@ -150,14 +56,70 @@ tile_set = ExtResource("4_nec8q")
 
 [node name="Towns" type="Node2D" parent="." unique_id=1350179267]
 
-[node name="TownLocation4" parent="Towns" unique_id=165821674 instance=ExtResource("3_nec8q")]
-def = SubResource("Resource_g4con")
+[node name="Decorations" type="Node2D" parent="Towns" unique_id=62763294]
 
-[node name="TownLocation5" parent="Towns" unique_id=206815061 instance=ExtResource("3_nec8q")]
+[node name="TexMountain1" type="Sprite2D" parent="Towns/Decorations" unique_id=1528475083]
+position = Vector2(350, -118)
+texture = ExtResource("5_po7ml")
+
+[node name="TexMountain4" type="Sprite2D" parent="Towns/Decorations" unique_id=120471890]
+position = Vector2(-102, -329)
+texture = ExtResource("6_4gs6w")
+
+[node name="TexMountain3" type="Sprite2D" parent="Towns/Decorations" unique_id=1252184552]
+position = Vector2(423, -257)
+texture = ExtResource("7_1oak0")
+
+[node name="TexMountain5" type="Sprite2D" parent="Towns/Decorations" unique_id=540136581]
+position = Vector2(93, -265)
+texture = ExtResource("6_4gs6w")
+
+[node name="TexMountain6" type="Sprite2D" parent="Towns/Decorations" unique_id=1760104797]
+position = Vector2(-612, 236)
+texture = ExtResource("8_1cych")
+
+[node name="TexMountain7" type="Sprite2D" parent="Towns/Decorations" unique_id=2069472387]
+position = Vector2(-347, 257)
+texture = ExtResource("6_4gs6w")
+
+[node name="TownLocation4" parent="Towns" unique_id=165821674 instance=ExtResource("3_nec8q")]
+def = ExtResource("town_small")
+
+[node name="TownOrchard" parent="Towns" instance=ExtResource("3_nec8q")]
+position = Vector2(674, -324)
+def = ExtResource("town_orchard")
+
+[node name="TownLocation5" parent="Towns" unique_id=206815061 node_paths=PackedStringArray("required_locations") instance=ExtResource("3_nec8q")]
 position = Vector2(289.78366, 40.91856)
-def = SubResource("Resource_r63pq")
+def = ExtResource("town_crossroad")
+required_locations = [NodePath("../TownLocation4"), NodePath("../TownOrchard")]
+
+[node name="TownHounds" parent="Towns" node_paths=PackedStringArray("required_locations") instance=ExtResource("3_nec8q")]
+position = Vector2(554, -153)
+def = ExtResource("town_hounds")
+required_locations = [NodePath("../TownLocation4"), NodePath("../TownOrchard")]
 
 [node name="TownLocation6" parent="Towns" unique_id=2121925113 node_paths=PackedStringArray("required_locations") instance=ExtResource("3_nec8q")]
 position = Vector2(-39.34165, 121.804085)
-def = SubResource("Resource_c1kel")
-required_locations = [NodePath("../TownLocation4")]
+def = ExtResource("town_palisade")
+required_locations = [NodePath("../TownLocation5"), NodePath("../TownHounds")]
+
+[node name="TownKennel" parent="Towns" node_paths=PackedStringArray("required_locations") instance=ExtResource("3_nec8q")]
+position = Vector2(245, 265)
+def = ExtResource("town_kennel")
+required_locations = [NodePath("../TownLocation5"), NodePath("../TownHounds")]
+
+[node name="TownLocation7" parent="Towns" unique_id=1179154343 node_paths=PackedStringArray("required_locations") instance=ExtResource("3_nec8q")]
+position = Vector2(-512, -191)
+def = ExtResource("town_barracks")
+required_locations = [NodePath("../TownLocation6"), NodePath("../TownKennel")]
+
+[node name="TownGate" parent="Towns" node_paths=PackedStringArray("required_locations") instance=ExtResource("3_nec8q")]
+position = Vector2(368, 229)
+def = ExtResource("town_gate")
+required_locations = [NodePath("../TownLocation6"), NodePath("../TownKennel")]
+
+[node name="TownCapital" parent="Towns" node_paths=PackedStringArray("required_locations") instance=ExtResource("3_nec8q")]
+position = Vector2(116, -236)
+def = ExtResource("town_capital")
+required_locations = [NodePath("../TownLocation4"), NodePath("../TownOrchard"), NodePath("../TownLocation5"), NodePath("../TownHounds"), NodePath("../TownLocation6"), NodePath("../TownKennel"), NodePath("../TownLocation7"), NodePath("../TownGate")]

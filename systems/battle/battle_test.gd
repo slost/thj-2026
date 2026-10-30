@@ -39,6 +39,8 @@ var _spawn_serial := 0
 
 
 func _enter_tree() -> void:
+	if Game:
+		Game.set_resources_unlimited(true)
 	var map := $TileMaps/Map as TileMapLayer
 	var template := $Unit as Unit2D
 	_hunt_program = _build_demo_program()
@@ -73,6 +75,11 @@ func _enter_tree() -> void:
 		add_child.call_deferred(fleers[index])
 
 
+func _exit_tree() -> void:
+	if Game:
+		Game.set_resources_unlimited(false)
+
+
 func _ready() -> void:
 	var menu := _DebugMenu.new()
 	menu.name = "BattleDebugMenu"
@@ -80,6 +87,30 @@ func _ready() -> void:
 	var script_panel := _ScriptDebug.new()
 	script_panel.name = "ScriptDebugPanel"
 	$UI.add_child(script_panel)
+	_bind_menu_exit($Battle/CanvasLayer/RetreatButton, "_on_retreat_pressed", false)
+	_bind_menu_exit($Battle/CanvasLayer/StageEndScreen/BackButton, "_on_button_pressed", true)
+
+
+func _bind_menu_exit(button: Button, battle_method: String, centered: bool) -> void:
+	if button == null:
+		return
+	button.text = "Back to main menu"
+	if centered:
+		button.offset_left = -420.0
+		button.offset_right = 420.0
+	else:
+		button.offset_left = 80.0
+		button.offset_right = 900.0
+	var battle := $Battle
+	var previous := Callable(battle, battle_method)
+	if button.pressed.is_connected(previous):
+		button.pressed.disconnect(previous)
+	if not button.pressed.is_connected(_on_back_to_menu):
+		button.pressed.connect(_on_back_to_menu)
+
+
+func _on_back_to_menu() -> void:
+	Game.leave_sandbox()
 
 
 func _setup_unit(unit: Unit2D, unit_name: String, team: Unit2D.Team, program: UnitProgram, cpu: int, gpu: int, pos: Vector2, tint: Color, race: Unit2D.Race = Unit2D.Race.ZOMBIE) -> void:

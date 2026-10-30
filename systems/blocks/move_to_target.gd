@@ -23,7 +23,18 @@ func step(unit: Unit2D, ctx: ExecContext) -> StepResult:
 	if target == null or unit.path_failed():
 		unit.stop_moving()
 		return StepResult.CANCELLED
-	if unit.chebyshev_cells_to(target.global_position) <= 1:
+	var cells := unit.chebyshev_cells_to(target.global_position)
+	if unit.keeps_distance():
+		if cells <= Formular.garrison_kite_tiles():
+			unit.move_away_from(target)
+			return StepResult.RUNNING
+		var hold := 1
+		if unit.stats != null:
+			hold = maxi(unit.stats.attack_range, 1)
+		if cells <= hold:
+			unit.stop_moving()
+			return StepResult.DONE
+	elif cells <= 1:
 		unit.stop_moving()
 		return StepResult.DONE
 	ctx.target = target

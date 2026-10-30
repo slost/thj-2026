@@ -11,7 +11,7 @@
 [ext_resource type="Texture2D" uid="uid://dqmg8d3tr3fsm" path="res://placeholders/text_pages.png" id="8_pages"]
 [ext_resource type="Script" uid="uid://bgit4iapmj1bm" path="res://addons/lost_framework/modules/asset_manager/hot_swap_sprite.gd" id="9_swap"]
 [ext_resource type="Script" uid="uid://dr6gpm73wngym" path="res://addons/lost_framework/modules/camera_controler/parallax_offset_component.gd" id="10_parallax"]
-[ext_resource type="Script" path="res://systems/battle/reward_reveal.gd" id="11_reward"]
+[ext_resource type="Script" uid="uid://df6er3ywasag8" path="res://systems/battle/reward_reveal.gd" id="11_reward"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_ksea4"]
 texture = ExtResource("3_8h5sc")
@@ -49,7 +49,7 @@ tile_map_data = PackedByteArray("AAD+////AAAEAAQAAAD+/wAAAAAJAAIAAAABAAEAAAAJAAU
 tile_set = ExtResource("2_kujvl")
 
 [node name="Decor" type="TileMapLayer" parent="TileMaps" unique_id=452068512]
-tile_map_data = PackedByteArray("AAD8/wIAAQADAAIAAAD9//7/AQADAAIAAAD7/wIAAQACAAIAAAACAAMAAQAHAAIAAAABAAEAAQAIAAEAAAACAAEAAQAIAAEAAAADAAAAAQAHAAIAAAAEAAMAAQAHAAIAAAA=")
+tile_map_data = PackedByteArray("AAD8/wIAAQADAAIAAAD9//7/AQADAAIAAAD7/wIAAQACAAIAAAACAAMAAQAHAAIAAAABAAEAAQAIAAEAAAACAAEAAQAIAAEAAAADAAAAAQAHAAIAAAAEAAMAAQAHAAIAAAD3/wQAAQAHAAIAAAD6/wUAAQAFAAIAAAD6/wMAAQADAAIAAAAIAPv/AQADAAIAAAD7//3/AQADAAIAAAD4//z/AQADAAIAAAAFAAUAAQABAAIAAAAHAAMAAQABAAIAAAAJAAMAAQAHAAEAAAAGAPz/AQAHAAEAAAD7//z/AQAHAAEAAAA=")
 tile_set = SubResource("TileSet_vcj6o")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=960104964]
@@ -72,7 +72,7 @@ offset_right = 903.0
 offset_bottom = 352.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_font_sizes/font_size = 64
+theme_type_variation = &"ButtonDanger"
 text = "Retreat"
 
 [node name="StageEndScreen" type="Control" parent="CanvasLayer" unique_id=1393297997]
@@ -94,7 +94,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 1)
 
-[node name="RewardReveal" type="VBoxContainer" parent="CanvasLayer/StageEndScreen"]
+[node name="RewardReveal" type="VBoxContainer" parent="CanvasLayer/StageEndScreen" unique_id=1119313980]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -107,22 +107,21 @@ offset_right = 480.0
 offset_bottom = -80.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 16
 alignment = 1
 script = ExtResource("11_reward")
 
-[node name="Title" type="Label" parent="CanvasLayer/StageEndScreen/RewardReveal"]
+[node name="Title" type="Label" parent="CanvasLayer/StageEndScreen/RewardReveal" unique_id=117113753]
 layout_mode = 2
-theme_override_font_sizes/font_size = 48
+theme_type_variation = &"LabelTitle"
 text = "Rewards"
 horizontal_alignment = 1
 
-[node name="Row" type="HBoxContainer" parent="CanvasLayer/StageEndScreen/RewardReveal"]
+[node name="Row" type="HBoxContainer" parent="CanvasLayer/StageEndScreen/RewardReveal" unique_id=595918029]
 layout_mode = 2
-theme_override_constants/separation = 28
 alignment = 1
 
 [node name="BackButton" type="Button" parent="CanvasLayer/StageEndScreen" unique_id=1229068114]
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -135,10 +134,10 @@ offset_right = 119.0
 offset_bottom = 48.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_font_sizes/font_size = 64
+theme_type_variation = &"ButtonPrimary"
 text = "Back to World"
 
-[node name="StateContainer" type="HBoxContainer" parent="CanvasLayer"]
+[node name="StateContainer" type="HBoxContainer" parent="CanvasLayer" unique_id=1977298611]
 custom_minimum_size = Vector2(128, 128)
 anchors_preset = 3
 anchor_left = 1.0
@@ -151,16 +150,15 @@ offset_right = -16.0
 offset_bottom = -16.0
 grow_horizontal = 0
 grow_vertical = 0
-theme_override_constants/separation = 16
 
-[node name="FieldButton" type="Button" parent="CanvasLayer/StateContainer"]
+[node name="FieldButton" type="Button" parent="CanvasLayer/StateContainer" unique_id=722236620]
 layout_mode = 2
 offset_transform_enabled = true
 icon = ExtResource("4_camp")
 flat = true
 script = ExtResource("6_state")
 
-[node name="CodeButton" type="Button" parent="CanvasLayer/StateContainer"]
+[node name="CodeButton" type="Button" parent="CanvasLayer/StateContainer" unique_id=317009626]
 layout_mode = 2
 offset_transform_enabled = true
 icon = ExtResource("5_book")
@@ -168,24 +166,24 @@ flat = true
 script = ExtResource("6_state")
 state = 1
 
-[node name="CodeLayer" type="CanvasLayer" parent="."]
+[node name="CodeLayer" type="CanvasLayer" parent="." unique_id=769365432]
 layer = 5
 follow_viewport_enabled = true
 
-[node name="Editor" parent="CodeLayer" instance=ExtResource("7_editor") node_paths=PackedStringArray("book")]
+[node name="Editor" parent="CodeLayer" unique_id=237649449 node_paths=PackedStringArray("book") instance=ExtResource("7_editor")]
 book = NodePath("../../BookBackground/BookScreen")
 active_on_ready = false
 
-[node name="BookBackground" type="Node2D" parent="."]
+[node name="BookBackground" type="Node2D" parent="." unique_id=1125942690]
 visible = false
 z_index = 9
 
-[node name="ParallaxOffset" type="Node" parent="BookBackground" node_paths=PackedStringArray("visual")]
+[node name="ParallaxOffset" type="Node" parent="BookBackground" unique_id=1681834469 node_paths=PackedStringArray("visual")]
 script = ExtResource("10_parallax")
 visual = NodePath("..")
 enabled = false
 
-[node name="BookScreen" type="Sprite2D" parent="BookBackground"]
+[node name="BookScreen" type="Sprite2D" parent="BookBackground" unique_id=533778934]
 scale = Vector2(0.8703704, 0.8703704)
 texture = ExtResource("8_pages")
 script = ExtResource("9_swap")

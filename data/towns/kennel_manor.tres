@@ -1,0 +1,44 @@
+[gd_resource type="Resource" script_class="TownDef" format=3 uid="uid://dkelwalafembc"]
+
+[ext_resource type="Script" uid="uid://jc6n263ren8b" path="res://systems/world_map/town_def.gd" id="1_def"]
+[ext_resource type="Script" uid="uid://dneuq16wtfe1r" path="res://addons/lost_framework/modules/data_definition/description_variant.gd" id="1_n14bb"]
+[ext_resource type="Script" uid="uid://wsn3xhgbgden" path="res://systems/world_map/town_garrison.gd" id="2_gar"]
+[ext_resource type="Script" uid="uid://b5vdnbpirpbg3" path="res://systems/world_map/town_reward.gd" id="3_rew"]
+
+[sub_resource type="Resource" id="Garrison_melee"]
+script = ExtResource("2_gar")
+count = 2
+
+[sub_resource type="Resource" id="Garrison_dog"]
+script = ExtResource("2_gar")
+race = 6
+count = 3
+
+[sub_resource type="Resource" id="Garrison_hero"]
+script = ExtResource("2_gar")
+race = 7
+
+[sub_resource type="Resource" id="Reward_bone"]
+script = ExtResource("3_rew")
+resource_type = 1
+amount = 8
+
+[sub_resource type="Resource" id="Reward_collar"]
+script = ExtResource("3_rew")
+resource_type = 3
+amount = 3
+
+[sub_resource type="Resource" id="Reward_gore"]
+script = ExtResource("3_rew")
+resource_type = 4
+amount = 4
+
+[resource]
+script = ExtResource("1_def")
+max_restore_points = 220.0
+difficulty = 4
+garrison = Array[ExtResource("2_gar")]([SubResource("Garrison_melee"), SubResource("Garrison_dog"), SubResource("Garrison_hero")])
+rewards = Array[ExtResource("3_rew")]([SubResource("Reward_bone"), SubResource("Reward_collar"), SubResource("Reward_gore")])
+id = &"kennel_manor"
+name = "Kennel Manor"
+description = "A knight keeps a pack of war dogs. This is the first hero on the road."

@@ -8,7 +8,7 @@ signal died(unit: Unit2D)
 
 enum State { SPAWNING, IDLE, MOVING, ATTACKING, DEAD }
 enum Team { NONE, MINION, VILLAGER } ## None is neutral, Minions are hostile to Villagers, Villagers are hostile to Minions
-enum Race { ZOMBIE, SKELETON_MELEE, SKELETON_RANGED, DIRE_WOLF, VILLAGER_MELEE, VILLAGER_RANGED, WARDOG } ## Race is used to determine the unit's abilities and animations.
+enum Race { ZOMBIE, SKELETON_MELEE, SKELETON_RANGED, DIRE_WOLF, VILLAGER_MELEE, VILLAGER_RANGED, WARDOG, HERO_MELEE, HERO_RANGED } ## Race picks abilities and animations. New values stay at the end so saved ints remain valid.
 
 const GROUP := &"units"
 const ARRIVE_RADIUS := 8.0
@@ -209,11 +209,26 @@ static func scene_path_for_race(which: Race) -> String:
 			return "res://contents/animations/villager.tscn"
 		Race.WARDOG:
 			return "res://contents/animations/wardog.tscn"
+		Race.HERO_MELEE:
+			return "res://contents/animations/hero_melee.tscn"
+		Race.HERO_RANGED:
+			return "res://contents/animations/hero_range.tscn"
 	return ""
 
 
+## Sprite sheets only. Hostile logic uses Team, not this.
 static func is_villager_race(which: Race) -> bool:
 	return which == Race.VILLAGER_MELEE or which == Race.VILLAGER_RANGED
+
+
+## Heroes and war dogs stand their ground. Only villagers can flee.
+static func race_never_flees(which: Race) -> bool:
+	return which == Race.WARDOG or which == Race.HERO_MELEE or which == Race.HERO_RANGED
+
+
+## Ranged heroes keep their distance instead of walking into a minion.
+func keeps_distance() -> bool:
+	return race == Race.HERO_RANGED
 
 
 ## The scene ships with the zombie visual. Other races replace that child.
@@ -486,6 +501,13 @@ func find_nearest_enemy(max_tiles: int = -1) -> Unit2D:
 	return _find_nearest(true, max_tiles)
 
 
+## Who this body remembers. A melee hero picks the strongest minion. Everyone else picks the nearest.
+func find_preferred_enemy(max_tiles: int = -1) -> Unit2D:
+	if race == Race.HERO_MELEE:
+		return _find_strongest_enemy(max_tiles)
+	return find_nearest_enemy(max_tiles)
+
+
 func find_nearest_ally(max_tiles: int = -1) -> Unit2D:
 	return _find_nearest(false, max_tiles)
 
@@ -536,6 +558,32 @@ func _find_nearest(want_enemy: bool, max_tiles: int) -> Unit2D:
 			continue
 		if best == null or dist < best_dist:
 			best = other
+			best_dist = dist
+	return best
+
+
+## Highest max HP inside the range. Equal HP falls back to the nearest body.
+func _find_strongest_enemy(max_tiles: int) -> Unit2D:
+	var limit := max_tiles
+	if limit < 0:
+		limit = stats.detect_range if stats else 0
+	var max_dist := float(limit) * _tile_size()
+	var best: Unit2D = null
+	var best_hp := -1
+	var best_dist := max_dist
+	for node in get_tree().get_nodes_in_group(GROUP):
+		var other := node as Unit2D
+		if other == null or other == self or not is_instance_valid(other):
+			continue
+		if other.state == State.DEAD or other.state == State.SPAWNING or not is_enemy(other):
+			continue
+		var dist := global_position.distance_to(other.global_position)
+		if dist > max_dist:
+			continue
+		var hp := other.stats.max_hp if other.stats != null else 1
+		if best == null or hp > best_hp or (hp == best_hp and dist < best_dist):
+			best = other
+			best_hp = hp
 			best_dist = dist
 	return best
 

@@ -46,6 +46,8 @@ var _camp_director: FocusDirector
 
 
 func _ready() -> void:
+	if Game.ending_after_map:
+		visible = false
 	Game.change_stage(self)
 	Game.world_map = self
 	if map:
@@ -53,6 +55,11 @@ func _ready() -> void:
 		_map_rest_scale = map.scale
 	unfocus_location()
 	Game.load_map_state()
+	if Game.take_victory_exit():
+		Game.go_to_title_for_ending()
+		return
+	if Game.debug_unlock_capital:
+		apply_debug_capital_unlock()
 	set_state()
 	if camp:
 		_Summoner.spawn_army_at(camp)
@@ -111,6 +118,20 @@ func reset_locations() -> void:
 	refresh_locations()
 	if focus_location != null:
 		_update_debug_label()
+
+
+## Marks every town except the capital as destroyed, then saves.
+func apply_debug_capital_unlock() -> void:
+	Game.debug_unlock_capital = false
+	for town in _towns():
+		if town.def != null and town.def.is_capital:
+			continue
+		town.has_been_destroyed = true
+		if town.def != null:
+			town.restore_points = town.def.max_restore_points
+		town.refresh_visual()
+	refresh_locations()
+	Game.save_map_state()
 
 
 func refresh_locations() -> void:

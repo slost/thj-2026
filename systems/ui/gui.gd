@@ -16,6 +16,8 @@ const _ALPHA_CUTOFF := 0.12
 @export var hand: HotSwapSprite
 
 var _fullscreen_requested := false
+## Title cutscenes hide this layer. Portrait updates must not show it again.
+var _suppressed := false
 ## Opaque texels for a texture, built once. Keys are texture instance ids.
 var _opaque_masks: Dictionary = {}
 var _summoning := false
@@ -33,7 +35,18 @@ func _ready() -> void:
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 
 
+func set_suppressed(active: bool) -> void:
+	_suppressed = active
+	for child in get_children():
+		if child is CanvasItem:
+			child.visible = not active
+	if not active:
+		update_portrait()
+
+
 func _process(delta: float) -> void:
+	if _suppressed:
+		return
 	_sync_sacrifice_button()
 	if portrait == null or not is_instance_valid(portrait):
 		return
@@ -277,6 +290,8 @@ func portrait_screen_rect() -> Rect2:
 
 
 func update_portrait() -> void:
+	if _suppressed:
+		return
 	hand.hide()
 	if _summoning:
 		_apply_point_portrait()

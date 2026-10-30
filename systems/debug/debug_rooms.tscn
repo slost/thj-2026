@@ -1,61 +1,182 @@
 [gd_scene format=3 uid="uid://dw2o45af0ufqs"]
 
 [ext_resource type="Script" uid="uid://cmj8di0b5topp" path="res://systems/debug/debug_rooms.gd" id="1_1tnwh"]
+[ext_resource type="Texture2D" uid="uid://bp3dne13cbv5e" path="res://contents/assets/tex_main_menu_1.png" id="2_vpwxn"]
+[ext_resource type="Texture2D" uid="uid://b8wxt8qxf4g3v" path="res://contents/assets/tex_main_menu_2.png" id="3_66mwg"]
+[ext_resource type="Texture2D" uid="uid://ms3xb1rvam01" path="res://contents/assets/tex_main_menu_3.png" id="4_745hb"]
+[ext_resource type="Texture2D" uid="uid://c8t41ctpe3hd2" path="res://contents/assets/tex_main_menu_4.png" id="5_3iay2"]
+[ext_resource type="Texture2D" uid="uid://nfe076n5gmws" path="res://contents/assets/tex_main_menu_5.png" id="6_6tu4t"]
+[ext_resource type="Script" uid="uid://dw84jg68x20tf" path="res://addons/lost_framework/modules/camera_controler/mouse_pan_component.gd" id="7_66mwg"]
+[ext_resource type="Script" uid="uid://dr6gpm73wngym" path="res://addons/lost_framework/modules/camera_controler/parallax_offset_component.gd" id="8_parallax"]
+[ext_resource type="PackedScene" uid="uid://cr2i4qgrneay4" path="res://addons/lost_framework/modules/settings/settings_screen_template.tscn" id="9_settings"]
 
-[node name="DebugRooms" type="Control" unique_id=1374424786]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 282.66663
-offset_top = 159.0
-offset_right = -282.66663
-offset_bottom = -159.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="Node2D" type="Node2D" unique_id=217534769]
+scale = Vector2(1.5, 1.5)
+
+[node name="TexMainMenu1" type="Sprite2D" parent="." unique_id=1379853556]
+texture = ExtResource("2_vpwxn")
+
+[node name="ParallaxOffset" type="Node" parent="TexMainMenu1" unique_id=1789672269 node_paths=PackedStringArray("visual")]
+script = ExtResource("8_parallax")
+visual = NodePath("..")
+factor = Vector2(0.4, 0.4)
+
+[node name="TexMainMenu2" type="Sprite2D" parent="." unique_id=686477589]
+position = Vector2(0, 171.33334)
+texture = ExtResource("3_66mwg")
+
+[node name="ParallaxOffset" type="Node" parent="TexMainMenu2" unique_id=215951736 node_paths=PackedStringArray("visual")]
+script = ExtResource("8_parallax")
+visual = NodePath("..")
+factor = Vector2(0.55, 0.55)
+
+[node name="TexMainMenu3" type="Sprite2D" parent="." unique_id=2059344378]
+texture = ExtResource("4_745hb")
+
+[node name="ParallaxOffset" type="Node" parent="TexMainMenu3" unique_id=577653530 node_paths=PackedStringArray("visual")]
+script = ExtResource("8_parallax")
+visual = NodePath("..")
+factor = Vector2(0.75, 0.75)
+
+[node name="TexMainMenu4" type="Sprite2D" parent="." unique_id=1902916597]
+position = Vector2(0, 341.99997)
+texture = ExtResource("5_3iay2")
+
+[node name="ParallaxOffset" type="Node" parent="TexMainMenu4" unique_id=356219136 node_paths=PackedStringArray("visual")]
+script = ExtResource("8_parallax")
+visual = NodePath("..")
+factor = Vector2(0.92, 0.92)
+
+[node name="TexMainMenu5" type="Sprite2D" parent="." unique_id=2064045442]
+position = Vector2(0, 342.66663)
+texture = ExtResource("6_6tu4t")
+
+[node name="ParallaxOffset" type="Node" parent="TexMainMenu5" unique_id=648998526 node_paths=PackedStringArray("visual")]
+script = ExtResource("8_parallax")
+visual = NodePath("..")
+factor = Vector2(1.1, 1.1)
+
+[node name="DebugRooms" type="CanvasLayer" parent="." unique_id=876773868]
 script = ExtResource("1_1tnwh")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1831224543]
-layout_mode = 1
+[node name="CodeButton" type="Button" parent="DebugRooms" unique_id=1141681656]
+visible = false
+custom_minimum_size = Vector2(0, 64)
+offset_left = 1346.5
+offset_top = 682.0
+offset_right = 1712.5
+offset_bottom = 778.0
+text = "Code Editor"
+
+[node name="VBoxContainer" type="HBoxContainer" parent="DebugRooms" unique_id=1940214768]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -20.0
-offset_top = -20.0
-offset_right = 20.0
-offset_bottom = 20.0
+offset_left = -216.0
+offset_top = 235.0
+offset_right = 216.0
+offset_bottom = 301.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="WorldMapButton" type="Button" parent="VBoxContainer" unique_id=1457424934]
+[node name="WorldMapButton" type="Button" parent="DebugRooms/VBoxContainer" unique_id=1457424934]
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
-theme_override_font_sizes/font_size = 64
-text = "World Map"
+theme_type_variation = &"ButtonPrimary"
+text = "Play"
 
-[node name="TutorialButton" type="Button" parent="VBoxContainer"]
+[node name="TutorialButton" type="Button" parent="DebugRooms/VBoxContainer" unique_id=1724520159]
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
-theme_override_font_sizes/font_size = 64
 text = "Tutorial"
 
-[node name="BattleButton" type="Button" parent="VBoxContainer" unique_id=1199337233]
+[node name="BattleButton" type="Button" parent="DebugRooms/VBoxContainer" unique_id=1199337233]
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
-theme_override_font_sizes/font_size = 64
-text = "Battle"
+text = "Sand Box"
 
-[node name="AnimationButton" type="Button" parent="VBoxContainer" unique_id=1141681657]
+[node name="AnimationButton" type="Button" parent="DebugRooms/VBoxContainer" unique_id=1141681657]
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
-theme_override_font_sizes/font_size = 64
 text = "Animation"
 
-[node name="CodeButton" type="Button" parent="VBoxContainer" unique_id=1141681656]
+[node name="SettingButton" type="Button" parent="DebugRooms/VBoxContainer" unique_id=1903984437]
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
-theme_override_font_sizes/font_size = 64
-text = "Code Editor"
+text = "Settings"
 
-[connection signal="button_down" from="VBoxContainer/WorldMapButton" to="." method="_on_world_map_button_button_down"]
-[connection signal="pressed" from="VBoxContainer/TutorialButton" to="." method="_on_tutorial_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/BattleButton" to="." method="_on_battle_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/AnimationButton" to="." method="_on_animation_button_pressed"]
-[connection signal="pressed" from="VBoxContainer/CodeButton" to="." method="_on_code_button_pressed"]
+[node name="CreditsButton" type="Button" parent="DebugRooms/VBoxContainer" unique_id=1598981413]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+text = "Credits"
+
+[node name="EndingButton" type="Button" parent="DebugRooms/VBoxContainer"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+text = "Ending"
+
+[node name="UnlockCapitalButton" type="Button" parent="DebugRooms/VBoxContainer"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+text = "Unlock Capital"
+
+[node name="SettingsScreen" parent="DebugRooms" unique_id=911303317 instance=ExtResource("9_settings")]
+visible = false
+
+[node name="Credits" type="Control" parent="DebugRooms" unique_id=197085291]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Backdrop" type="ColorRect" parent="DebugRooms/Credits" unique_id=1396599234]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="VideoStreamPlayer" type="VideoStreamPlayer" parent="DebugRooms/Credits" unique_id=584415839]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand = true
+
+[node name="BackButton" type="Button" parent="DebugRooms/Credits" unique_id=1100224940]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 204.0
+offset_bottom = 80.0
+text = "Skip"
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=192791497]
+zoom = Vector2(0.7, 0.7)
+
+[node name="MousePan" type="Node" parent="Camera2D" unique_id=1733817157]
+script = ExtResource("7_66mwg")
+max_offset = Vector2(120, 60)
+
+[connection signal="pressed" from="DebugRooms/CodeButton" to="DebugRooms" method="_on_code_button_pressed"]
+[connection signal="button_down" from="DebugRooms/VBoxContainer/WorldMapButton" to="DebugRooms" method="_on_world_map_button_button_down"]
+[connection signal="pressed" from="DebugRooms/VBoxContainer/TutorialButton" to="DebugRooms" method="_on_tutorial_button_pressed"]
+[connection signal="pressed" from="DebugRooms/VBoxContainer/BattleButton" to="DebugRooms" method="_on_battle_button_pressed"]
+[connection signal="pressed" from="DebugRooms/VBoxContainer/AnimationButton" to="DebugRooms" method="_on_animation_button_pressed"]
+[connection signal="pressed" from="DebugRooms/VBoxContainer/SettingButton" to="DebugRooms" method="_on_setting_button_pressed"]
+[connection signal="pressed" from="DebugRooms/VBoxContainer/CreditsButton" to="DebugRooms" method="_on_credits_button_pressed"]
+[connection signal="pressed" from="DebugRooms/VBoxContainer/EndingButton" to="DebugRooms" method="_on_ending_button_pressed"]
+[connection signal="pressed" from="DebugRooms/VBoxContainer/UnlockCapitalButton" to="DebugRooms" method="_on_unlock_capital_pressed"]
+[connection signal="pressed" from="DebugRooms/Credits/BackButton" to="DebugRooms" method="_on_credits_back_pressed"]

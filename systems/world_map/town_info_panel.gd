@@ -13,7 +13,7 @@ func show_town(town: TownLocation) -> void:
 		description = def.get_display_description()
 		rank = def.difficulty
 	_label("NameLabel").text = title
-	_label("BodyLabel").text = _body(def, description, rank)
+	_label("BodyLabel").text = _body(town, def, description, rank)
 	var maximum := def.max_restore_points if def != null else town.restore_points
 	var bar := get_node(^"VBoxContainer/ProgressBar") as ProgressBar
 	bar.max_value = maxf(maximum, 1.0)
@@ -30,8 +30,14 @@ func show_town(town: TownLocation) -> void:
 		button.text = LocaleText.resolve("ui.town.raid", "Raid")
 
 
-func _body(def: TownDef, description: String, rank: int) -> String:
+func _body(town: TownLocation, def: TownDef, description: String, rank: int) -> String:
 	var lines: PackedStringArray = []
+	if def != null and def.is_capital:
+		lines.append(LocaleText.resolve("ui.town.capital", "Capital"))
+	if town != null and town.is_locked():
+		var reason := town.lock_reason()
+		if not reason.is_empty():
+			lines.append(reason)
 	if not description.is_empty():
 		lines.append(description)
 		lines.append("")
